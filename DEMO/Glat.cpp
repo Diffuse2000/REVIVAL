@@ -1,0 +1,610 @@
+#include "Rev.H"
+
+
+void Cross_Fade(byte *U1,byte *U2,byte *Target,long Perc)
+{
+	long I;
+	for(I=0;I<PageSize;I++)
+		Target[I] = (U1[I]*(255-Perc) + U2[I]*Perc)>>8;
+}
+
+
+	// tables, generated and used as an optimization.
+#define TRIG_ACC 512 //trigonometric table accuracy. must be a power of 2.
+#define TRIG_MASK (TRIG_ACC-1)
+#define TRIG_FACTOR (512.0/PI_M2)
+
+#ifdef _C_WATCOM
+#define VSurface Screen
+#else
+#define VSurface MainSurf
+#endif
+
+
+static float *LenTable;
+static float *SinTable;
+static float *CosTable;
+//static NewGridPoint *Plane_GP;
+//static GridPoint *Plane_GP;
+static GridPointTG *Plane_GP;
+static GridPointT *Code_GP;
+static GridPointT *Gfx_GP;
+static GridPointT *Sfx_GP;
+static VESA_Surface Surf1;
+static VESA_Surface Surf2;
+static VESA_Surface Surf3;
+static VESA_Surface Surf4;
+static long numGridPoints;
+static char *Page1;
+static char *Page2;
+static char *Page3;
+static char *Page4;
+static long TrigOffset;
+static Texture *LogoTexture;
+static Image *LogoImage;
+static Texture *PlaneTexture;
+static Image *PlaneImage;
+static Texture *CodeTexture;
+static Image *CodeImage;
+static Texture *GfxTexture;
+static Image *GfxImage;
+static Texture *SfxTexture;
+static Image *SfxImage;
+
+
+void Initialize_Glato()
+{
+
+	static int x,y,i,j;
+	int X,Y;
+	float XResFactor = XRes/320.0;
+
+	LogoTexture = new Texture;
+	LogoImage = new Image;
+	PlaneTexture = new Texture;
+	PlaneImage = new Image;
+	CodeTexture = new Texture;
+	CodeImage = new Image;
+	GfxTexture = new Texture;
+	GfxImage = new Image;
+	SfxTexture = new Texture;
+	SfxImage = new Image;
+
+	Load_Image_JPEG(LogoImage,"Textures//Logo.JPG");
+	Scale_Image(LogoImage,XRes,YRes);
+
+/*	LogoTexture->FileName = strdup("Textures//Logo.JPG");
+	Identify_Texture(LogoTexture);
+	if (!LogoTexture->BPP)
+	{
+		printf("Error Loading texture!\n");
+		exit(1);
+	}
+	Load_Texture(LogoTexture);
+	BPPConvert_Texture(LogoTexture,32);
+	Convert_Texture2Image(LogoTexture,LogoImage);*/
+	
+
+	PlaneTexture->FileName = strdup("Textures//SC13.JPG");
+	Identify_Texture(PlaneTexture);
+	if (!PlaneTexture->BPP)
+	{
+		printf("Error Loading texture!\n");
+		exit(1);
+	}
+	Load_Texture(PlaneTexture);
+	Convert_Texture2Image(PlaneTexture,PlaneImage);
+	//PlaneImage->Data[0] = 0x80808080;
+//	WOBPOINTSHEIGHT = 30;
+
+	CodeTexture->FileName = strdup("Textures//Code.JPG");
+	Identify_Texture(CodeTexture);
+	if (!CodeTexture->BPP)
+	{
+		printf("Error Loading texture!\n");
+		exit(1);
+	}
+	Load_Texture(CodeTexture);
+	Convert_Texture2Image(CodeTexture,CodeImage);
+
+
+	GfxTexture->FileName = strdup("Textures//Gfx.JPG");
+	Identify_Texture(GfxTexture);
+	if (!GfxTexture->BPP)
+	{
+		printf("Error Loading texture!\n");
+		exit(1);
+	}
+	Load_Texture(GfxTexture);
+	Convert_Texture2Image(GfxTexture,GfxImage);
+
+	SfxTexture->FileName = strdup("Textures//Sfx.JPG");
+	Identify_Texture(SfxTexture);
+	if (!SfxTexture->BPP)
+	{
+		printf("Error Loading texture!\n");
+		exit(1);
+	}
+	Load_Texture(SfxTexture);
+	Convert_Texture2Image(SfxTexture,SfxImage);
+
+
+	Page1 = new char[PageSize];
+	Page2 = new char[PageSize];
+	Page3 = new char[PageSize];
+	Page4 = new char[PageSize];
+
+	// only last YRes - YRes & (~7) lines should be cleared
+	memset(Page1, 0, PageSize);
+	memset(Page2, 0, PageSize);
+	memset(Page3, 0, PageSize);
+	memset(Page4, 0, PageSize);
+
+	memcpy(&Surf1,VSurface,sizeof(VESA_Surface));
+	memcpy(&Surf2,VSurface,sizeof(VESA_Surface));
+	memcpy(&Surf3,VSurface,sizeof(VESA_Surface));
+	memcpy(&Surf4,VSurface,sizeof(VESA_Surface));
+	Surf1.Data = Page1;
+	Surf2.Data = Page2;
+	Surf3.Data = Page3;
+	Surf4.Data = Page4;
+	Surf1.Flags = VSurf_Noalloc;
+	Surf1.Targ = NULL;
+	Surf2.Flags = VSurf_Noalloc;
+	Surf2.Targ = NULL;
+	Surf3.Flags = VSurf_Noalloc;
+	Surf3.Targ = NULL;
+	Surf4.Flags = VSurf_Noalloc;
+	Surf4.Targ = NULL;
+
+	numGridPoints = ((XRes>>3)+1)*((YRes>>3)+1);
+	//Plane_GP = new NewGridPoint[numGridPoints];
+	//Plane_GP = new GridPoint[numGridPoints];
+	Plane_GP = new GridPointTG[numGridPoints];
+	Code_GP = new GridPointT[numGridPoints];
+	Gfx_GP = new GridPointT[numGridPoints];
+	Sfx_GP = new GridPointT[numGridPoints];
+	
+	LenTable = new float [numGridPoints];
+	SinTable = new float [TRIG_ACC];
+	CosTable = new float [TRIG_ACC];
+	
+	j = 0;
+	for(i=0; i<TRIG_ACC; i++)
+	{
+		SinTable[i] = sin(i*PI_M2/TRIG_ACC);
+		CosTable[i] = cos(i*PI_M2/TRIG_ACC);
+	}
+
+	for (y=0;y<=YRes;y+=8)
+	{
+		for (x=0;x<=XRes;x+=8)
+		{
+			X = x - XRes * 0.5;
+			Y = y - YRes * 0.5;
+
+			LenTable[j] = sqrt((float)(X*X + Y*Y))/XResFactor;
+			j++;
+		}
+	}
+}
+
+void Run_Glato(void)
+{
+//	Setup_Grid_Texture_Mapper_XXX(XRes, YRes);
+//	Setup_Grid_Texture_Mapper_MMX(XRes, YRes);
+
+	Vector CameraPos(0,0,0);
+	Matrix CamMat;
+	float Radius;
+	static int x,y,i,j;
+	static float a,bb,c,d,Delta,X1,X2,X3,z,Rx,Ry,Rz;
+	static float u,v,u1,v1,u2,v2,r,g,b;
+	static float Code_R1,Code_RS,Code_R2,CCosR1,CSinR1,CCosR2,CSinR2;
+	static float Gfx_R1,Gfx_R2,GCosR1,GSinR1,GCosR2,GSinR2,Gfx_RS;
+	static Vector Intersection1,Origin1,Direction1,U;
+	
+	int X,Y;
+	float R1,R3,R4;
+
+	Matrix_Identity(CamMat);
+	Radius = 1;
+
+
+	int Gfx = 0,Sfx = 0, Code = 1;
+	// Run wobbler
+#ifdef _C_WATCOM
+#ifdef Play_Music
+	Play_Module();
+#endif
+#endif
+
+	float ST;
+	long timerStack[20], timerIndex = 0;
+	for(i=0; i<20; i++)
+		timerStack[i] = Timer;
+
+	char MSGStr[MAX_GSTRING];
+
+	float XResFactor = XRes/320.0;
+	float rXResFactor = 320.0/XRes;
+	float rYResFactor = 240.0/YRes;
+
+	dword TTrd = Timer;
+
+	// clear the screen once (only yres % 8 last lines are really needed)
+	memset(VPage, 0, PageSize);
+
+	while (Timer<3500)
+	{
+		// fast forward/rewind
+		dTime = Timer-TTrd;		
+		if (Keyboard[ScF2])
+		{
+			Timer += dTime * 8;
+		}
+		if (Keyboard[ScF1])
+		{
+			if (dTime * 8 > Timer)
+				Timer = 0;
+			else
+				Timer -= dTime * 8;
+		}
+		TTrd = Timer;
+
+		if (Timer <= 100 * 11)
+			ST = (Timer*2500)/(1000+Timer);//  sqrt(Timer*1600);
+		if (Timer > 100 * 11){ Gfx = 1;Code = 0;
+			ST = ((Timer-1100)*2500)/(1000+(Timer-1100));//  sqrt(Timer*1600);
+		}
+		if (Timer > 100 * 23){ Gfx = 0;Sfx = 1;
+			ST = ((Timer-2300)*2500)/(1000+(Timer-2300));//  sqrt(Timer*1600);
+		}
+//		ST = (Timer*2000)/(1000+Timer);//  sqrt(Timer*1600);
+		Euler_Angles(CamMat,Rx,Ry,Rz);
+		i=0;
+		j=0;
+		//code
+		Code_R1 = ST * 0.0005;
+		// back
+		CSinR1 = sin(Code_R1*0.1);
+		CCosR1 = cos(Code_R1*0.1);
+	if (ST < 700)
+		Code_RS = Code_R1 * 0.5;
+
+		Gfx_R1 = - (ST) * 0.000001;
+		GSinR1 = sin(Gfx_R1*0.05);
+		GCosR1 = cos(Gfx_R1*0.05);
+		if (ST < 400)
+			Gfx_RS = (ST) * 0.00001;
+
+
+		Origin1.x=CameraPos.x;
+		Origin1.y=CameraPos.y;
+		Origin1.z=CameraPos.z;
+		
+		// Clear page isn't required as wobbler overwrites entire screen / frame
+//		memset(VPage, 0, PageSize);
+		for (y=0;y<=YRes;y+=8)
+			for (x=0;x<=XRes;x+=8)
+			{
+				Direction1.x=x-(XRes >> 1);
+				Direction1.y=y-(YRes >> 1);
+				Direction1.z=256.0*XResFactor;
+				MatrixXVector(CamMat,&Direction1,&U);
+				Direction1=U;
+				Vector_Norm(&Direction1);
+				a=Radius-Origin1.y;
+				c=-Radius-Origin1.y;
+				d=Direction1.y;
+				
+				if (d<=0)
+				{
+					if (d==0)
+						X2 = 0;
+					else
+						X2=c/d;
+					Intersection1.x = Origin1.x + Direction1.x * X2;
+					Intersection1.y = Origin1.y + Direction1.y * X2;
+					Intersection1.z = Origin1.z + Direction1.z * X2;
+
+					u=(Intersection1.x+cos(Intersection1.z+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
+					v=(Intersection1.z+sin(Intersection1.x+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
+					Intersection1.x-=Origin1.x;
+					Intersection1.y-=Origin1.y;
+					Intersection1.z-=Origin1.z;
+					r=(sqrt(Intersection1.x*Intersection1.x+Intersection1.y*Intersection1.y+Intersection1.z*Intersection1.z)*32);
+					//r*= 1.8;//1.3;
+					if (r>253.0f) r=253.0f;
+					r=255.0f-r;
+					if (r<2.0f) r=2.0f;
+					b=r * 0.7f;
+					g= r*0.8f;
+					//r*= 0.5;
+					g-=Timer /(40 * 4);
+					b-=Timer /(80 * 4);
+					//g-=Frames /10;
+					//b-=Frames /20;
+
+					if (g>254.0f) g=254.0f;
+					if (g<1.0f) g=1.0f;
+					if (b>254.0f) b=254.0f;
+					if (b<1.0f) b=1.0f;
+
+					u*=65536.0f;
+					v*=65536.0f;
+				}
+				else
+				{
+					X1=a/d;
+					Intersection1.x = Origin1.x + Direction1.x * X1;
+					Intersection1.y = Origin1.y + Direction1.y * X1;
+					Intersection1.z = Origin1.z + Direction1.z * X1;
+
+					u=(Intersection1.x+cos(Intersection1.z+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
+					v=(Intersection1.z+sin(Intersection1.x+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
+					Intersection1.x-=Origin1.x;
+					Intersection1.y-=Origin1.y;
+					Intersection1.z-=Origin1.z;
+
+					r=(sqrt(Intersection1.x*Intersection1.x+Intersection1.y*Intersection1.y+Intersection1.z*Intersection1.z) * 32);
+//					if (r < 0.0f)
+//						r = 0;
+//					else
+//						r = sqrt(r);
+					//r*= 1.8;//1.3;
+					r=255.0f-r;
+					if (r>253.0f) r=253.0f;
+					if (r<2.0f) r=2.0f;
+					b=r * 0.7f;
+					g= r*0.8f;
+					//r*=0.5;
+					g-=Timer /(40 * 4);
+					b-=Timer /(80 * 4);
+					//g-=Frames /10;
+					//b-=Frames /20;
+
+					if (g>254.0f) g=254.0f;
+					if (g<1.0f) g=1.0f;
+					if (b>254.0f) b=254.0f;
+					if (b<1.0f) b=1.0f;
+
+					u*=65536.0f;
+					v*=65536.0f;
+				}
+				//r = 0; // green
+				//g = 0; // red
+				//b = g = r; // blue
+
+				r*=254.0f;
+				g*=254.0f;
+				b*=254.0f;
+
+				Plane_GP[j].u=u;
+				Plane_GP[j].v=v;
+//				Plane_GP[j].R=127.0 * 256.0;
+//				Plane_GP[j].G=127.0 * 256.0;
+//				Plane_GP[j].B=127.0 * 256.0;
+
+//				Plane_GP[j].R=0;
+//				Plane_GP[j].G=0;
+//				Plane_GP[j].B=0;				
+				Plane_GP[j].BGRA._d16[2]=r;
+				Plane_GP[j].BGRA._d16[1]=g;
+				Plane_GP[j].BGRA._d16[0]=b;
+//				Plane_GP[j].RGB = ((long)r<<16)+((long)g<<8)+(long)b;
+
+
+				X = x - XRes * 0.5;
+				Y = y - YRes * 0.5;
+
+				if (Code)
+				{
+//					Code_R2 = sqrt(X*X + Y*Y) / (200.0f*XResFactor)+ST /100.0f;
+//					CCosR2 = cos (Code_R2);
+//					CSinR2 = sin (Code_R2);
+					Code_R2 = LenTable[j] / 200.0f + ST/100.0f;					
+					TrigOffset = Code_R2 * TRIG_FACTOR;
+					TrigOffset &= TRIG_MASK;
+					CCosR2 = CosTable[TrigOffset];
+					CSinR2 = SinTable[TrigOffset];
+
+
+					u = X * (204.8f * rXResFactor) * -(Code_RS * 5);
+					v = Y * (327.68f * rYResFactor) * -(Code_RS * 5);
+
+					u1 = (u) * CSinR1  + (v) * CCosR1;
+					v1 = (u) * CCosR1  - (v) * CSinR1;
+
+					u2 = (u1) * CSinR2  + (v1) * CCosR2;
+					v2 = (u1) * CCosR2  - (v1) * CSinR2;
+
+//					r = g = b = 127.0f;
+
+					r*=254.0f;
+					g*=254.0f;
+					b*=254.0f;
+
+					Code_GP[j].u=u2+32767;
+					Code_GP[j].v=v2+32767;
+					if (Code_GP[j].u > 65535) Code_GP[j].u = 65535;
+					if (Code_GP[j].v > 65535) Code_GP[j].v = 65535;
+					if (Code_GP[j].u < 0) Code_GP[j].u = 0;
+					if (Code_GP[j].v < 0) Code_GP[j].v = 0;
+//					Code_GP[j].R=r;
+//					Code_GP[j].G=g;
+//					Code_GP[j].B=b;
+				}
+
+				if (Gfx)
+				{
+//					Gfx_R2 = sqrt(X*X + Y*Y) / (120.0 * XResFactor) - (ST) /(100.0);
+//					GCosR2 = cos (Gfx_R2);
+//					GSinR2 = sin (Gfx_R2);
+					Gfx_R2 = LenTable[j] / 120.0f - ST/100.0f;
+					TrigOffset = Gfx_R2 * TRIG_FACTOR;
+					TrigOffset &= TRIG_MASK;
+					GCosR2 = CosTable[TrigOffset];
+					GSinR2 = SinTable[TrigOffset];
+
+
+					u = X * (204.8*rXResFactor) * (Gfx_RS*20.0);
+					v = Y * (327.68*rYResFactor) * (Gfx_RS*20.0);
+
+					u1 = (u) * GSinR1  + (v) * GCosR1;
+					v1 = (u) * GCosR1  - (v) * GSinR1;
+
+					u1*=10.0;	v1*=10.0;
+
+					u2 = (u1) * GSinR2  + (v1) * GCosR2;
+					v2 = (u1) * GCosR2  - (v1) * GSinR2;
+
+//					r = g = b = 127.0;
+
+					r*=254.0;
+					g*=254.0;
+					b*=254.0;
+
+					Gfx_GP[j].u=u2+32767;
+					Gfx_GP[j].v=v2+32767;
+					if (Gfx_GP[j].u > 65535) Gfx_GP[j].u = 65535;
+					if (Gfx_GP[j].v > 65535) Gfx_GP[j].v = 65535;
+					if (Gfx_GP[j].u < 0) Gfx_GP[j].u = 0;
+					if (Gfx_GP[j].v < 0) Gfx_GP[j].v = 0;
+//					Gfx_GP[j].R=r;
+//					Gfx_GP[j].G=g;
+//					Gfx_GP[j].B=b;
+				}
+		
+				if (Sfx)
+				{
+//					Code_R2 = sqrt(X*X + Y*Y) / (200.0*XResFactor)+ST /100.0;
+//					CCosR2 = cos (-Code_R2);
+//					CSinR2 = sin (-Code_R2);
+					Code_R2 = LenTable[j] / 200.0f + ST/100.0f;
+					TrigOffset = Code_R2 * TRIG_FACTOR;
+					TrigOffset &= TRIG_MASK;
+					CCosR2 = CosTable[TrigOffset];
+					CSinR2 =-SinTable[TrigOffset];
+
+					u = X * (204.8*rXResFactor) * -(Code_RS * 5);
+					v = Y * (327.68*rYResFactor) * -(Code_RS * 5);
+
+					u1 = (u) * CSinR1  + (v) * CCosR1;
+					v1 = (u) * CCosR1  - (v) * CSinR1;
+
+					u2 = (u1) * CSinR2  + (v1) * CCosR2;
+					v2 = (u1) * CCosR2  - (v1) * CSinR2;
+
+//					r = g = b = 127.0;
+
+					r*=254.0;
+					g*=254.0;
+					b*=254.0;
+
+					Sfx_GP[j].u=u2+32767;
+					Sfx_GP[j].v=v2+32767;
+
+//					Sfx_GP[j].R=r;
+//					Sfx_GP[j].G=g;
+//					Sfx_GP[j].B=b;
+
+					if (Sfx_GP[j].u > 65535) Sfx_GP[j].u = 65535;
+					if (Sfx_GP[j].v > 65535) Sfx_GP[j].v = 65535;
+					if (Sfx_GP[j].u < 0) Sfx_GP[j].u = 0;
+					if (Sfx_GP[j].v < 0) Sfx_GP[j].v = 0;
+				}
+				j++;
+			}
+
+//		Grid_Texture_Mapper_XXX(Plane_GP,PlaneImage,(DWord *)Page1);
+//		Grid_Texture_Mapper_TG(Plane_GP,PlaneImage,(DWord *)Page1);
+		GridRendererTG(Plane_GP,PlaneImage,(DWord *)Page1, XRes, YRes);
+
+		if (Code)
+		{
+//			Grid_Texture_Mapper_XXX(Code_GP,CodeImage,(DWord *)Page2);
+			GridRendererT(Code_GP,CodeImage,(DWord *)Page2, XRes, YRes);
+			Modulate(&Surf1,&Surf2,0xa0a0a0,0xa0a0a0);
+			Modulate(&Surf2,VSurface,0xa0a0a0,0xa0a0a0);
+		}
+		if (Gfx)
+		{
+//			Grid_Texture_Mapper_XXX(Gfx_GP,GfxImage,(DWord *)Page3);
+			GridRendererT(Gfx_GP,GfxImage,(DWord *)Page3, XRes, YRes);
+			Modulate(&Surf1,&Surf3,0xa0a0a0,0xd0d0d0);
+			Modulate(&Surf3,VSurface,0xa0a0a0,0xa0a0a0);
+ //			Modulate(&Surf2,&Surf3,0xa0a0a0,0xa0a0a0);
+		}
+		if (Sfx)
+		{
+//			Grid_Texture_Mapper_XXX(Sfx_GP,SfxImage,(DWord *)Page4);
+			GridRendererT(Sfx_GP,SfxImage,(DWord *)Page4, XRes, YRes);
+			Modulate(&Surf1,&Surf4,0xa0a0a0,0xa0a0a0);
+			Modulate(&Surf4,VSurface,0xa0a0a0,0xa0a0a0);
+		}
+//		memcpy(VPage, Page1, PageSize);
+		if (Timer>3200)
+		{
+			long cfVal = (Timer-3200)*255/300;
+			if (cfVal>255) cfVal = 255;
+			Cross_Fade((byte *)VPage,(byte *)LogoImage->Data,(byte *)VPage,cfVal);
+		}
+
+		// FPS printer
+		if (g_profilerActive)
+		{
+			timerStack[timerIndex++] = Timer;
+			if (timerIndex==20) 
+			{
+				timerIndex = 0;
+				sprintf(MSGStr,"%f FPS", 2000.0/(float)(timerStack[19]-timerStack[timerIndex]) );
+			} else {
+				sprintf(MSGStr,"%f FPS", 2000.0/(float)(timerStack[timerIndex-1]-timerStack[timerIndex]) );
+			}
+			OutTextXY(VPage,0,0,MSGStr,255);
+		}
+		Flip(VSurface);
+//		Flip(&Surf1);
+
+//		Rx += 0.01;
+//		Ry += 0.01;
+//		CameraPos.z += 0.01;
+		Rx = Timer / 420.0;
+		Ry = Timer / 420.0;
+		CameraPos.z = Timer / 420.0;
+		Frames++;
+
+//      r1,r2
+// bg  code      gfx sfx
+
+//		Flip(VSurface);
+		if (Keyboard[ScESC])
+			Timer = 1000000;
+	}
+
+	while (Keyboard[ScESC]) continue;
+
+//	Timer -= 3500;
+
+///	if (Keyboard[ScESC])
+//	{
+//		#ifdef Play_Music
+///		ShutDown();
+//		#endif
+//		FDS_End();
+//		exit(-1);
+//	}
+	delete [] LenTable;
+	delete [] CosTable;
+	delete [] SinTable;
+
+	delete Plane_GP;
+	delete Code_GP;
+	delete Gfx_GP;
+	delete Sfx_GP;
+	delete Page1;
+	delete Page2;
+	delete Page3;
+	delete Page4;
+}

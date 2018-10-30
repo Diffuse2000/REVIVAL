@@ -1,0 +1,295 @@
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
+C:\Projects\REVIVAL\FDS\IMGGENR\WOBTRXXX.ASM		     Page 1 - 1
+
+
+				.686
+				.MMX
+				.XMM
+ 00000000			_DATA	SEGMENT DWORD PUBLIC 'DATA'
+				align 4
+ 00000000 00000000		ScanLine								dd  0
+ 00000004 00000000		Delta_Left_U            dd  0
+ 00000008 00000000		Delta_Left_V            dd  0
+ 0000000C 00000000		Delta_Right_U           dd  0
+ 00000010 00000000		Delta_Right_V           dd  0
+ 00000014 00000000		Left_U									dd  0
+ 00000018 00000000		Left_V                  dd  0
+ 0000001C 00000000		Right_U                 dd  0
+ 00000020 00000000		Right_V                 dd  0
+ 00000024 00000000		du                      dd  0
+ 00000028 00000000		dv                      dd  0
+ 0000002C 00000000		lu                      dd  0
+ 00000030 00000000		lv                      dd  0
+ 00000034 00000000		PointsList              dd  0
+ 00000038 00000000		Texture		        			dd  0
+ 0000003C 00000000		x                       dd  0
+ 00000040 00000000		y								        dd  0
+ 00000044 00000000		Tebp       							dd  0
+ 00000048 00000000		t 						      		dd  0
+ 0000004C 00000000		counter									dd  0
+				align 1
+				;ScreenWidth							equ 320
+				;ScreenHeight						equ 240
+				;PointsWidth							equ 40;ScreenWidth/8
+				EXTRN _WobNumOfHorizontalBlocks  : DWORD 
+				EXTRN _WobNumOfVerticalBlocks  : DWORD 
+				EXTRN _WobBlockJump  : DWORD ;(Block Size-1)*ScreenWidth*BPP
+				EXTRN _WobBPSL : DWORD 
+
+				;_WobPointsHeight equ 30;ScreenHeight/8
+ = 00000000			u												equ 0
+ = 00000004			v												equ 4
+ = 00000014			ElementSize             equ 20
+ 0050				_DATA	ENDS
+
+ 00000000			_TEXT	SEGMENT BYTE PUBLIC 'CODE'
+					ASSUME	cs:_TEXT, ds:_DATA
+
+
+					PUBLIC	_Grid_Texture_MapASM_XXX_
+ 00000000			_Grid_Texture_MapASM_XXX_:
+				; On Entry : ecx - texture ; esi = pointer to points array which contains : {signed long u,v}; edi - Screen Pointer
+ 00000000  89 2D 00000044 R		mov [Tebp],ebp
+ 00000006  89 3D 00000000 R		mov [ScanLine],edi
+ 0000000C  89 0D 00000038 R		mov [Texture],ecx
+ 00000012  89 35 00000034 R		mov [PointsList],esi
+ 00000018  A1 00000000 E		mov eax,[_WobNumOfHorizontalBlocks]
+ 0000001D  A3 0000003C R		mov [x],eax
+ 00000022  A1 00000000 E		mov eax,[_WobNumOfVerticalBlocks]
+ 00000027  A3 00000040 R		mov [y],eax
+
+ 0000002C				@@DrawLoop:
+ 0000002C  8B 3D 00000000 E			mov edi, [_WobNumOfHorizontalBlocks]
+ 00000032  8B 06				mov eax,[esi+u]
+ 00000034  47					inc edi
+ 00000035  8B CF				mov ecx,edi
+ 00000037  C1 E7 04				shl edi ,4
+ 0000003A  C1 E1 02				shl ecx,2
+ 0000003D  8B 5E 04				mov ebx,[esi+v]
+ 00000040  A3 00000014 R			mov [Left_U],eax
+ 00000045  03 F9				add edi,ecx
+ 00000047  89 1D 00000018 R			mov [Left_V],ebx
+
+
+				;		mov ecx,[esi+ElementSize+ElementSize*PointsWidth+u] ; yes, yes , i know it's looks a LITTLE too much , but then , it's concludes in one add in the end ;)
+				;		mov edx,[esi+ElementSize+ElementSize*PointsWidth+v]
+ 0000004D  8B 0C 37				mov ecx,[esi+edi+u] ; yes, yes , i know it's looks a LITTLE too much , but then , it's concludes in one add in the end ;)
+ 00000050  8B 54 37 04				mov edx,[esi+edi+v]
+				;		add edi, ElementSize
+ 00000054  2B C8				sub ecx,eax
+ 00000056  2B D3				sub edx,ebx
+ 00000058  C1 F9 03				sar ecx,3
+ 0000005B  8B 46 14				mov eax,[esi+ElementSize+u]
+ 0000005E  C1 FA 03				sar edx,3
+ 00000061  89 0D 00000004 R			mov [Delta_Left_U],ecx
+ 00000067  89 15 00000008 R			mov [Delta_Left_V],edx
+ 0000006D  8B 5E 18				mov ebx,[esi+ElementSize+v]
+ 00000070  A3 0000001C R			mov [Right_U],eax
+ 00000075  89 1D 00000020 R			mov [Right_V],ebx
+				;		mov ecx,[esi+ElementSize*2+ElementSize*PointsWidth+u]
+				;		mov edx,[esi+ElementSize*2+ElementSize*PointsWidth+v]
+ 0000007B  8B 4C 37 14				mov ecx,[esi+edi+u + ElementSize]
+ 0000007F  8B 54 37 18				mov edx,[esi+edi+v + ElementSize]
+ 00000083  2B C8				sub ecx,eax
+ 00000085  2B D3				sub edx,ebx
+ 00000087  C1 F9 03				sar ecx,3
+ 0000008A  83 C6 14				add esi,ElementSize
+ 0000008D  C1 FA 03				sar edx,3
+ 00000090  89 35 00000034 R			mov [PointsList],esi
+ 00000096  89 0D 0000000C R			mov [Delta_Right_U],ecx
+ 0000009C  89 15 00000010 R			mov [Delta_Right_V],edx
+ 000000A2  8B 3D 00000000 R			mov edi,[ScanLine]
+ 000000A8  C7 05 0000004C R			mov [counter],8
+	   00000008
+ 000000B2					@@Inner8:
+ 000000B2  A1 00000014 R				mov eax,[Left_U]
+ 000000B7  8B 1D 00000018 R				mov ebx,[Left_V]
+ 000000BD  8B 0D 0000001C R				mov ecx,[Right_U]
+ 000000C3  8B 15 00000020 R				mov edx,[Right_V]
+ 000000C9  2B C8					sub ecx,eax
+ 000000CB  2B D3					sub edx,ebx
+ 000000CD  C1 F9 03					sar ecx,3
+ 000000D0  BB 00000000					mov ebx,0
+ 000000D5  C1 FA 03					sar edx,3
+ 000000D8  89 0D 00000024 R				mov [du],ecx
+ 000000DE  89 15 00000028 R				mov [dv],edx
+ 000000E4  83 FA 00					cmp edx,0
+ 000000E7  7F 07				jg @@Positive
+ 000000E9  B9 00FF0000					mov ecx,00FF0000h
+ 000000EE  EB 05					jmp @@Cont
+ 000000F0					@@Positive:
+ 000000F0  B9 00000000					mov ecx,00000000h
+ 000000F5					@@Cont:
+ 000000F5  BA 00000000					mov edx,0
+ 000000FA  8A 1D 00000014 R				mov bl,byte ptr [Left_U]
+ 00000100  C1 E3 18					shl ebx,24
+ 00000103  8A 3D 00000019 R				mov bh,byte ptr [Left_V+1]
+ 00000109  B8 00000000					mov eax,0
+ 0000010E  8A 1D 00000018 R				mov bl,byte ptr [Left_V]
+ 00000114  A0 00000024 R				mov al,byte ptr [du]
+ 00000119  BD 00000000					mov ebp,0
+ 0000011E  C1 E0 18					shl eax,24
+ 00000121  0B C8					or  ecx,eax
+ 00000123  8A 15 00000015 R				mov dl,byte ptr [Left_U+1]
+ 00000129  8A F7					mov dh,bh
+ 0000012B  B8 00000000					mov eax,0
+ 00000130  A0 00000025 R				mov al,byte ptr [du+1]
+ 00000135  8A 0D 00000028 R				mov cl,byte ptr [dv] ; chk this
+ 0000013B  8A 2D 00000029 R				mov ch,byte ptr [dv+1] ; chk this
+ 00000141  8B E8					mov ebp,eax
+ 00000143  8B 35 00000038 R				mov esi,[Texture]
+				; inner loop (unrolled)
+
+ 00000149  8B 04 96						mov   eax, [esi+edx*4]
+ 0000014C  B6 00						mov   dh,0
+ 0000014E  03 D9						add   ebx, ecx
+ 00000150  89 07						mov   [edi],eax
+ 00000152  13 D5						adc   edx, ebp
+ 00000154  8A F7						mov   dh, bh
+
+ 00000156  8B 04 96						mov   eax, [esi+edx*4]
+ 00000159  B6 00						mov   dh,0
+ 0000015B  03 D9						add   ebx, ecx
+ 0000015D  89 47 04						mov   [edi+4],eax
+ 00000160  13 D5						adc   edx, ebp
+ 00000162  8A F7						mov   dh, bh
+
+ 00000164  8B 04 96						mov   eax, [esi+edx*4]
+ 00000167  B6 00						mov   dh,0
+ 00000169  03 D9						add   ebx, ecx
+ 0000016B  89 47 08						mov   [edi+8],eax
+ 0000016E  13 D5						adc   edx, ebp
+ 00000170  8A F7						mov   dh, bh
+
+ 00000172  8B 04 96						mov   eax, [esi+edx*4]
+ 00000175  B6 00						mov   dh,0
+ 00000177  03 D9						add   ebx, ecx
+ 00000179  89 47 0C						mov   [edi+12], eax
+ 0000017C  13 D5						adc   edx, ebp
+ 0000017E  8A F7						mov   dh, bh
+
+ 00000180  8B 04 96						mov   eax, [esi+edx*4]
+ 00000183  B6 00						mov   dh,0
+ 00000185  03 D9						add   ebx, ecx
+ 00000187  89 47 10						mov   [edi+16], eax
+ 0000018A  13 D5						adc   edx, ebp
+ 0000018C  8A F7						mov   dh, bh
+
+ 0000018E  8B 04 96						mov   eax, [esi+edx*4]
+ 00000191  B6 00						mov   dh,0
+ 00000193  03 D9						add   ebx, ecx
+ 00000195  89 47 14						mov   [edi+20], eax
+ 00000198  13 D5						adc   edx, ebp
+ 0000019A  8A F7						mov   dh, bh
+
+
+ 0000019C  8B 04 96						mov   eax, [esi+edx*4]
+ 0000019F  B6 00						mov   dh,0
+ 000001A1  03 D9						add   ebx, ecx
+ 000001A3  89 47 18						mov   [edi+24], eax
+ 000001A6  13 D5						adc   edx, ebp
+ 000001A8  8A F7						mov   dh, bh
+
+ 000001AA  8B 04 96						mov   eax, [esi+edx*4]
+ 000001AD  89 47 1C						mov   [edi+28], eax
+				; inner loop end (unrolled)
+
+
+ 000001B0  03 3D 00000000 E				add edi,[_WobBPSL]
+ 000001B6  A1 00000014 R				mov eax,[Left_U]
+ 000001BB  8B 1D 00000018 R				mov ebx,[Left_V]
+ 000001C1  8B 0D 00000004 R				mov ecx,[Delta_Left_U]
+ 000001C7  8B 15 00000008 R				mov edx,[Delta_Left_V]
+ 000001CD  03 C1					add eax,ecx
+ 000001CF  03 DA					add ebx,edx
+ 000001D1  A3 00000014 R				mov [Left_U],eax
+ 000001D6  89 1D 00000018 R				mov [Left_V],ebx
+ 000001DC  A1 0000001C R				mov eax,[Right_U]
+ 000001E1  8B 1D 00000020 R				mov ebx,[Right_V]
+ 000001E7  8B 0D 0000000C R				mov ecx,[Delta_Right_U]
+ 000001ED  8B 15 00000010 R				mov edx,[Delta_Right_V]
+ 000001F3  03 C1					add eax,ecx
+ 000001F5  03 DA					add ebx,edx
+ 000001F7  A3 0000001C R				mov [Right_U],eax
+ 000001FC  89 1D 00000020 R				mov [Right_V],ebx
+ 00000202  8B 35 0000004C R				mov esi,[counter]
+ 00000208  4E						dec esi
+ 00000209  89 35 0000004C R				mov [counter],esi
+ 0000020F  0F 85 FFFFFE9D			jnz @@Inner8
+ 00000215  A1 00000000 R			mov eax,[ScanLine]
+ 0000021A  83 C0 20				add eax,32
+ 0000021D  A3 00000000 R			mov [ScanLine],eax
+ 00000222  8B 35 00000034 R			mov esi,[PointsList]
+ 00000228  8B 1D 0000003C R			mov ebx,[x]
+ 0000022E  4B					dec ebx
+ 0000022F  89 1D 0000003C R			mov [x],ebx
+ 00000235  0F 85 FFFFFDF1		jnz @@DrawLoop
+ 0000023B  8B 0D 00000000 E			mov ecx, [_WobNumOfHorizontalBlocks]
+ 00000241  89 0D 0000003C R			mov [x],ecx
+ 00000247  8B 0D 00000000 R			mov ecx,[ScanLine]
+ 0000024D  8B 1D 00000040 R			mov ebx,[y]
+ 00000253  03 0D 00000000 E			add ecx, [_WobBlockJump];(8-1)*ScreenWidth*4
+ 00000259  83 C6 14				add esi,ElementSize
+ 0000025C  89 35 00000034 R			mov [PointsList],esi
+ 00000262  89 0D 00000000 R			mov [ScanLine],ecx
+ 00000268  4B					dec ebx
+ 00000269  89 1D 00000040 R			mov [y],ebx
+ 0000026F  0F 85 FFFFFDB7		jnz @@DrawLoop
+ 00000275  8B 2D 00000044 R		mov ebp,[Tebp]
+ 0000027B  C3				ret
+ 027C				_TEXT	ENDS
+
+				END
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
+C:\Projects\REVIVAL\FDS\IMGGENR\WOBTRXXX.ASM		     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+_DATA  . . . . . . . . . . . . .	32 Bit	 0050	  DWord	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 027C	  Byte	  Public  'CODE'	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@@Cont . . . . . . . . . . . . .	L Near	 00F5	  _TEXT	
+@@DrawLoop . . . . . . . . . . .	L Near	 002C	  _TEXT	
+@@Inner8 . . . . . . . . . . . .	L Near	 00B2	  _TEXT	
+@@Positive . . . . . . . . . . .	L Near	 00F0	  _TEXT	
+Delta_Left_U . . . . . . . . . .	DWord	 0004	  _DATA	
+Delta_Left_V . . . . . . . . . .	DWord	 0008	  _DATA	
+Delta_Right_U  . . . . . . . . .	DWord	 000C	  _DATA	
+Delta_Right_V  . . . . . . . . .	DWord	 0010	  _DATA	
+ElementSize  . . . . . . . . . .	Number	 0014h	 
+Left_U . . . . . . . . . . . . .	DWord	 0014	  _DATA	
+Left_V . . . . . . . . . . . . .	DWord	 0018	  _DATA	
+PointsList . . . . . . . . . . .	DWord	 0034	  _DATA	
+Right_U  . . . . . . . . . . . .	DWord	 001C	  _DATA	
+Right_V  . . . . . . . . . . . .	DWord	 0020	  _DATA	
+ScanLine . . . . . . . . . . . .	DWord	 0000	  _DATA	
+Tebp . . . . . . . . . . . . . .	DWord	 0044	  _DATA	
+Texture  . . . . . . . . . . . .	DWord	 0038	  _DATA	
+_Grid_Texture_MapASM_XXX_  . . .	L Near	 0000	  _TEXT	Public
+_WobBPSL . . . . . . . . . . . .	DWord	 0000	  _DATA	External
+_WobBlockJump  . . . . . . . . .	DWord	 0000	  _DATA	External
+_WobNumOfHorizontalBlocks  . . .	DWord	 0000	  _DATA	External
+_WobNumOfVerticalBlocks  . . . .	DWord	 0000	  _DATA	External
+counter  . . . . . . . . . . . .	DWord	 004C	  _DATA	
+du . . . . . . . . . . . . . . .	DWord	 0024	  _DATA	
+dv . . . . . . . . . . . . . . .	DWord	 0028	  _DATA	
+lu . . . . . . . . . . . . . . .	DWord	 002C	  _DATA	
+lv . . . . . . . . . . . . . . .	DWord	 0030	  _DATA	
+t  . . . . . . . . . . . . . . .	DWord	 0048	  _DATA	
+u  . . . . . . . . . . . . . . .	Number	 0000h	 
+v  . . . . . . . . . . . . . . .	Number	 0004h	 
+x  . . . . . . . . . . . . . . .	DWord	 003C	  _DATA	
+y  . . . . . . . . . . . . . . .	DWord	 0040	  _DATA	
+
+	   0 Warnings
+	   0 Errors
