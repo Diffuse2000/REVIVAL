@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    10/31/18 01:22:15
 C:\Projects\REVIVAL\FDS\IMGGENR\WOBTR320.ASM		     Page 1 - 1
 
 
@@ -223,7 +223,7 @@ C:\Projects\REVIVAL\FDS\IMGGENR\WOBTR320.ASM		     Page 1 - 1
  0272				_TEXT	ENDS
 
 				END
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    10/31/18 01:22:15
 C:\Projects\REVIVAL\FDS\IMGGENR\WOBTR320.ASM		     Symbols 2 - 1
 
 
@@ -274,5 +274,5 @@ v  . . . . . . . . . . . . . . .	Number	 0004h
 x  . . . . . . . . . . . . . . .	DWord	 003C	  _DATA	
 y  . . . . . . . . . . . . . . .	DWord	 0040	  _DATA	
 
-	   0 Warnings
+	   1 Warnings
 	   0 Errors

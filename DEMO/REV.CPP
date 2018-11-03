@@ -1369,7 +1369,9 @@ void CodeEntry(void *var)
 
 	Initialize_Glato(); //9.3
 	Initialize_City(); //9.3
+	Initialize_Chase();
 	Initialize_Fountain(); //8.3
+	Initialize_Crash();
 	Initialize_Greets(); //5.6
 	//Initialize_Nova();
 	
@@ -1392,9 +1394,16 @@ void CodeEntry(void *var)
 	if (Timer<=0) Timer = 1;
 	Run_City();
 //	SavePolyStats("City.stat");
+
+	if (Timer <= 0) Timer = 1;
+	Run_Chase();
+
 	if (Timer<=0) Timer = 1;
 	Run_Fountain();
+
 //	SavePolyStats("Fountain.stat");
+	if (Timer <= 0) Timer = 1;
+	//Run_Crash();
 
 	if (Timer<=0) Timer = 1;
 	Run_Greets();

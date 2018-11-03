@@ -344,6 +344,8 @@ enum OmniFlags
 	// It is set by the scene loader. Manual removal of this flag should be made prior to
 	// scene Preprocess routine. 
 	Omni_Stationary = 1<<5,
+
+	Omni_Rand = 1 << 6,
 };
 
 //MACROS

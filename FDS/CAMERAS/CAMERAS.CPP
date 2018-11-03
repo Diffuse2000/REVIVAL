@@ -20,7 +20,7 @@ static Vector *ColNorm_Stack = new Vector[50],*CVV;
 void CalcPersp(Camera *Cm)
 {
 	float TanFOV;
-	float AspectRatio = (float)(YRes<<2)/(float)(XRes*3);
+	float AspectRatio = (float)(YRes*4)/(float)(XRes*3);
 	TanFOV = tan((Cm->IFOV/2.0)/180.0*PI);
 	Cm->PerspX = CntrX / TanFOV;
 	Cm->PerspY = Cm->PerspX * AspectRatio;

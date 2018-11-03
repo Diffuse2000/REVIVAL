@@ -15,6 +15,9 @@
 #include "..\FDS_Vars.H"
 #include "..\FDS_Decs.H"
 
+float frand() {
+	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+}
 
 // Front-to-back sorting used together with ZBuffer.
 #define FRONT_TO_BACK_SORTING
@@ -598,8 +601,17 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 	FDW omniFlareSize;
 	for(O=Sc->OmniHead;O;O=O->Next)
 	{
+
+
 		Vtx=&O->V;
 		Vector_Sub(&O->IPos,&View->ISource,&V);
+		//if (O->Flags & Omni_Rand) {
+		//	Vector Rand;
+		//	Rand.x = (frand() - 0.5) * 2.0f;
+		//	Rand.y = (frand() - 0.5) * 2.0f;
+		//	Rand.z = (frand() - 0.5) * 2.0f;
+		//	Vector_Add(&V, &Rand, &V);
+		//}
 		MatrixXVector(View->Mat,&V,&Vtx->TPos);
 		if (Vtx->TPos.z>Sc->NZP&&Vtx->TPos.z<Sc->FZP)
 		{
@@ -614,7 +626,10 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 
 			//omniFlareSize.F = O->ISize;
 			//O->F.Flags = omniFlareSize.DW; // overwrite face flags with a pointer to the omnilight object
-			O->F.FlareSize = O->ISize;
+			O->F.FlareSize = (O->ISize);
+			if (O->Flags & Omni_Rand) {
+				O->F.FlareSize *= 1.0 + ((frand() - 0.5) * 0.2f);
+			}
 #ifdef FRONT_TO_BACK_SORTING
 			O->F.SortZ.F = 2*fzp-dz;
 #else

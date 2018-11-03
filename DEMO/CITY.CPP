@@ -3,6 +3,7 @@
 #include "City.H"
 
 #define FRONT_TO_BACK_SORTING
+#define CITY_RAIN
 
 static Scene *CitySc;
 static Scene *SkySc;
@@ -146,7 +147,7 @@ void Run_Distort(void)
 
 // sets required properties and modifies the object 'water.lwo' which acts like
 // a mirror for the rest of the scene.
-void Reflective_Surface_Setup()
+static void Reflective_Surface_Setup()
 {
 	TriMesh *T;
 	Vertex *Vtx, *VE;
@@ -363,7 +364,7 @@ void Reflective_Mapper_Setup()
 
 ///////////////////////////////////////////////////////////////////////
 // PRIMARY TRANSFORMATION PIPELINE, FOR USE WITH REFLECTIONS
-void Reflected_Transform(Scene *Sc)
+static void Reflected_Transform(Scene *Sc)
 {
 	TriMesh *T;
 	Omni *O;
@@ -926,7 +927,7 @@ void City_Lighting()
 	}
 
 	// Disable vertex-fog
-	if (0) //(Sc->Flags&Scn_Fogged)
+	if (Sc->Flags&Scn_Fogged)
 	{
 		for(T=Sc->TriMeshHead;T;T=T->Next)
 		{
@@ -979,7 +980,7 @@ static void AddCameraOmni()
 {
 }
 
-#define NUM_RAIN_PCLS 1000
+#define NUM_RAIN_PCLS 10000
 
 static Material dummyRainMat;
 
@@ -1321,9 +1322,9 @@ void Initialize_City()
 	CitySc->NZP = 20.0;
 	CitySc->FZP = 5000.0f;
 	CitySc->Flags |= Scn_Fogged|Scn_ZBuffer;
-	CitySc->Ambient.R = 32 * 2;
+	CitySc->Ambient.B = 32 * 2;
 	CitySc->Ambient.G = 48 * 2;
-	CitySc->Ambient.B = 64 * 2;
+	CitySc->Ambient.R = 64 * 2;
 	
 	Material *M;
 	for(M = MatLib;M;M=M->Next)
@@ -1342,11 +1343,11 @@ void Initialize_City()
 
 	Preprocess_Scene(CitySc);
 
-	for(M = MatLib;M;M=M->Next)
-	{
-		if (M->RelScene != CitySc) continue;
-		if (!M->Txtr) continue;
-	}
+	//for(M = MatLib;M;M=M->Next)
+	//{
+	//	if (M->RelScene != CitySc) continue;
+	//	if (!M->Txtr) continue;
+	//}
 	
 	//	printf("Scene-Proc MEM = %d\n",DPMI_Free_Memory());
 	// also make the appropriate Layer 2 fillers,
@@ -1483,7 +1484,7 @@ void Run_City()
 
 	C_FZP = CitySc->FZP;
 	C_rFZP = 1.0f/C_FZP;
-	C_reFZP = 1.0f/(C_FZP*1.15f);
+	//C_reFZP = 1.0f/(C_FZP*1.15f);
 
 	g_FrameTime = TTrd = Timer;
 

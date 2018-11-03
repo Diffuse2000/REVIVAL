@@ -4,7 +4,7 @@
 
 static Scene *CrashSc;
 
-static long CrPartTime = 20.0f*100;
+static long CrPartTime = 10.0f*100;
 
 void Initialize_Crash()
 {
@@ -17,7 +17,13 @@ void Initialize_Crash()
 	Preprocess_Scene(CrashSc);
 //	printf("Scene-Proc MEM = %d\n",DPMI_Free_Memory());
 	CrashSc->FZP = 25000.0f;
-	CrashSc->Flags |= Scn_Fogged;
+	CrashSc->FZP = 250000.0f;
+	CrashSc->NZP = 20.0f;
+	CrashSc->Flags |= Scn_Fogged | Scn_ZBuffer;
+	
+	CrashSc->Ambient.R = 64 * 2;
+	CrashSc->Ambient.G = 64 * 2;
+	CrashSc->Ambient.B = 64 * 2;
 	// also make the appropriate Layer 2 fillers,
 
 }
@@ -47,7 +53,8 @@ void Run_Crash()
 	ImageSize = 400;
 	while ((!Keyboard[ScESC])&&Timer<CrPartTime)
 	{
-		memset(VPage,0,PageSize);
+		//memset(VPage,0,PageSize);
+		FastWrite(VPage, 0, (PageSize + XRes * YRes * sizeof(word)) >> 2);
 
 		CurFrame = CrashSc->StartFrame + (CrashSc->EndFrame-CrashSc->StartFrame) * (float)Timer / (float)CrPartTime;
 
@@ -64,7 +71,11 @@ void Run_Crash()
 
 		Render();
 
+#ifdef _C_WATCOM
 		Flip(Screen);
+#else
+		Flip(MainSurf);
+#endif
 
 	} Timer-=CrPartTime;
 

@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    10/31/18 01:22:15
 C:\Projects\REVIVAL\FDS\FILLERS\ZSCALE.ASM		     Page 1 - 1
 
 
@@ -156,7 +156,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\ZSCALE.ASM		     Page 1 - 1
  000001CE  C1 E6 02		shl esi,2
  000001D1  8B 2D 00000024 R	mov ebp,[Texture]
  000001D7  8A C2		mov al,dl
- 000001D9  8D 3C 3E		lea edi,[edi+esi]
+ 000001D9  8D 3C 37		lea edi,[edi+esi]
  000001DC  8A D1		mov dl,cl
  000001DE  83 F6 FF		xor esi,-1
 
@@ -165,7 +165,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\ZSCALE.ASM		     Page 1 - 1
  000001E2  8B 4C 85 00		  mov ecx,[ebp+eax*4]
  000001E6  0B C9		  or ecx,ecx
  000001E8  74 03		  jz @@FuckBTB
- 000001EA  89 0C 3E		  mov [edi+esi],ecx
+ 000001EA  89 0C 37		  mov [edi+esi],ecx
  000001ED			  @@FuckBTB:
  000001ED  03 15 00000000 R	  add edx,[du]
  000001F3  12 C2		  adc al,dl
@@ -193,7 +193,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\ZSCALE.ASM		     Page 1 - 1
  0237				_TEXT   ENDS
 
 				END
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    10/31/18 01:22:15
 C:\Projects\REVIVAL\FDS\FILLERS\ZSCALE.ASM		     Symbols 2 - 1
 
 

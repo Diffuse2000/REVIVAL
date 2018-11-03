@@ -1,5 +1,5 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
-Imggenr\wobtrnew.asm					     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    10/31/18 01:22:15
+C:\Projects\REVIVAL\FDS\IMGGENR\WOBTRnew.asm		     Page 1 - 1
 
 
 				.686
@@ -82,8 +82,8 @@ Imggenr\wobtrnew.asm					     Page 1 - 1
  00000047  89 1D 00000014 R			mov [Left_V],ebx
 				;		mov		  ecx,[esi+ElementSize+ElementSize*PointsWidth+u] ; yes, yes , i know it's looks a LITTLE too much , but then , it's concludes in one add in the end ;)
 				;		mov		  edx,[esi+ElementSize+ElementSize*PointsWidth+v]
- 0000004D  8B 0C 37				mov		  ecx,[esi+edi+u] ; yes, yes , i know it's looks a LITTLE too much , but then , it's concludes in one add in the end ;)
- 00000050  8B 54 37 04				mov		  edx,[esi+edi+v]
+ 0000004D  8B 0C 3E				mov		  ecx,[esi+edi+u] ; yes, yes , i know it's looks a LITTLE too much , but then , it's concludes in one add in the end ;)
+ 00000050  8B 54 3E 04				mov		  edx,[esi+edi+v]
  00000054  2B C8				sub		  ecx,eax
  00000056  2B D3				sub		  edx,ebx
  00000058  C1 F9 03				sar		  ecx,3
@@ -96,8 +96,8 @@ Imggenr\wobtrnew.asm					     Page 1 - 1
  00000075  89 1D 0000001C R			mov		  [Right_V],ebx
 				;		mov		  ecx,[esi+ElementSize*2+ElementSize*PointsWidth+u]
 				;		mov		  edx,[esi+ElementSize*2+ElementSize*PointsWidth+v]
- 0000007B  8B 4C 37 10				mov		  ecx,[esi + edi + u + ElementSize]
- 0000007F  8B 54 37 14				mov		  edx,[esi + edi + v + ElementSize]
+ 0000007B  8B 4C 3E 10				mov		  ecx,[esi + edi + u + ElementSize]
+ 0000007F  8B 54 3E 14				mov		  edx,[esi + edi + v + ElementSize]
  00000083  2B C8				sub		  ecx,eax
  00000085  2B D3				sub		  edx,ebx
  00000087  C1 F9 03				sar		  ecx,3
@@ -110,11 +110,11 @@ Imggenr\wobtrnew.asm					     Page 1 - 1
 						; MM6 - Right RGBA
 						; MM7 - Delta Right RGBA 
  00000096  0F 6F 66 08				movq	mm4, [esi + RGBA]			; Left RGBA
- 0000009A  0F 6F 6C 37 08			movq	mm5, [esi + edi + RGBA]		; Bottom Left RGBA
+ 0000009A  0F 6F 6C 3E 08			movq	mm5, [esi + edi + RGBA]		; Bottom Left RGBA
  0000009F  0F F9 EC				psubw	mm5, mm4
  000000A2  0F 71 E5 03				psraw	mm5, 3
  000000A6  0F 6F 76 18				movq    mm6, [esi + ElementSize + RGBA]			; Right RGBA
- 000000AA  0F 6F 7C 37 18			movq    mm7, [esi + edi + ElementSize + RGBA]	; Bottom Right RGBA
+ 000000AA  0F 6F 7C 3E 18			movq    mm7, [esi + edi + ElementSize + RGBA]	; Bottom Right RGBA
  000000AF  0F F9 FE				psubw	mm7, mm6
  000000B2  0F 71 E7 03				psraw	mm7, 3
 
@@ -289,8 +289,8 @@ Imggenr\wobtrnew.asm					     Page 1 - 1
 
  000002F7			_TEXT		ENDS
 				END
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
-Imggenr\wobtrnew.asm					     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    10/31/18 01:22:15
+C:\Projects\REVIVAL\FDS\IMGGENR\WOBTRnew.asm		     Symbols 2 - 1
 
 
 

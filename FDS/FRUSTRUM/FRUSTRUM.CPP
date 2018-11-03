@@ -492,7 +492,7 @@ void MiplevelClipper()
 
 	// calculate range of 1/z values along polygon
 	float mrz = 1E+38, Mrz = 0;
-	long mlindex;
+	long mlindex = 0;
 	for(i=0; i<C_numVerts; i++)
 	{
 //		level = _C - 2 * log2(rz);

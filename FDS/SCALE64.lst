@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    10/31/18 01:22:15
 C:\Projects\REVIVAL\FDS\FILLERS\SCALE64.ASM		     Page 1 - 1
 
 
@@ -160,7 +160,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\SCALE64.ASM		     Page 1 - 1
  000001D2  C1 E6 02		shl esi,2
  000001D5  8B 2D 00000028 R	mov ebp,[Texture]
  000001DB  8A C2		mov al,dl
- 000001DD  8D 3C 3E		lea edi,[edi+esi]
+ 000001DD  8D 3C 37		lea edi,[edi+esi]
  000001E0  8A D1		mov dl,cl
  000001E2  83 F6 FF		xor esi,-1
 
@@ -170,7 +170,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\SCALE64.ASM		     Page 1 - 1
  000001ED  66| C1 E8 02		shr ax,2
  000001F1			@@inner:
  000001F1  8B 4C 85 00			mov ecx,[ebp+eax*4]
- 000001F5  8B 1C 3E			mov ebx,[edi+esi]
+ 000001F5  8B 1C 37			mov ebx,[edi+esi]
  000001F8  02 D9			add bl,cl
  000001FA  1A C0			sbb al,al
  000001FC  0A D8			or bl,al
@@ -184,7 +184,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\SCALE64.ASM		     Page 1 - 1
  0000020E  0A F8			or bh,al
  00000210  C1 C3 08			rol ebx,8
  00000213  C1 C1 08			rol ecx,8
- 00000216  89 1C 3E			mov [edi+esi],ebx
+ 00000216  89 1C 37			mov [edi+esi],ebx
  00000219  03 15 00000000 R		add edx,[du]
  0000021F  A1 00000004 R		mov eax,[Teax]
  00000224  12 C2			adc al,dl
@@ -215,7 +215,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\SCALE64.ASM		     Page 1 - 1
  0274				_TEXT   ENDS
 
 				END
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    08/08/18 00:32:53
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    10/31/18 01:22:15
 C:\Projects\REVIVAL\FDS\FILLERS\SCALE64.ASM		     Symbols 2 - 1
 
 
