@@ -28,7 +28,7 @@ Scene *SceneGroup;
 
 static float ZoomFactor2FOV(float zf)
 {
-	return 360.0/PI * atan( (4.0/3.0)/zf );
+	return 360.0/PI * atan( (float(XRes)/float(YRes))/zf );
 }
 
 void AddTriMesh(Scene *Sc,TriMesh *T,char *ObjName,Vector Pivot)

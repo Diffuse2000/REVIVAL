@@ -4,61 +4,84 @@
 
 static Scene *CrashSc;
 
-static long CrPartTime = 10.0f*100;
+static long CrPartTime = 0;// 10.0f * 100;
 
 void Initialize_Crash()
 {
 	CrashSc = (Scene *)getAlignedBlock(sizeof(Scene), 16);
 	memset(CrashSc,0,sizeof(Scene));
 	LoadFLD(CrashSc,"Scenes\\Crash.FLD");
-	CrPartTime = 100.0f*(CrashSc->EndFrame-CrashSc->StartFrame)/30.0f*100;
+	CrPartTime = 1.5f*100.0f*(CrashSc->EndFrame-CrashSc->StartFrame)/30.0f;
 
 //	printf("FLD-loaded MEM = %d\n",DPMI_Free_Memory());
-	Preprocess_Scene(CrashSc);
 //	printf("Scene-Proc MEM = %d\n",DPMI_Free_Memory());
-	CrashSc->FZP = 25000.0f;
-	CrashSc->FZP = 250000.0f;
-	CrashSc->NZP = 20.0f;
-	CrashSc->Flags |= Scn_Fogged | Scn_ZBuffer;
+	CrashSc->FZP = 2000.0f;
+	CrashSc->NZP = 10.0f;
+	CrashSc->Flags |= Scn_ZBuffer;
 	
-	CrashSc->Ambient.R = 64 * 2;
-	CrashSc->Ambient.G = 64 * 2;
-	CrashSc->Ambient.B = 64 * 2;
+	CrashSc->Ambient.R = 64;
+	CrashSc->Ambient.G = 64;
+	CrashSc->Ambient.B = 64;
 	// also make the appropriate Layer 2 fillers,
+	Material *M;
+	for (M = MatLib; M; M = M->Next)
+	{
+		//if (M->RelScene != CrashSc) continue;
+		if (!M->Txtr) continue;
+		M->Flags |= Mat_RGBInterp;
+		M->Txtr->Flags |= Txtr_Tiled;
+	}
 
+	Preprocess_Scene(CrashSc);
 }
 
 void Run_Crash()
 {
+	char MSGStr[128];
+
 	long Polys = 0;
 	TriMesh *T;
 	Omni *O;
 
-	CurScene = CrashSc;
+	SetCurrentScene(CrashSc);
+
 	for(T = CrashSc->TriMeshHead;T;T=T->Next)
 		Polys+=T->FIndex;
-	for(O = CrashSc->OmniHead;O;O=O->Next)
+	for (O = CrashSc->OmniHead; O; O = O->Next) {
+		O->IRange = 2000.0f;
 		Polys++;
+	}
 
 	FList = new Face * [Polys];
 	SList = new Face * [Polys];
 
-	View = &FC;//CrashSc->CameraHead;
+	View = CrashSc->CameraHead;
 
 	C_FZP = CrashSc->FZP;
 	C_rFZP = 1.0f/C_FZP;
 
-	Ambient_Factor = 40;
-	Diffusive_Factor = 50;
-	ImageSize = 400;
+	Ambient_Factor = 1;
+	Diffusive_Factor = 1;
+	ImageSize = 1;
 	while ((!Keyboard[ScESC])&&Timer<CrPartTime)
 	{
+		g_FrameTime = Timer;
+
+		if (Keyboard[ScTab])
+		{
+			if (View == &FC)
+				View = CrashSc->CameraHead;
+			else
+				View = &FC;
+		}
+
 		//memset(VPage,0,PageSize);
 		FastWrite(VPage, 0, (PageSize + XRes * YRes * sizeof(word)) >> 2);
 
-		CurFrame = CrashSc->StartFrame + (CrashSc->EndFrame-CrashSc->StartFrame) * (float)Timer / (float)CrPartTime;
+		CurFrame = CrashSc->StartFrame + (CrashSc->EndFrame-CrashSc->StartFrame) * ((float)g_FrameTime / (float)CrPartTime);
 
 		Dynamic_Camera();
+		if (Keyboard[ScC]) { FC.ISource = View->ISource; Matrix_Copy(FC.Mat, View->Mat); FC.IFOV = View->IFOV; }
 
 		Animate_Objects(CrashSc);
 
@@ -71,6 +94,14 @@ void Run_Crash()
 
 		Render();
 
+		dword scroll = 0;
+		sprintf(MSGStr, "g_FrameTime %d", g_FrameTime);
+		scroll += OutTextXY(VPage, 0, scroll, MSGStr, 255);
+		sprintf(MSGStr, "CrPartTime %d", CrPartTime);
+		scroll += OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
+		sprintf(MSGStr, "Frame %f/%f", CurFrame, CrashSc->EndFrame);
+		scroll += OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
+
 #ifdef _C_WATCOM
 		Flip(Screen);
 #else
@@ -78,6 +109,9 @@ void Run_Crash()
 #endif
 
 	} Timer-=CrPartTime;
+
+	while (Keyboard[ScESC]) continue;
+	if (Timer < 0) Timer = 0;
 
 /*	if (Keyboard[ScESC])
 	{

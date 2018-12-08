@@ -63,7 +63,7 @@ Font * LoadAFT(char *FileName)
   return FFI;
 }
 
-long OutTextXY(char *Where,long X,long Y, char *S,char C)
+long OutTextXY(char *Where,long X,long Y, char *S,char C, int xres/* = XRes*/, int yres/* = YRes*/)
 {
   int DX;
   int II,IJ,IK;
@@ -73,7 +73,7 @@ long OutTextXY(char *Where,long X,long Y, char *S,char C)
   char CPP = BPP+1>>3;
   char *Ptr,*Pen;
   Font *F = Active_Font;
-  if (Y>=YRes-F->Y) return Y;
+  if (Y>=yres-F->Y) return Y;
 
 
   if (BPP==8) {TC[0]=0; TC[1]=C;} else {
@@ -82,14 +82,14 @@ long OutTextXY(char *Where,long X,long Y, char *S,char C)
   }
 
   DX = X;
-  PgOffset = YOffs[Y];
+  PgOffset = Y * xres;//YOffs[Y];
 
   Hisx = F->X;
 
   while (Ch=*S++)
   {
     FEnd = F->Len[Ch];
-    if (Ch==13||Ch==10||DX+FEnd+2>=XRes) {Y+=F->Y+2; PgOffset = YOffs[Y]; DX = Basic_FOffs; if (Y>=YRes-F->Y) return Y;}
+    if (Ch==13||Ch==10||DX+FEnd+2>=xres) {Y+=F->Y+2; PgOffset = Y * xres; DX = Basic_FOffs; if (Y>=yres-F->Y) return Y;}
 
     POfs = (PgOffset+DX)*CPP;
     FOfs = Ch*F->XY;
@@ -106,7 +106,7 @@ long OutTextXY(char *Where,long X,long Y, char *S,char C)
         Pen+=CPP;
       }
       FOfs += Hisx;
-      POfs += XRes*CPP;
+      POfs += xres*CPP;
     }
     DX += FEnd + 2;
   }

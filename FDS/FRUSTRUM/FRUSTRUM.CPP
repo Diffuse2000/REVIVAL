@@ -464,12 +464,17 @@ void MiplevelClipper()
 	//if (!Keyboard[ScY])
 	static float MinSize = XRes*YRes * 0.02; // update if XRes and/or YRes changes...
 
-	if (pixArea < MinSize)
+	if ((Tx->Flags & Txtr_Nomip) ||  pixArea < MinSize)
 	{
-		long mip = 0.5 * fastLog2(fabs(texArea * Tx->SizeX * Tx->SizeY / pixArea)) + mipBias;
-		if (mip < 0) mip = 0;
-		if (mip > L) mip = L;
-		g_MipLevel = mip;
+		if (Tx->Flags & Txtr_Nomip) {
+			g_MipLevel = 0;
+		} else {
+			long mip = 0.5 * fastLog2(fabs(texArea * Tx->SizeX * Tx->SizeY / pixArea)) + mipBias;
+			if (mip < 0) mip = 0;
+			if (mip > L) mip = L;
+			g_MipLevel = mip;
+		}
+
 #ifdef COUNT_POLYS
 		g_renderedPolys++;
 #endif

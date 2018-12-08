@@ -939,7 +939,7 @@ void City_Lighting()
 			for(;Vtx<VEnd;Vtx++)
 			{
 				//apply fog
-				Color = 1.0f-Vtx->TPos.z*C_reFZP;
+				Color = Vtx->TPos.z*CitySc->FZP;
 
 //				Vtx->LR = Vtx->LR + (128.0f-Vtx->LR) * Color;
 //				Vtx->LG = Vtx->LG + (128.0f-Vtx->LG) * Color;
@@ -980,7 +980,7 @@ static void AddCameraOmni()
 {
 }
 
-#define NUM_RAIN_PCLS 10000
+#define NUM_RAIN_PCLS 5000
 
 static Material dummyRainMat;
 
@@ -1584,6 +1584,7 @@ void Run_City()
 		Profiler[PROF_LGHT] -= Timer;
 
 		Lighting(CitySc);
+		//City_Lighting();
 
 		// NOTE: Profiler ignores rain f/x
 #ifdef CITY_RAIN

@@ -695,8 +695,8 @@ void Initialize_Chase()
 	LoadFLD(ChaseSc,"Scenes\\CHASE.FLD");
 	CHPartTime = 25.0*(ChaseSc->EndFrame-ChaseSc->StartFrame)/25.0f;
 //	printf("FLD-loaded MEM = %d\n",DPMI_Free_Memory());
-	ChaseSc->FZP = 250000.0f;
-	ChaseSc->NZP = 25.0f;
+	ChaseSc->FZP = 50000.0f;
+	ChaseSc->NZP = 2.0f;
 	ChaseSc->Flags |= Scn_Fogged | Scn_ZBuffer;
 
 	ChaseSc->Ambient.R = 64 * 2;
@@ -801,6 +801,10 @@ void Run_Chase()
 		exit(-1);
 	}
 	*/
+
+	while (Keyboard[ScESC]) continue;
+	if (Timer < 0)
+		Timer = 0;
 
 	delete FList;
 	delete SList;

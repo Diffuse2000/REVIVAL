@@ -198,7 +198,7 @@ void End_Graphics();
 void Build_YOffs_Table(VESA_Surface *VS);
 
 extern Font * LoadAFT(char *FileName);
-extern long OutTextXY(char *Where,long X,long Y, char *S,char C);
+extern long OutTextXY(char *Where,long X,long Y, char *S,char C, int xres = XRes, int yres = YRes);
 extern long Write_String_T32(long X,long Y,char *S,dword C);
 void Set_RGB(char Reg,char R,char G,char B);
 void Set_Palette(VPalette Pal);

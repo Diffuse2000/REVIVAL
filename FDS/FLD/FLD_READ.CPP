@@ -264,7 +264,7 @@ void OpenFLD(char *FileName)
 {
 	if (!(FLD=fopen(FileName,"rb")))
 	{
-		fclose(FLD);
+		//fclose(FLD);
 		printf("Error! Unable to open Flood file\"%s\"!\n",FileName);
 		exit(1);
 	}

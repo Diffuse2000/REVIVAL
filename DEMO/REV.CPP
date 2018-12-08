@@ -1403,7 +1403,8 @@ void CodeEntry(void *var)
 
 //	SavePolyStats("Fountain.stat");
 	if (Timer <= 0) Timer = 1;
-	//Run_Crash();
+	Timer = 1;
+	Run_Crash();
 
 	if (Timer<=0) Timer = 1;
 	Run_Greets();
