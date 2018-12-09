@@ -42,14 +42,14 @@ loop1:
         movq mm7, 48[ESI] 
         movq mm0, 56[ESI] 
 
-        movntq  0[EDI], mm1 // Non-temporal stores 
-        movntq  8[EDI], mm2 
-        movntq 16[EDI], mm3 
-        movntq 24[EDI], mm4 
-        movntq 32[EDI], mm5 
-        movntq 40[EDI], mm6 
-        movntq 48[EDI], mm7 
-        movntq 56[EDI], mm0 
+        movq  0[EDI], mm1 // Non-temporal stores 
+        movq  8[EDI], mm2 
+        movq 16[EDI], mm3 
+        movq 24[EDI], mm4 
+        movq 32[EDI], mm5 
+        movq 40[EDI], mm6 
+        movq 48[EDI], mm7 
+        movq 56[EDI], mm0 
 
         add esi, 64 
         add edi, 64 
@@ -75,7 +75,7 @@ static void FastMemcopy(void *dst, void *src, dword n)
 		neg ecx
 Inner:
 		movq MM0, [esi+ecx*8]
-		movntq [edi+ecx*8], MM0
+		movq [edi+ecx*8], MM0
 
 /*		movq MM0, [esi+ecx*8]
 		movq MM1, [esi+ecx*8 + 8]

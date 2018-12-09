@@ -307,7 +307,7 @@ void Flip_Text32(VESA_Surface *VS)
     if (R>=128) C_W |= 4;
     if (G>=128) C_W |= 2;
     if (B>=128) C_W |= 1;
-    C_W = (C_W<<8)+219; //219 = ASCII for 'Û'.
+    C_W = (C_W<<8)+219; //219 = ASCII for 'ï¿½'.
     *ANSI_W++ = C_W;
   }
 }
@@ -761,70 +761,129 @@ modify exact [eax ebx esi edi ecx 8087]
 
 #else
 
+#pragma pack(push, 1)
+__declspec(align(16)) struct uint128 {
+	uint64 low, high;
+};
+#pragma pack(pop)
+
 // 32bit MMX Alpha blending, 
 void AlphaBlend(char *Source,char *Target,DWord &PerSource,DWord &PerTarget)
 {
+	uint128 perSrc;
+	perSrc.low = perSrc.high = PerSource | static_cast<uint64>(PerSource) << 32;
+	uint128 perDst;
+	perDst.low = perDst.high = PerTarget | static_cast<uint64>(PerTarget) << 32;
+
+	uint128 *perSrcRef = &perSrc;
+	uint128 *perDstRef = &perDst;
+
 	__asm
 	{
+		pushad
 		mov esi, Source
 		mov edi, Target
-		mov ebx, PerSource
-		mov ecx, PerTarget
+		mov ebx, perSrcRef
+		mov ecx, perDstRef
 
-		punpcklbw mm7,[ebx]
-		punpcklbw mm6,[ecx]
-		psrlw mm7,8
-		psrlw mm6,8
-		mov ecx,[PageSize]
-		add esi,ecx
-		add edi,ecx
+		punpcklbw xmm7, [ebx]
+		punpcklbw xmm6, [ecx]
+		psrlw xmm7, 8
+		psrlw xmm6, 8
+		mov ecx, [PageSize]
+		add esi, ecx
+		add edi, ecx
 		neg ECX
-AlphaBlendLoop:
-			punpcklbw mm1,[esi+ecx]
-			punpcklbw mm0,[edi+ecx]
-			punpcklbw mm3,[esi+ecx+4]
-			punpcklbw mm2,[edi+ecx+4]
+		AlphaBlendLoop :
+		punpcklbw xmm1, [esi + ecx]
+			punpcklbw xmm0, [edi + ecx]
+			punpckhbw xmm3, [esi + ecx]
+			punpckhbw xmm2, [edi + ecx]
 
-;			This should be more efficient
-;			USING OPCODES! stupid assember.
-			pmulhuw mm1,mm7
-			pmulhuw mm0,mm6
-			pmulhuw mm3,mm7
-			pmulhuw mm2,mm6
-;			Original code
-;			psrlw mm1,8
-;			psrlw mm0,8
-;			pmullw mm1,mm7
-;			pmullw mm0,mm6
-;			psrlw mm1,8
-;			psrlw mm0,8
-;			psrlw mm1,8
-;			psrlw mm0,8
-;			pmullw mm3,mm7
-;			pmullw mm2,mm6
-;			psrlw mm1,8
-;			psrlw mm0,8
+			pmulhuw xmm1, xmm7
+			pmulhuw xmm0, xmm6
+			pmulhuw xmm3, xmm7
+			pmulhuw xmm2, xmm6
 
-;			optimized double pixel writeback
-			paddusb  mm1,mm0
-			paddusb  mm3,mm2
-			packuswb mm1,mm3
-;			movq [edi+ecx],mm1
-			movntq [edi+ecx],mm1
-			add ecx,8
+			paddusb  xmm1, xmm0
+			paddusb  xmm3, xmm2
+			packuswb xmm1, xmm3
+			movdqa[edi + ecx], xmm1
+			add ecx, 16
 		jnz AlphaBlendLoop
-		emms
+		popad
+
 	}
 
-/*	for(int j=0; j<YRes; ++j)
-	{	
-		for(int i=0, n=XRes; i<n; ++i)
-		{
-			((dword*)Target)[i] ^= ((dword*)Source)[i];
-		}
-		Source += MainSurf->BPSL;
-		Target += MainSurf->BPSL;
-	}*/
+
+//	__asm
+//	{
+//		mov esi, Source
+//		mov edi, Target
+//		mov ebx, PerSource
+//		mov ecx, PerTarget
+//
+//		punpcklbw mm7,[ebx]
+//		punpcklbw mm6,[ecx]
+//		psrlw mm7,8
+//		psrlw mm6,8
+//		mov ecx,[PageSize]
+//		add esi,ecx
+//		add edi,ecx
+//		neg ECX
+//AlphaBlendLoop:
+//			punpcklbw mm1,[esi+ecx]
+//			punpcklbw mm0,[edi+ecx]
+//			punpcklbw mm3,[esi+ecx+4]
+//			punpcklbw mm2,[edi+ecx+4]
+//
+//;			This should be more efficient
+//;			USING OPCODES! stupid assember.
+//			pmulhuw mm1,mm7
+//			pmulhuw mm0,mm6
+//			pmulhuw mm3,mm7
+//			pmulhuw mm2,mm6
+//;			Original code
+//;			psrlw mm1,8
+//;			psrlw mm0,8
+//;			pmullw mm1,mm7
+//;			pmullw mm0,mm6
+//;			psrlw mm1,8
+//;			psrlw mm0,8
+//;			psrlw mm1,8
+//;			psrlw mm0,8
+//;			pmullw mm3,mm7
+//;			pmullw mm2,mm6
+//;			psrlw mm1,8
+//;			psrlw mm0,8
+//
+//;			optimized double pixel writeback
+//			paddusb  mm1,mm0
+//			paddusb  mm3,mm2
+//			packuswb mm1,mm3
+//;			movq [edi+ecx],mm1
+//			movq [edi+ecx],mm1
+//			add ecx,8
+//		jnz AlphaBlendLoop
+//		emms
+//	}
+ //   byte *mulsrc = reinterpret_cast<byte*>(&PerSource);
+ //   byte *muldst = reinterpret_cast<byte*>(&PerTarget);
+	//for(int j=0; j<YRes; ++j)
+	//{	
+	//	for(int i=0, n=XRes; i<n; ++i)
+	//	{
+ //           byte *src = reinterpret_cast<byte *>(&Source[i*4]);
+ //           byte *dst = reinterpret_cast<byte *>(&Target[i*4]);
+ //           for (int channel=0; channel < 4; ++channel) {
+ //               int res = (src[channel] * mulsrc[channel] +  dst[channel]*muldst[channel]) >> 8;
+	//			if (res > 255) res = 255;
+	//			dst[channel] = res;
+ //           }
+	//	}
+	//	Source += MainSurf->BPSL;
+	//	Target += MainSurf->BPSL;
+	//}
 }
 
 void Transparence_16(char *Source,char *Target)
