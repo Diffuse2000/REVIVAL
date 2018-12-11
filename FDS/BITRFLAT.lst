@@ -1,0 +1,656 @@
+Microsoft (R) Macro Assembler Version 10.00.30319.01	    07/08/11 23:14:43
+C:\Projects\REVIVAL\FDS\FILLERS\BITRFLAT.ASM		     Page 1 - 1
+
+
+
+				.686
+				.MMX
+				.XMM
+ 00000000			_DATA	SEGMENT DWORD PUBLIC 'DATA'
+				align 4
+ 00000000 00000000		Left_Section         	dd 0
+ 00000004 00000000		Right_Section 	     	dd 0
+ 00000008 00000000		Left_Section_Height  	dd 0
+ 0000000C 00000000		Right_Section_Height 	dd 0
+ 00000010 00000000		Left_U 		     	dd 0.0 ; float
+ 00000014 00000000		Delta_left_U 	     	dd 0.0 ; float
+ 00000018 00000000		Left_V 		     	dd 0.0 ; float
+ 0000001C 00000000		Delta_left_V 	     	dd 0.0 ; float
+ 00000020 00000000		Left_Z                  dd 0.0 ; float
+ 00000024 00000000		Delta_left_Z            dd 0.0 ; float
+ 00000028 00000000		Right_Z                 dd 0.0 ; float
+ 0000002C 00000000		Delta_right_Z           dd 0.0 ; float
+ 00000030 00000000		Right_U                 dd 0.0 ; float
+ 00000034 00000000		Delta_right_U           dd 0.0 ; float
+ 00000038 00000000		Right_V                 dd 0.0 ; float
+ 0000003C 00000000		Delta_right_V           dd 0.0 ; float
+ 00000040 00000000		RevHeight               dd 0.0 ; float
+ 00000044 00000000		RevWidth                dd 0.0 ; float
+ 00000048 00000000		u0                      dd 0
+ 0000004C 00000000		v0                      dd 0
+ 00000050 00000000		u1                      dd 0
+ 00000054 00000000		v1                      dd 0
+ 00000058 00000000		du		      	dd 0
+ 0000005C 00000000		dv                      dd 0
+ 00000060 00000000		FlatBlat		dd 0
+ 00000064 00000000		XWidth			dd 0
+ 00000068 00000000		Height			dd 0
+ 0000006C 00000000		Longest			dd 0
+ 00000070  00000003 [		Left_Array              dd 3 dup(0)
+	    00000000
+	   ]
+ 0000007C  00000003 [		RIght_Array             dd 3 dup(0)
+	    00000000
+	   ]
+ 00000088 00000000		Left_X 			dd 0
+ 0000008C 00000000		Delta_Left_X 		dd 0
+ 00000090 00000000		Right_X 		dd 0
+ 00000094 00000000		Delta_Right_X 		dd 0
+ 00000098 00000000		BitMap                  dd 0
+ 0000009C 00000000		Where                   dd 0
+ 000000A0 00000000		Top                     dd 0
+ 000000A4 00000000		Middle                  dd 0
+ 000000A8 00000000		Bottom                  dd 0
+ 000000AC 00000000		ScanLine		dd 0
+ 000000B0 00000000		TEBP			dd 0
+ = 00000000			Vertex_X  equ 0
+ = 00000004			Vertex_Y  equ 4
+ = 00000008			Vertex_Z  equ 8
+ = 0000000C			Vertex_U  equ 12
+ = 00000010			Vertex_V  equ 16
+ 000000B4 3F800000		One       dd  1.0
+ 000000B8 41800000		Sixteen   dd  16.0
+ 000000BC 43800000		Sixtyfive dd  256.0
+ 000000C0 0000058E		_TmapTranspTriangle_Size	dd	ASM_FILE_END - _TmapTranspTriangle_
+				align 1
+ 00C4				_DATA	ENDS
+
+ 00000000			_TEXT	SEGMENT BYTE PUBLIC 'CODE'
+					ASSUME	cs:_TEXT, ds:_DATA
+
+					PUBLIC	_TmapTranspTriangle_Size
+
+					PUBLIC	_TmapTranspTriangle_
+ 00000000			_TmapTranspTriangle_:
+ 00000000  89 2D 000000B0 R	mov [TEBP],ebp
+
+				;vtx in ebx , bitmap in eax , where in ecx
+
+ 00000006  A3 00000098 R	mov [BitMap],eax
+ 0000000B  81 E2 FEFEFEFE	and   edx,0fefefefeh
+ 00000011  89 0D 0000009C R	mov [Where],ecx
+ 00000017  89 15 00000060 R	mov [FlatBlat],edx
+ 0000001D  8B CB		mov ecx,ebx
+ 0000001F  8B F3		mov esi,ebx
+ 00000021  8B FB		mov edi,ebx
+ 00000023  83 C6 14		add esi,20
+ 00000026  83 C7 28		add edi,40
+
+				;ecx - vertex 1
+				;esi - vertex 2
+				;edi - vertex 3
+
+ 00000029  8B 41 04		mov eax,[ecx+Vertex_Y]
+ 0000002C  3B 46 04		cmp eax,[esi+Vertex_Y]
+ 0000002F  7E 02		jle @@sort1
+ 00000031  87 CE		xchg ecx,esi
+ 00000033			@@sort1:
+ 00000033  8B 41 04		mov eax,[ecx+Vertex_Y]
+ 00000036  3B 47 04		cmp eax,[edi+Vertex_Y]
+ 00000039  7E 02		jle @@sort2
+ 0000003B  87 CF		xchg ecx,edi
+ 0000003D			@@sort2:
+ 0000003D  8B 46 04		mov eax,[esi+Vertex_Y]
+ 00000040  3B 47 04		cmp eax,[edi+Vertex_Y]
+ 00000043  7E 02		jle @@sort3
+ 00000045  87 F7		xchg esi,edi
+ 00000047			@@sort3:
+
+ 00000047  8B 5F 04		mov ebx,[edi+Vertex_Y]
+ 0000004A  2B 59 04		sub ebx,[ecx+Vertex_Y]
+ 0000004D  0F 84 00000402	jz TextureEnd
+
+				;    int temp = ((v2->y - v1->y) << 16) / height;
+				;    int longest = temp * (v3->x - v1->x) + ((v1->x - v2->x) << 16);
+				;eax-longest
+
+ 00000053  8B 46 04		mov eax,[esi+Vertex_Y]
+ 00000056  8B 29		mov ebp,[ecx+Vertex_X]
+ 00000058  2B 41 04		sub eax,[ecx+Vertex_Y]
+ 0000005B  2B 2E		sub ebp,[esi+Vertex_X]
+ 0000005D  C1 E0 10		sal eax,16
+ 00000060  C1 E5 10		sal ebp,16
+ 00000063  8B D0		mov edx,eax
+ 00000065  C1 FA 1F		sar edx,31
+ 00000068  F7 FB		idiv ebx
+ 0000006A  8B 1F		mov ebx,[edi+Vertex_X]
+ 0000006C  2B 19		sub ebx,[ecx+Vertex_X]
+ 0000006E  F7 EB		imul ebx
+ 00000070  03 C5		add eax,ebp
+ 00000072  A3 0000006C R	mov [Longest],eax
+ 00000077  0F 84 000003D8	jz TextureEnd
+ 0000007D  7D 7D		jge LongestOverZero
+
+
+ 0000007F  89 0D 000000A0 R	mov [Top],ecx
+ 00000085  8B E9		mov ebp,ecx
+ 00000087  89 35 000000A4 R	mov [Middle],esi
+ 0000008D  89 3D 000000A8 R	mov [Bottom],edi
+ 00000093  89 3D 0000007C R	mov [Right_Array],edi
+ 00000099  89 35 00000080 R	mov [Right_Array+4],esi
+ 0000009F  89 0D 00000084 R	mov [Right_Array+8],ecx
+ 000000A5  C7 05 00000004 R	mov [Right_Section],2
+	   00000002
+
+ 000000AF  89 3D 00000070 R	mov [Left_Array],edi
+ 000000B5  89 0D 00000074 R	mov [Left_Array+4],ecx
+ 000000BB  C7 05 00000000 R	mov [Left_Section],1
+	   00000001
+
+ 000000C5  E8 00000392		call CalcLeftSection
+ 000000CA  83 FB 00		cmp ebx,0
+ 000000CD  0F 8E 00000382	jle TextureEnd
+
+ 000000D3  E8 0000041D		call CalcRightSection
+ 000000D8  83 FB 00		cmp ebx,0
+ 000000DB  0F 8F 00000092	jg FLSNZ  ; First Right Section Is Not Zero
+ 000000E1  A1 00000004 R	mov eax,[Right_Section]
+ 000000E6  48			dec eax
+ 000000E7  A3 00000004 R	mov [Right_Section],eax
+ 000000EC  E8 00000404		call CalcRightSection
+ 000000F1  83 FB 00		cmp ebx,0
+ 000000F4  0F 8E 0000035B	jle TextureEnd
+ 000000FA  EB 77		jmp FLSNZ
+
+ 000000FC			LongestOverZero:
+ 000000FC  89 0D 000000A0 R	mov [Top],ecx
+ 00000102  8B E9		mov ebp,ecx
+ 00000104  89 35 000000A4 R	mov [Middle],esi
+ 0000010A  89 3D 000000A8 R	mov [Bottom],edi
+ 00000110  89 3D 00000070 R	mov [Left_Array],edi
+ 00000116  89 35 00000074 R	mov [Left_Array+4],esi
+ 0000011C  89 0D 00000078 R	mov [Left_Array+8],ecx
+ 00000122  C7 05 00000000 R	mov [Left_Section],2
+	   00000002
+
+ 0000012C  89 3D 0000007C R	mov [Right_Array],edi
+ 00000132  89 0D 00000080 R	mov [Right_Array+4],ecx
+ 00000138  C7 05 00000004 R	mov [Right_Section],1
+	   00000001
+
+ 00000142  E8 000003AE		call CalcRightSection
+ 00000147  83 FB 00		cmp ebx,0
+ 0000014A  0F 8E 00000305	jle TextureEnd
+
+ 00000150  E8 00000307		call CalcLeftSection
+ 00000155  83 FB 00		cmp ebx,0
+ 00000158  7F 19		jg FLSNZ  ; First Left Section Is Not Zero
+ 0000015A  A1 00000000 R	mov eax,[Left_Section]
+ 0000015F  48			dec eax
+ 00000160  A3 00000000 R	mov [Left_Section],eax
+ 00000165  E8 000002F2		call CalcLeftSection
+ 0000016A  83 FB 00		cmp ebx,0
+ 0000016D  0F 8E 000002E2	jle TextureEnd
+ 00000173			FLSNZ:
+
+ 00000173  8B 7D 04		mov edi,[ebp+vertex_y]
+ 00000176  8B D7		mov edx,edi
+ 00000178  C1 E7 08		sal edi,8
+ 0000017B  C1 E2 0A		sal edx,10
+ 0000017E  03 3D 0000009C R	add edi,[Where]
+ 00000184  03 FA		add edi,edx
+ 00000186  89 3D 000000AC R	mov [ScanLine],edi
+
+ 0000018C			OuterLoop:
+				;Inner Loop Start Here
+ 0000018C  A1 00000088 R	mov eax,[Left_X]
+ 00000191  8B 2D 00000090 R	mov ebp,[Right_X]
+ 00000197  C1 F8 10		sar eax,16
+ 0000019A  8B 3D 000000AC R	mov edi,[ScanLine]
+ 000001A0  C1 FD 10		sar ebp,16
+ 000001A3  2B E8		sub ebp,eax
+ 000001A5  0F 8E 0000019F	jle UpdateValues
+ 000001AB  D9 05 000000B8 R	FLD dword ptr [Sixteen]
+ 000001B1  89 2D 00000064 R	mov [XWidth],ebp
+ 000001B7  DB 05 00000064 R	FILD dword ptr [XWidth]
+ 000001BD  DE F9		FDIV                ;ST(6) - 1.0/Width
+ 000001BF  D9 05 00000020 R	FLD dword ptr [Left_Z]   ;ST(5)
+ 000001C5  D9 05 00000010 R	FLD dword ptr [Left_U]   ;ST(4)
+ 000001CB  D9 05 00000018 R	FLD dword ptr [Left_V]   ;ST(3)
+ 000001D1  D9 05 00000028 R	FLD dword ptr [Right_Z]  ;ST(2)
+ 000001D7  D9 05 00000030 R	FLD dword ptr [Right_U]  ;ST(1)
+ 000001DD  D9 05 00000038 R	FLD dword ptr [Right_V]  ;ST(0)
+ 000001E3  D8 E3		FSUB ST(0),ST(3) ;ST(1) = Delta V
+ 000001E5  D9 C9		FXCH ST(1)
+ 000001E7  D8 E4		FSUB ST(0),ST(4) ;ST(2) = Delta U
+ 000001E9  D9 CA		FXCH ST(2)
+ 000001EB  D8 E5		FSUB ST(0),ST(5) ;ST(0) = Delta Z
+ 000001ED  D8 CE		FMUL ST(0),ST(6)
+ 000001EF  D9 CA		FXCH ST(2)
+ 000001F1  D8 CE		FMUL ST(0),ST(6)
+ 000001F3  D9 C9		FXCH ST(1)
+ 000001F5  D8 CE		FMUL ST(0),ST(6)
+ 000001F7  DD C6		FFREE ST(6)
+ 000001F9  8D 3C 87		lea edi,[edi+eax*4]
+ 000001FC  D9 05 000000B4 R	FLD One
+ 00000202  D8 F6		FDIV ST(0),ST(6)
+ 00000204  8A 0F		mov cl,[Edi]
+ 00000206  D8 0D 000000BC R	FMUL dword ptr [SixtyFive]
+ 0000020C  D9 C0		FLD ST(0)
+ 0000020E  D8 CE		FMUL ST(0),ST(6)
+ 00000210  DB 1D 00000048 R	FISTP dword ptr [u0]
+ 00000216  D8 CC		FMUL ST(0),ST(4)
+ 00000218  DB 1D 0000004C R	FISTP dword ptr [v0]
+
+				;Left Z   ST(5)
+				;Left U   ST(4)
+				;Left V   ST(3)
+				;Delta Z  ST(2)
+				;Delta U  ST(1)
+				;Delta V  ST(0)
+
+ 0000021E  D9 CB		FXCH ST(3)  ;ST(0) = V    ST(3) = Delta V
+ 00000220  D8 C3		FADD ST(0),ST(3)
+ 00000222  D9 C9		FXCH ST(1)  ;ST(0) = Delta U    ST(1) = V
+ 00000224  D9 CC		FXCH ST(4)  ;ST(0) = U    ST(4) = Delta U
+ 00000226  D8 C4		FADD ST(0),ST(4)
+ 00000228  D9 CA		FXCH ST(2)  ;ST(0) = Delta Z    ST(2) = U
+ 0000022A  D9 CD		FXCH ST(5)  ;ST(0) = Z    ST(5) = Delta Z
+ 0000022C  D8 C5		FADD ST(0),ST(5)
+
+				;Delta Z  ST(5)
+				;Delta U  ST(4)
+				;Delta V  ST(3)
+				;Left U   ST(2)
+				;Left V   ST(1)
+				;Left Z   ST(0)
+ 0000022E  BB 00000000		mov ebx,0
+ 00000233  8B 0D 00000048 R	mov ecx,[u0]
+ 00000239  8B 15 0000004C R	mov edx,[v0]
+ 0000023F  8A DD		mov   bl, ch
+ 00000241  8A FE		mov   bh, dh
+ 00000243  8B 0D 00000098 R	mov ecx,[BitMap]
+
+ 00000249  D9 05 000000B4 R	FLD dword ptr [One]
+ 0000024F  D8 F1		FDIV ST(0),ST(1)
+ 00000251  8A 0C 99		mov cl,[ecx+ebx*4]
+
+ 00000254  D8 0D 000000BC R	FMUL dword ptr [SixtyFive]
+ 0000025A  D9 C0		FLD ST(0)
+ 0000025C  D8 CC		FMUL ST(0),ST(4)
+ 0000025E  DB 1D 00000050 R	FISTP dword ptr [u1]
+ 00000264  D8 CA		FMUL ST(0),ST(2)
+ 00000266  DB 1D 00000054 R	FISTP dword ptr [v1]
+
+
+ 0000026C			InnerOuterLoop:
+
+				;Delta Z  ST(5)
+				;Delta U  ST(4)
+				;Delta V  ST(3)
+				;Left U   ST(2)
+				;Left V   ST(1)
+				;Left Z   ST(0)
+
+ 0000026C  D8 C5		FADD ST(0),ST(5)
+ 0000026E  D9 C9		FXCH ST(1)
+ 00000270  D8 C3		FADD ST(0),ST(3)
+ 00000272  D9 CA		FXCH ST(2)
+ 00000274  D8 C4		FADD ST(0),ST(4)
+ 00000276  D9 CA		FXCH ST(2)
+ 00000278  D9 C9		FXCH ST(1)
+ 0000027A  D9 05 000000B4 R	FLD dword ptr [One]
+ 00000280  D8 F1		FDIV ST(0),ST(1)
+ 00000282  8B 35 00000050 R	mov esi,[u1]
+ 00000288  8B 15 00000054 R	mov edx,[v1]
+ 0000028E  2B 35 00000048 R	sub esi,[u0]
+ 00000294  2B 15 0000004C R	sub edx,[v0]
+ 0000029A  C1 FE 04		sar esi,4
+ 0000029D  A1 00000064 R	mov eax,[Xwidth]
+ 000002A2  C1 FA 04		sar edx,4
+ 000002A5  8B E8		mov ebp,eax
+ 000002A7  83 E8 10		sub eax,16
+ 000002AA  83 FD 10		cmp ebp,16
+ 000002AD  7E 05		jle @@NoOver16
+ 000002AF  BD 00000010		mov ebp,16
+ 000002B4			@@NoOver16:
+ 000002B4  89 15 0000005C R	mov [dv],edx
+ 000002BA  89 35 00000058 R	mov [du],esi
+ 000002C0  BB 00000000		mov ebx,0
+ 000002C5  8B 35 00000098 R	mov esi,[BitMap]
+ 000002CB  A3 00000064 R	mov [Xwidth],eax
+ 000002D0  8B 0D 00000048 R	mov ecx,[u0]
+ 000002D6  8B 15 0000004C R	mov edx,[v0]
+				;sar ecx,8
+				;sar edx,8
+ 000002DC  8A DD		mov   bl, ch
+ 000002DE  8A FE		mov   bh, dh
+
+
+				;@@InnerLoop:
+				;		mov   eax, [edi]
+				;		add   edx, [dv]                 ; update v
+				;		add   eax, [esi+ebx*4]          ; get pixel from aligned texture map (oh sheloh)
+				;		add   ecx, [du]                 ; update u
+				;		and   eax,0fefefefeh            ; flag out pesky bits from ovfl. off. (wont work!)
+				;		mov   bl, ch
+				;		shr   eax,1
+				;		mov   [edi], eax                ; plot pixel
+				;		mov   bh, dh
+				;		add   edi,4
+				;		dec   ebp
+				; jnz   @@InnerLoop
+
+ 000002E0			 @@InnerLoop:
+ 000002E0  A1 00000060 R			mov   eax, [FlatBlat]
+ 000002E5  03 15 0000005C R			add   edx, [dv]                 ; update v
+ 000002EB  03 04 9E				add   eax, [esi+ebx*4]          ; get pixel from aligned texture map (oh sheloh)
+ 000002EE  03 0D 00000058 R			add   ecx, [du]                 ; update u
+ 000002F4  D1 E8				shr   eax,1
+ 000002F6  8A DD				mov   bl, ch
+ 000002F8  89 07				mov   [edi], eax                ; plot pixel
+ 000002FA  8A FE				mov   bh, dh
+ 000002FC  83 C7 04				add   edi,4
+ 000002FF  4D					dec   ebp
+ 00000300  75 DE		 jnz   @@InnerLoop
+
+ 00000302  A1 00000050 R	mov eax,[u1]
+ 00000307  8B 0D 00000054 R	mov ecx,[v1]
+ 0000030D  A3 00000048 R	mov [u0],eax
+ 00000312  89 0D 0000004C R	mov [v0],ecx
+
+ 00000318  D8 0D 000000BC R	FMUL dword ptr [SixtyFive]
+ 0000031E  A1 00000064 R	mov eax,[XWidth]
+ 00000323  D9 C0		FLD ST(0)
+ 00000325  D8 CC		FMUL ST(0),ST(4)
+ 00000327  DB 1D 00000050 R	FISTP dword ptr [u1]
+ 0000032D  D8 CA		FMUL ST(0),ST(2)
+ 0000032F  DB 1D 00000054 R	FISTP dword ptr [v1]
+
+ 00000335  83 F8 00		cmp eax,0
+ 00000338  0F 8F FFFFFF2E	jg InnerOuterLoop
+ 0000033E  DD C0		FFREE ST(0)
+ 00000340  DD C1		FFREE ST(1)
+ 00000342  DD C2		FFREE ST(2)
+ 00000344  DD C3		FFREE ST(3)
+ 00000346  DD C4		FFREE ST(4)
+ 00000348  DD C5		FFREE ST(5)
+
+				;Inner Loop End Here
+
+ 0000034A			UpdateValues:
+ 0000034A  A1 000000AC R	mov eax,[ScanLine]
+ 0000034F  8B 1D 00000008 R	mov ebx,[Left_Section_Height]
+ 00000355  05 00000500		add eax,1280
+ 0000035A  4B			dec ebx
+ 0000035B  A3 000000AC R	mov [ScanLine],eax
+ 00000360  89 1D 00000008 R	mov [Left_Section_Height],ebx
+ 00000366  7F 23		jg @@Update_Left_UVXZ
+ 00000368  8B 1D 00000000 R	mov ebx,[Left_Section]
+ 0000036E  4B			dec ebx
+ 0000036F  0F 8E 000000E0	jle TextureEnd
+ 00000375  89 1D 00000000 R	mov [Left_Section],ebx
+ 0000037B  E8 000000DC		call CalcLeftSection
+ 00000380  83 FB 00		cmp ebx,0
+ 00000383  0F 8E 000000CC	jle TextureEnd
+ 00000389  EB 4C		jmp RightSectionCheck
+ 0000038B			@@Update_Left_UVXZ:
+ 0000038B  D9 05 00000010 R	FLD dword ptr [Left_U]
+ 00000391  D9 05 00000018 R	FLD dword ptr [Left_V]
+ 00000397  D9 C9		FXCH ST(1)
+ 00000399  D8 05 00000014 R	FADD dword ptr [Delta_Left_U]
+ 0000039F  D9 C9		FXCH ST(1)
+ 000003A1  D8 05 0000001C R	FADD [Delta_Left_V]
+ 000003A7  D9 C9		FXCH ST(1)
+ 000003A9  D9 1D 00000010 R	FSTP dword ptr [Left_U]
+ 000003AF  D9 1D 00000018 R	FSTP dword ptr [Left_V]
+
+ 000003B5  D9 05 00000020 R	FLD dword ptr [Left_Z]
+ 000003BB  A1 00000088 R	mov eax,[Left_X]
+ 000003C0  D8 05 00000024 R	FADD dword ptr [Delta_Left_Z]
+ 000003C6  03 05 0000008C R	add eax,[Delta_Left_X]
+ 000003CC  D9 1D 00000020 R	FSTP dword ptr [Left_Z]
+ 000003D2  A3 00000088 R	mov [Left_X],eax
+
+ 000003D7			RightSectionCheck:
+ 000003D7  8B 1D 0000000C R	mov ebx,[Right_Section_Height]
+ 000003DD  4B			dec ebx
+ 000003DE  89 1D 0000000C R	mov [Right_Section_Height],ebx
+ 000003E4  7F 1E		jg @@Update_Right_UVXZ
+ 000003E6  8B 1D 00000004 R	mov ebx,[Right_Section]
+ 000003EC  4B			dec ebx
+ 000003ED  7E 66		jle TextureEnd
+ 000003EF  89 1D 00000004 R	mov [Right_Section],ebx
+ 000003F5  E8 000000FB		call CalcRightSection
+ 000003FA  83 FB 00		cmp ebx,0
+ 000003FD  7E 56		jle TextureEnd
+ 000003FF  E9 FFFFFD88		jmp OuterLoop
+
+ 00000404			@@Update_Right_UVXZ:
+ 00000404  D9 05 00000030 R	FLD dword ptr [Right_U]
+ 0000040A  D9 05 00000038 R	FLD dword ptr [Right_V]
+ 00000410  D9 C9		FXCH ST(1)
+ 00000412  D8 05 00000034 R	FADD dword ptr [Delta_Right_U]
+ 00000418  D9 C9		FXCH ST(1)
+ 0000041A  D8 05 0000003C R	FADD [Delta_Right_V]
+ 00000420  D9 C9		FXCH ST(1)
+ 00000422  D9 1D 00000030 R	FSTP dword ptr [Right_U]
+ 00000428  D9 1D 00000038 R	FSTP dword ptr [Right_V]
+
+ 0000042E  D9 05 00000028 R	FLD dword ptr [Right_Z]
+ 00000434  A1 00000090 R	mov eax,[Right_X]
+ 00000439  D8 05 0000002C R	FADD dword ptr [Delta_Right_Z]
+ 0000043F  03 05 00000094 R	add eax,[Delta_Right_X]
+ 00000445  D9 1D 00000028 R	FSTP dword ptr [Right_Z]
+ 0000044B  A3 00000090 R	mov [Right_X],eax
+
+ 00000450  E9 FFFFFD37		jmp OuterLoop
+
+ 00000455			TextureEnd:
+ 00000455  8B 2D 000000B0 R	mov ebp,[Tebp]
+ 0000045B  C3			ret
+
+ 0000045C			CalcLeftSection proc near
+
+ 0000045C  A1 00000000 R	mov eax,[Left_Section]
+ 00000461  8B 0C 85		mov ecx,[Left_Array+eax*4]
+	   00000070 R
+ 00000468  83 E8 01		sub eax,1
+ 0000046B  8B 34 85		mov esi,[Left_Array+eax*4]
+	   00000070 R
+ 00000472  8B 5E 04		mov ebx,[esi+Vertex_Y]
+ 00000475  2B 59 04		sub ebx,[ecx+Vertex_Y]
+ 00000478  74 74		jz @@CLSend
+ 0000047A  89 1D 00000068 R	mov [Height],ebx
+ 00000480  8B 11		mov edx,[ecx+Vertex_X]
+ 00000482  DB 05 00000068 R	FILD dword ptr [Height]
+ 00000488  C1 E2 10		sal edx,16
+ 0000048B  8B 06		mov eax,[esi+Vertex_X]
+ 0000048D  2B 01		sub eax,[ecx+Vertex_X]
+ 0000048F  D9 05 000000B4 R	FLD dword ptr [One]
+ 00000495  C1 E0 10		sal eax,16
+ 00000498  89 15 00000088 R	mov [left_x],edx
+ 0000049E  8B D0		mov edx,eax
+ 000004A0  DE F1		FDIVR
+ 000004A2  C1 FA 1F		sar edx,31
+ 000004A5  F7 FB		idiv ebx
+ 000004A7  D9 46 08		FLD dword ptr [esi+Vertex_Z]
+ 000004AA  A3 0000008C R	mov [Delta_Left_X],eax
+ 000004AF  D9 41 08		FLD dword ptr [ecx+Vertex_Z]
+ 000004B2  D9 15 00000020 R	FST [Left_Z]
+ 000004B8  DE E9		FSUB
+ 000004BA  D8 C9		FMUL ST,ST(1)
+ 000004BC  D9 1D 00000024 R	FSTP dword ptr [Delta_Left_Z]
+
+ 000004C2  D9 46 0C		FLD dword ptr [esi+Vertex_U]
+ 000004C5  D9 41 0C		FLD dword ptr [ecx+Vertex_U]
+ 000004C8  D9 15 00000010 R	FST [Left_U]
+ 000004CE  DE E9		FSUB
+ 000004D0  D8 C9		FMUL ST,ST(1)
+ 000004D2  D9 1D 00000014 R	FSTP dword ptr [Delta_Left_U]
+
+ 000004D8  D9 46 10		FLD dword ptr [esi+Vertex_V]
+ 000004DB  D9 41 10		FLD dword ptr [ecx+Vertex_V]
+ 000004DE  D9 15 00000018 R	FST [Left_V]
+ 000004E4  DE E9		FSUB
+ 000004E6  DE C9		FMUL
+ 000004E8  D9 1D 0000001C R	FSTP dword ptr [Delta_Left_V]
+ 000004EE			@@CLSend:
+ 000004EE  89 1D 00000008 R	mov [Left_Section_Height],ebx
+ 000004F4  C3			  ret
+ 000004F5			CalcLeftSection endp
+
+
+
+ 000004F5			CalcRightSection proc near
+
+ 000004F5  A1 00000004 R	mov eax,[Right_Section]
+ 000004FA  8B 0C 85		mov ecx,[Right_Array+eax*4]
+	   0000007C R
+ 00000501  83 E8 01		sub eax,1
+ 00000504  8B 34 85		mov esi,[Right_Array+eax*4]
+	   0000007C R
+ 0000050B  8B 5E 04		mov ebx,[esi+Vertex_Y]
+ 0000050E  2B 59 04		sub ebx,[ecx+Vertex_Y]
+ 00000511  74 74		jz @@CRSend
+ 00000513  89 1D 00000068 R	mov [Height],ebx
+ 00000519  8B 11		mov edx,[ecx+Vertex_X]
+ 0000051B  DB 05 00000068 R	FILD dword ptr [Height]
+ 00000521  C1 E2 10		sal edx,16
+ 00000524  8B 06		mov eax,[esi+Vertex_X]
+ 00000526  2B 01		sub eax,[ecx+Vertex_X]
+ 00000528  D9 05 000000B4 R	FLD dword ptr [One]
+ 0000052E  C1 E0 10		sal eax,16
+ 00000531  89 15 00000090 R	mov [Right_X],edx
+ 00000537  8B D0		mov edx,eax
+ 00000539  DE F1		FDIVR
+ 0000053B  C1 FA 1F		sar edx,31
+ 0000053E  F7 FB		idiv ebx
+ 00000540  D9 46 08		FLD dword ptr [esi+Vertex_Z]
+ 00000543  A3 00000094 R	mov [Delta_Right_X],eax
+ 00000548  D9 41 08		FLD dword ptr [ecx+Vertex_Z]
+ 0000054B  D9 15 00000028 R	FST [Right_Z]
+ 00000551  DE E9		FSUB
+ 00000553  D8 C9		FMUL ST,ST(1)
+ 00000555  D9 1D 0000002C R	FSTP dword ptr [Delta_Right_Z]
+
+ 0000055B  D9 46 0C		FLD dword ptr [esi+Vertex_U]
+ 0000055E  D9 41 0C		FLD dword ptr [ecx+Vertex_U]
+ 00000561  D9 15 00000030 R	FST [Right_U]
+ 00000567  DE E9		FSUB
+ 00000569  D8 C9		FMUL ST,ST(1)
+ 0000056B  D9 1D 00000034 R	FSTP dword ptr [Delta_Right_U]
+
+ 00000571  D9 46 10		FLD dword ptr [esi+Vertex_V]
+ 00000574  D9 41 10		FLD dword ptr [ecx+Vertex_V]
+ 00000577  D9 15 00000038 R	FST [Right_V]
+ 0000057D  DE E9		FSUB
+ 0000057F  DE C9		FMUL
+ 00000581  D9 1D 0000003C R	FSTP dword ptr [Delta_Right_V]
+ 00000587			@@CRSend:
+ 00000587  89 1D 0000000C R	mov [Right_Section_Height],ebx
+ 0000058D  C3			  ret
+ 0000058E			CalcRightSection endp
+
+ 0000058E = 0000058E		ASM_FILE_END	equ	$
+
+ 058E				_TEXT	ENDS
+
+				END
+Microsoft (R) Macro Assembler Version 10.00.30319.01	    07/08/11 23:14:43
+C:\Projects\REVIVAL\FDS\FILLERS\BITRFLAT.ASM		     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+_DATA  . . . . . . . . . . . . .	32 Bit	 00C4	  DWord	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 058E	  Byte	  Public  'CODE'	
+
+
+Procedures, parameters, and locals:
+
+                N a m e                 Type     Value    Attr
+
+CalcLeftSection  . . . . . . . .	P Near	 045C	  _TEXT	Length= 0099 Public
+  @@CLSend . . . . . . . . . . .	L Near	 04EE	  _TEXT	
+CalcRightSection . . . . . . . .	P Near	 04F5	  _TEXT	Length= 0099 Public
+  @@CRSend . . . . . . . . . . .	L Near	 0587	  _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@@InnerLoop  . . . . . . . . . .	L Near	 02E0	  _TEXT	
+@@NoOver16 . . . . . . . . . . .	L Near	 02B4	  _TEXT	
+@@Update_Left_UVXZ . . . . . . .	L Near	 038B	  _TEXT	
+@@Update_Right_UVXZ  . . . . . .	L Near	 0404	  _TEXT	
+@@sort1  . . . . . . . . . . . .	L Near	 0033	  _TEXT	
+@@sort2  . . . . . . . . . . . .	L Near	 003D	  _TEXT	
+@@sort3  . . . . . . . . . . . .	L Near	 0047	  _TEXT	
+ASM_FILE_END . . . . . . . . . .	Number	 058Eh	 
+BitMap . . . . . . . . . . . . .	DWord	 0098	  _DATA	
+Bottom . . . . . . . . . . . . .	DWord	 00A8	  _DATA	
+Delta_Left_X . . . . . . . . . .	DWord	 008C	  _DATA	
+Delta_Right_X  . . . . . . . . .	DWord	 0094	  _DATA	
+Delta_left_U . . . . . . . . . .	DWord	 0014	  _DATA	
+Delta_left_V . . . . . . . . . .	DWord	 001C	  _DATA	
+Delta_left_Z . . . . . . . . . .	DWord	 0024	  _DATA	
+Delta_right_U  . . . . . . . . .	DWord	 0034	  _DATA	
+Delta_right_V  . . . . . . . . .	DWord	 003C	  _DATA	
+Delta_right_Z  . . . . . . . . .	DWord	 002C	  _DATA	
+FLSNZ  . . . . . . . . . . . . .	L Near	 0173	  _TEXT	
+FlatBlat . . . . . . . . . . . .	DWord	 0060	  _DATA	
+Height . . . . . . . . . . . . .	DWord	 0068	  _DATA	
+InnerOuterLoop . . . . . . . . .	L Near	 026C	  _TEXT	
+Left_Array . . . . . . . . . . .	DWord	 0070	  _DATA	
+Left_Section_Height  . . . . . .	DWord	 0008	  _DATA	
+Left_Section . . . . . . . . . .	DWord	 0000	  _DATA	
+Left_U . . . . . . . . . . . . .	DWord	 0010	  _DATA	
+Left_V . . . . . . . . . . . . .	DWord	 0018	  _DATA	
+Left_X . . . . . . . . . . . . .	DWord	 0088	  _DATA	
+Left_Z . . . . . . . . . . . . .	DWord	 0020	  _DATA	
+LongestOverZero  . . . . . . . .	L Near	 00FC	  _TEXT	
+Longest  . . . . . . . . . . . .	DWord	 006C	  _DATA	
+Middle . . . . . . . . . . . . .	DWord	 00A4	  _DATA	
+One  . . . . . . . . . . . . . .	DWord	 00B4	  _DATA	
+OuterLoop  . . . . . . . . . . .	L Near	 018C	  _TEXT	
+RIght_Array  . . . . . . . . . .	DWord	 007C	  _DATA	
+RevHeight  . . . . . . . . . . .	DWord	 0040	  _DATA	
+RevWidth . . . . . . . . . . . .	DWord	 0044	  _DATA	
+RightSectionCheck  . . . . . . .	L Near	 03D7	  _TEXT	
+Right_Section_Height . . . . . .	DWord	 000C	  _DATA	
+Right_Section  . . . . . . . . .	DWord	 0004	  _DATA	
+Right_U  . . . . . . . . . . . .	DWord	 0030	  _DATA	
+Right_V  . . . . . . . . . . . .	DWord	 0038	  _DATA	
+Right_X  . . . . . . . . . . . .	DWord	 0090	  _DATA	
+Right_Z  . . . . . . . . . . . .	DWord	 0028	  _DATA	
+ScanLine . . . . . . . . . . . .	DWord	 00AC	  _DATA	
+Sixteen  . . . . . . . . . . . .	DWord	 00B8	  _DATA	
+Sixtyfive  . . . . . . . . . . .	DWord	 00BC	  _DATA	
+TEBP . . . . . . . . . . . . . .	DWord	 00B0	  _DATA	
+TextureEnd . . . . . . . . . . .	L Near	 0455	  _TEXT	
+Top  . . . . . . . . . . . . . .	DWord	 00A0	  _DATA	
+UpdateValues . . . . . . . . . .	L Near	 034A	  _TEXT	
+Vertex_U . . . . . . . . . . . .	Number	 000Ch	 
+Vertex_V . . . . . . . . . . . .	Number	 0010h	 
+Vertex_X . . . . . . . . . . . .	Number	 0000h	 
+Vertex_Y . . . . . . . . . . . .	Number	 0004h	 
+Vertex_Z . . . . . . . . . . . .	Number	 0008h	 
+Where  . . . . . . . . . . . . .	DWord	 009C	  _DATA	
+XWidth . . . . . . . . . . . . .	DWord	 0064	  _DATA	
+_TmapTranspTriangle_Size . . . .	DWord	 00C0	  _DATA	Public
+_TmapTranspTriangle_ . . . . . .	L Near	 0000	  _TEXT	Public
+du . . . . . . . . . . . . . . .	DWord	 0058	  _DATA	
+dv . . . . . . . . . . . . . . .	DWord	 005C	  _DATA	
+u0 . . . . . . . . . . . . . . .	DWord	 0048	  _DATA	
+u1 . . . . . . . . . . . . . . .	DWord	 0050	  _DATA	
+v0 . . . . . . . . . . . . . . .	DWord	 004C	  _DATA	
+v1 . . . . . . . . . . . . . . .	DWord	 0054	  _DATA	
+
+	   0 Warnings
+	   0 Errors

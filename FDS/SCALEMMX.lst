@@ -1,0 +1,309 @@
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    11/14/18 22:59:19
+C:\Projects\REVIVAL\FDS\FILLERS\SCALEMMX.ASM		     Page 1 - 1
+
+
+				.686
+				.MMX
+				.XMM
+ 00000000			_DATA   SEGMENT DWORD PUBLIC 'DATA'
+				align 4
+ 00000000 00000000		du          dd  0
+ 00000004 00000000		Teax            dd  0
+ 00000008 00000000		StartX          dd  0
+ 0000000C 00000000		StartY          dd  0
+ 00000010 00000000		EndX            dd  0
+ 00000014 00000000		EndY            dd  0
+ 00000018 00000000		WidthX          dd  0
+ 0000001C 00000000		Height          dd  0
+ 00000020 00000000		ddx         dd  0
+ 00000024 00000000		ddy         dd  0
+ 00000028 00000000		Texture         dd  0
+ 0000002C 00000000		Screen          dd  0
+ 00000030 00000000		x           dd  0
+ 00000034 00000000		y           dd  0
+ 00000038 00000000		tx          dd  0
+ 0000003C 00000000		ty          dd  0
+ 00000040 00000000		ScanLine        dd  0
+ 00000044 00000000		ZScanLine		dd  0
+ 00000048 00000000		Counter         dd  0
+ 0000004C 00000000		TEBP            dd  0
+ 00000050 00000280		_Seven_UP_MMX_Size	dd	ASM_FILE_END - _Seven_UP_MMX_
+				EXTRN           _XRes:dword
+				EXTRN           _YRes:dword
+				EXTRN           _VESA_BPSL:dword
+				EXTRN           _BPP_Shift:dword
+				EXTRN           _PageSize:dword
+				align 1
+ 0054				_DATA   ENDS
+
+ 00000000			_TEXT   SEGMENT BYTE PUBLIC 'CODE'
+					ASSUME  cs:_TEXT, ds:_DATA
+
+					PUBLIC  _Seven_UP_MMX_Size
+
+					PUBLIC  _Seven_UP_MMX_
+ 00000000			_Seven_UP_MMX_:
+ 00000000  89 2D 0000004C R	mov [TEBP],ebp
+ 00000006  0F 77		emms
+				;eax = x ebx = y ecx = size x edx = size y esi = Texture edi = Screen Buffer
+ 00000008  83 F9 00		cmp ecx,0
+ 0000000B  0F 8E 00000266	jle ScalerEnd
+ 00000011  83 FA 00		cmp edx,0
+ 00000014  0F 8E 0000025D	jle ScalerEnd
+ 0000001A  89 35 00000028 R	mov [Texture],esi
+ 00000020  89 3D 0000002C R	mov [Screen],edi
+
+				; Get shade color
+ 00000026  0F 6E 54 24 04	movd mm2, dword ptr [esp + 4]
+ 0000002B  0F EF C9		pxor mm1,mm1
+ 0000002E  0F 60 D1		punpcklbw mm2,mm1
+
+				; Update constant Z value in code.
+ 00000031  8B 74 24 08		mov esi, [esp + 8]
+ 00000035  66| 89 35		mov ds:[ZConst], si
+	   00000215 R
+
+ 0000003C  8B F0		mov esi,eax
+ 0000003E  8B FB		mov edi,ebx
+ 00000040  2B F1		sub esi,ecx
+ 00000042  2B FA		sub edi,edx
+ 00000044  89 35 00000008 R	mov [StartX],esi
+ 0000004A  89 3D 0000000C R	mov [StartY],edi
+ 00000050  03 C1		add eax,ecx
+ 00000052  03 DA		add ebx,edx
+ 00000054  A3 00000010 R	mov [EndX],eax
+ 00000059  89 1D 00000014 R	mov [EndY],ebx
+ 0000005F  2B C6		sub eax,esi
+ 00000061  2B DF		sub ebx,edi
+ 00000063  A3 00000018 R	mov [WidthX],eax
+ 00000068  89 1D 0000001C R	mov [Height],ebx
+ 0000006E  8B C8		mov ecx,eax
+ 00000070  8B EB		mov ebp,ebx
+ 00000072  B8 10000000		mov eax,10000000h
+ 00000077  BA 00000000		mov edx,0
+ 0000007C  F7 F1		div ecx
+ 0000007E  A3 00000020 R	mov [ddx],eax
+ 00000083  B8 10000000		mov eax,10000000h
+ 00000088  BA 00000000		mov edx,0
+ 0000008D  F7 F5		div ebp
+ 0000008F  A3 00000024 R	mov [ddy],eax
+ 00000094  A1 00000008 R	mov eax,[StartX]
+ 00000099  8B 1D 0000000C R	mov ebx,[StartY]
+ 0000009F  83 F8 00		cmp eax,0
+ 000000A2  7D 34		jge @@StartXOverZero
+ 000000A4  8B 2D 00000018 R	mov ebp,[WidthX]
+ 000000AA  B8 00000000		mov eax,0
+ 000000AF  8B 0D 00000008 R	mov ecx,[StartX]
+ 000000B5  C7 05 00000030 R	mov [x],0
+	   00000000
+ 000000BF  03 E9		add ebp,ecx
+ 000000C1  2B C1		sub eax,ecx
+ 000000C3  89 2D 00000018 R	mov [WidthX],ebp
+ 000000C9  8B 0D 00000020 R	mov ecx,[ddx]
+ 000000CF  F7 E1		mul ecx
+ 000000D1  A3 00000038 R	mov [tx],eax
+ 000000D6  EB 0F		jmp @@CheckY
+ 000000D8			@@StartXOverZero:
+ 000000D8  A3 00000030 R	mov [x],eax
+ 000000DD  C7 05 00000038 R	mov [tx],0
+	   00000000
+ 000000E7			@@CheckY:
+ 000000E7  83 FB 00		cmp ebx,0
+ 000000EA  7D 34		jge @@StartYOverZero
+ 000000EC  8B 2D 0000001C R	mov ebp,[Height]
+ 000000F2  B8 00000000		mov eax,0
+ 000000F7  8B 0D 0000000C R	mov ecx,[StartY]
+ 000000FD  C7 05 00000034 R	mov [y],0
+	   00000000
+ 00000107  03 E9		add ebp,ecx
+ 00000109  2B C1		sub eax,ecx
+ 0000010B  89 2D 0000001C R	mov [Height],ebp
+ 00000111  8B 0D 00000024 R	mov ecx,[ddy]
+ 00000117  F7 E1		mul ecx
+ 00000119  A3 0000003C R	mov [ty],eax
+ 0000011E  EB 10		jmp @@CheckEndX
+ 00000120			@@StartYOverZero:
+ 00000120  89 1D 00000034 R	mov [y],ebx
+ 00000126  C7 05 0000003C R	mov [ty],0
+	   00000000
+ 00000130			@@CheckEndX:
+ 00000130  A1 00000010 R	mov eax,[EndX]
+ 00000135  8B 1D 00000014 R	mov ebx,[EndY]
+ 0000013B  3B 05 00000000 E	cmp eax,[_XRes]
+ 00000141  7C 19		jl @@CheckEndY
+ 00000143  A1 00000000 E	mov eax,[_XRes]
+ 00000148  2B 05 00000030 R	sub eax,[x]
+ 0000014E  A3 00000018 R	mov [WidthX],eax
+ 00000153  83 F8 00		cmp eax,0
+ 00000156  0F 8E 0000011B	jle ScalerEnd
+ 0000015C			@@CheckEndY:
+
+ 0000015C  3B 1D 00000000 E	cmp ebx,[_YRes]
+ 00000162  7C 10		jl @@Setup
+ 00000164  A1 00000000 E	mov eax,[_YRes]
+ 00000169  2B 05 00000034 R	sub eax,[y]
+ 0000016F  A3 0000001C R	mov [Height],eax
+ 00000174			@@Setup:
+ 00000174  83 3D 00000018 R	cmp [WidthX],0
+	   00
+ 0000017B  0F 8E 000000F6	jle ScalerEnd
+ 00000181  83 3D 0000001C R	cmp [Height],0
+	   00
+ 00000188  0F 8E 000000E9	jle ScalerEnd
+
+ 0000018E  A1 00000034 R	mov eax,[y]
+ 00000193  8B 1D 00000030 R	mov ebx,[x]
+ 00000199  F7 25 00000000 E	mul [_XRes]
+ 0000019F  03 D8		add ebx,eax
+ 000001A1  8B D3		mov edx, ebx
+ 000001A3  8B 0D 00000000 E	mov ecx,[_BPP_Shift]
+ 000001A9  D3 E3		shl ebx,cl
+ 000001AB  D1 E2		shl edx, 1
+ 000001AD  A1 0000002C R	mov eax, [Screen]
+ 000001B2  03 D8		add ebx, eax
+ 000001B4  03 D0		add edx, eax
+ 000001B6  03 15 00000000 E	add edx, [_PageSize]
+ 000001BC  89 1D 00000040 R	mov [ScanLine],ebx
+ 000001C2  89 15 00000044 R	mov [ZScanLine],edx
+ 000001C8			@@Outer:
+ 000001C8  A1 0000003C R	mov eax,[ty]
+ 000001CD  8B 1D 00000020 R	mov ebx,[ddx]
+ 000001D3  8B 3D 00000040 R	mov edi,[ScanLine]
+ 000001D9  C1 CB 14		ror ebx,20
+ 000001DC  25 0FF00000		and eax,0ff00000h
+ 000001E1  8A CB		mov cl,bl
+ 000001E3  C1 E8 0C		shr eax,12
+ 000001E6  B3 00		mov bl,0
+ 000001E8  8B 15 00000038 R	mov edx,[tx]
+				;mov [du],ebx
+ 000001EE  C1 CA 14		ror edx,20
+ 000001F1  8B 35 00000018 R	mov esi,[WidthX]
+				;add eax,[Texture]
+				;shl esi,2
+ 000001F7  8B 2D 00000028 R	mov ebp,[Texture]
+ 000001FD  8A C2		mov al,dl
+ 000001FF  8D 3C B7		lea edi,[edi+esi*4]
+ 00000202  8A D1		mov dl,cl
+
+ 00000204  8B 0D 00000044 R	mov ecx, [ZScanLine]
+ 0000020A  8D 0C 71		lea ecx, [ecx+esi*2]
+ 0000020D  83 F6 FF		xor esi,-1
+ 00000210  46			inc esi
+ 00000211			@@inner:
+					;cmp [ecx + esi * 2], ZConst
+ 00000211  66 81 3C 71			db 066h, 081h, 03Ch, 071h
+ 00000215 0000				ZConst dw 0
+ 00000217  77 0D			ja @no_draw
+
+					; W/O color	blending
+ 00000219  0F 6E 44 85 00		movd mm0, dword ptr [ebp+eax*4]
+ 0000021E  0F DC 04 B7			paddusb mm0,[edi+esi*4]
+ 00000222  0F 7E 04 B7			movd dword ptr [edi+esi*4],mm0
+
+					; w/ color blending
+				;	punpcklbw mm0,[ebp+eax*4]
+				;	psrlw mm0,8
+				;	pmullw mm0,mm2
+				;	psrlw mm0, 8
+				;	packuswb mm0, mm0
+				;	movd mm1,[edi+esi * 4]
+				;	paddusb mm0, mm1
+				;	movd [edi + esi * 4],mm0
+
+ 00000226			@no_draw:
+ 00000226  03 D3			add edx,ebx
+ 00000228  12 C2			adc al,dl
+ 0000022A  46				inc esi
+ 0000022B  75 E4		jnz @@inner
+
+ 0000022D  A1 00000040 R	mov eax,[ScanLine]
+ 00000232  8B 1D 0000003C R	mov ebx,[ty]
+ 00000238  03 05 00000000 E	add eax,[_VESA_BPSL]
+ 0000023E  8B 0D 00000024 R	mov ecx,[ddy]
+ 00000244  8B 15 0000001C R	mov edx,[height]
+ 0000024A  03 D9		add ebx,ecx
+ 0000024C  4A			dec edx
+ 0000024D  89 1D 0000003C R	mov [ty],ebx
+ 00000253  A3 00000040 R	mov [ScanLine],eax
+ 00000258  89 15 0000001C R	mov [height],edx
+
+ 0000025E  A1 00000044 R	mov eax,[ZScanLine]
+ 00000263  8B 1D 00000000 E	mov ebx,[_XRes]
+ 00000269  8D 04 58		lea eax, [eax+ebx*2]
+ 0000026C  A3 00000044 R	mov [ZScanLine], eax
+
+ 00000271  0F 85 FFFFFF51	jnz @@Outer
+
+ 00000277			ScalerEnd:
+ 00000277  8B 2D 0000004C R	mov ebp,[TEBP]
+ 0000027D  0F 77		emms
+ 0000027F  C3			ret
+
+ 00000280 = 00000280		ASM_FILE_END	equ	$
+
+ 0280				_TEXT   ENDS
+
+				END
+
+
+
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    11/14/18 22:59:19
+C:\Projects\REVIVAL\FDS\FILLERS\SCALEMMX.ASM		     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+_DATA  . . . . . . . . . . . . .	32 Bit	 0054	  DWord	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0280	  Byte	  Public  'CODE'	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@@CheckEndX  . . . . . . . . . .	L Near	 0130	  _TEXT	
+@@CheckEndY  . . . . . . . . . .	L Near	 015C	  _TEXT	
+@@CheckY . . . . . . . . . . . .	L Near	 00E7	  _TEXT	
+@@Outer  . . . . . . . . . . . .	L Near	 01C8	  _TEXT	
+@@Setup  . . . . . . . . . . . .	L Near	 0174	  _TEXT	
+@@StartXOverZero . . . . . . . .	L Near	 00D8	  _TEXT	
+@@StartYOverZero . . . . . . . .	L Near	 0120	  _TEXT	
+@@inner  . . . . . . . . . . . .	L Near	 0211	  _TEXT	
+@no_draw . . . . . . . . . . . .	L Near	 0226	  _TEXT	
+ASM_FILE_END . . . . . . . . . .	Number	 0280h	 
+Counter  . . . . . . . . . . . .	DWord	 0048	  _DATA	
+EndX . . . . . . . . . . . . . .	DWord	 0010	  _DATA	
+EndY . . . . . . . . . . . . . .	DWord	 0014	  _DATA	
+Height . . . . . . . . . . . . .	DWord	 001C	  _DATA	
+ScalerEnd  . . . . . . . . . . .	L Near	 0277	  _TEXT	
+ScanLine . . . . . . . . . . . .	DWord	 0040	  _DATA	
+Screen . . . . . . . . . . . . .	DWord	 002C	  _DATA	
+StartX . . . . . . . . . . . . .	DWord	 0008	  _DATA	
+StartY . . . . . . . . . . . . .	DWord	 000C	  _DATA	
+TEBP . . . . . . . . . . . . . .	DWord	 004C	  _DATA	
+Teax . . . . . . . . . . . . . .	DWord	 0004	  _DATA	
+Texture  . . . . . . . . . . . .	DWord	 0028	  _DATA	
+WidthX . . . . . . . . . . . . .	DWord	 0018	  _DATA	
+ZConst . . . . . . . . . . . . .	Word	 0215	  _TEXT	
+ZScanLine  . . . . . . . . . . .	DWord	 0044	  _DATA	
+_BPP_Shift . . . . . . . . . . .	DWord	 0000	  _DATA	External
+_PageSize  . . . . . . . . . . .	DWord	 0000	  _DATA	External
+_Seven_UP_MMX_Size . . . . . . .	DWord	 0050	  _DATA	Public
+_Seven_UP_MMX_ . . . . . . . . .	L Near	 0000	  _TEXT	Public
+_VESA_BPSL . . . . . . . . . . .	DWord	 0000	  _DATA	External
+_XRes  . . . . . . . . . . . . .	DWord	 0000	  _DATA	External
+_YRes  . . . . . . . . . . . . .	DWord	 0000	  _DATA	External
+ddx  . . . . . . . . . . . . . .	DWord	 0020	  _DATA	
+ddy  . . . . . . . . . . . . . .	DWord	 0024	  _DATA	
+du . . . . . . . . . . . . . . .	DWord	 0000	  _DATA	
+tx . . . . . . . . . . . . . . .	DWord	 0038	  _DATA	
+ty . . . . . . . . . . . . . . .	DWord	 003C	  _DATA	
+x  . . . . . . . . . . . . . . .	DWord	 0030	  _DATA	
+y  . . . . . . . . . . . . . . .	DWord	 0034	  _DATA	
+
+	   0 Warnings
+	   0 Errors
