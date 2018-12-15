@@ -596,6 +596,11 @@ void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword XRes, dword YRes
 	}
 }
 
+#pragma pack(push, 1)
+__declspec(align(16)) struct uint128 {
+	uint64 low, high;
+};
+#pragma pack(pop)
 
 
 // texture/gouraud grid renderer.
@@ -650,7 +655,7 @@ void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YR
 //				dcdx = (c1-c0)>>Grid_LOGSubsamp;
 				dcdx.subw(c1, c0);
 				dcdx.sarw(Grid_LOGSubsamp);
-				for(x=0; x<Grid_Subsamp; x++)
+				for(x=0; x<Grid_Subsamp; x+=4)
 				{
 //					t._d32[0] = tex[((u&0xFF00)>>8) + v&0xFF00];
 //					t.cbw();
@@ -659,23 +664,54 @@ void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YR
 //					t.cwb();
 //					scanline[x] = t._d32[0];
 //					c.addw(dcdx);
-					dword tx = tex[((u&0xFF00)>>8) + (v&0xFF00)];
+					uint128 tx;
+					tx.low = static_cast<uint64>(tex[((u&0xFF00)>>8) + (v&0xFF00)]);
+					u += dudx; v += dvdx;
+					tx.low |= static_cast<uint64>(tex[((u & 0xFF00) >> 8) + (v & 0xFF00)]) << 32;
+					u += dudx; v += dvdx;
+					tx.high = static_cast<uint64>(tex[((u & 0xFF00) >> 8) + (v & 0xFF00)]);
+					u += dudx; v += dvdx;
+					tx.high |= static_cast<uint64>(tex[((u & 0xFF00) >> 8) + (v & 0xFF00)]) << 32;
+					u += dudx; v += dvdx;
+					uint128 color1, color2;
+					color1.low = (static_cast<uint64>(c._d16[3]) << 48) | (static_cast<uint64>(c._d16[2]) << 32) | (static_cast<uint64>(c._d16[1]) << 16) | (static_cast<uint64>(c._d16[0]));
+					c.addw(dcdx);
+					color1.high = (static_cast<uint64>(c._d16[3]) << 48) | (static_cast<uint64>(c._d16[2]) << 32) | (static_cast<uint64>(c._d16[1]) << 16) | (static_cast<uint64>(c._d16[0]));
+					c.addw(dcdx);
+					color2.low = (static_cast<uint64>(c._d16[3]) << 48) | (static_cast<uint64>(c._d16[2]) << 32) | (static_cast<uint64>(c._d16[1]) << 16) | (static_cast<uint64>(c._d16[0]));
+					c.addw(dcdx);
+					color2.high = (static_cast<uint64>(c._d16[3]) << 48) | (static_cast<uint64>(c._d16[2]) << 32) | (static_cast<uint64>(c._d16[1]) << 16) | (static_cast<uint64>(c._d16[0]));
+					c.addw(dcdx);
+					//color1.low = color2.low = color1.high = color2.high = 0x8080808080808080ULL;
+					char * WritePtr = (char *)&scanline[x];
 					__asm
 					{
-						movd mm0, [tx]
-						pxor mm2, mm2
-						movq mm1, [c]
-						punpcklbw mm0, mm2
-						psllw mm0, 1
-						pmulhuw mm0, mm1
-						packuswb mm0, mm0
-						movd [tx], mm0
+						push esi
+						mov esi, WritePtr
+						movdqa xmm0, [tx]
+						pxor xmm2, xmm2
+						pxor xmm4, xmm4
+						movdqa xmm1, [color1]
+						movdqa xmm3, [color2]
+						punpcklbw xmm4, xmm0
+						punpckhbw xmm2, xmm0
+						; psrlw xmm2, 8
+						; psrlw xmm4, 8
+						 psrlw xmm1, 8
+						 psrlw xmm3, 8
+						 pmulhuw xmm2, xmm1
+						 pmulhuw xmm4, xmm3
+						 psllw xmm2, 1
+						 psllw xmm4, 1
+						 packuswb xmm4, xmm2
+						movdqa [esi], xmm4
+						pop esi
 					}
-					scanline[x] = tx;
+//					scanline[x] = tx;
 					
-					u += dudx;
-					v += dvdx;
-					c.addw(dcdx);
+					//u += dudx;
+					//v += dvdx;
+					//c.addw(dcdx);
 				}
 				scanline += XRes;
 				u0 += du0dy;
@@ -724,85 +760,794 @@ extern "C" void _Grid_Texture_Mapper_TG(char *Texture,GridPoint *Points,char *Vi
 
 #else
 
-/*
+
 #define CGrid_Texture_MapASM		Grid_Texture_MapASMV
 #define CGrid_Texture_MapASM_320	Grid_Texture_MapASM_320V
 #define CGrid_Texture_MapASM_XXX	Grid_Texture_MapASM_XXXV
 #define CGrid_Texture_MapASMMX		Grid_Texture_MapASMMXV
 #define CGrid_Texture_Mapper_TG		Grid_Texture_Mapper_TGV
+#define CGrid_Texture_Mapper_T		Grid_Texture_Mapper_TV
 
-extern "C" void Grid_Texture_MapASM_(void);
-void Grid_Texture_MapASMV(char *Texture,GridPoint *Points,char *VirScr)
+//extern "C" void Grid_Texture_MapASM_(void);
+//void Grid_Texture_MapASMV(char *Texture,GridPoint *Points,char *VirScr)
+//{
+//	__asm
+//	{
+//		mov ecx, [Texture]
+//			mov esi, [Points]
+//			mov edi, [VirScr]
+//			pushad
+//			call Grid_Texture_MapASM_
+//			popad
+//	}
+//}
+//
+//extern "C" void Grid_Texture_MapASM_320_(void);
+//void Grid_Texture_MapASM_320V(char *Texture,GridPoint *Points,char *VirScr)
+//{
+//	__asm
+//	{
+//		mov ecx, [Texture]
+//			mov esi, [Points]
+//			mov edi, [VirScr]
+//			pushad
+//			call Grid_Texture_MapASM_320_
+//			popad
+//	}
+//}
+//
+//extern "C" void Grid_Texture_MapASM_XXX_(void);
+//void Grid_Texture_MapASM_XXXV(char *Texture,GridPoint *Points,char *VirScr)
+//{
+//	__asm
+//	{
+//			mov ecx, [Texture]
+//			mov esi, [Points]
+//			mov edi, [VirScr]
+//			pushad
+//			call Grid_Texture_MapASM_XXX_
+//			popad
+//	}
+//}
+//
+//extern "C" void Grid_Texture_MapASMMX_(void);
+//extern "C" void Grid_Texture_MapASMMXV(char *Texture,GridPoint *Points,char *VirScr)
+//{
+//	__asm
+//	{
+//			mov ecx, [Texture]
+//			mov esi, [Points]
+//			mov edi, [VirScr]
+//			pushad
+//;			Inoperative routine (12/04/02)
+//;			call Grid_Texture_MapASMMX_
+//			popad
+//	}
+//}
+
+void Grid_Texture_Mapper_TV(char *Texture, GridPointT *Points, char *VirScr)
 {
+	int Delta_Left_U = 0;
+	int Delta_Left_V = 0;
+	int Left_U = 0;
+	int Left_V = 0;
+	int Right_U = 0;
+	int Right_V = 0;
+	int Delta_Right_U = 0;
+	int Delta_Right_V = 0;
+	int du = 0;
+	int dv = 0;
+	int lu = 0;
+	int lv = 0;
+	int ScanLine = 0;
+	int PointsList = 0;
+	int x = 0;
+	int y = 0;
+	int t = 0;
+	int Counter = 0;
+
+#define u_ofs		0
+#define v_ofs		4
+#define ElementSize 8
 	__asm
 	{
-		mov ecx, [Texture]
-			mov esi, [Points]
-			mov edi, [VirScr]
-			pushad
-			call Grid_Texture_MapASM_
-			popad
+		mov esi, [Points]
+		mov edi, [VirScr]
+
+		//pushad
+		//call Grid_Texture_Mapper_TG_
+		//popad
+
+		mov[ScanLine], edi
+		mov[PointsList], esi
+		mov eax, [MMXWobNumOfHorizontalBlocks]
+		mov[x], eax
+		mov eax, [MMXWobNumOfVerticalBlocks]
+		mov[y], eax
+
+		DrawLoop :
+			mov edi, [MMXWobNumOfHorizontalBlocks]
+			mov eax, [esi + u_ofs]
+			inc edi
+			shl edi, 3
+
+			mov		  ebx, [esi + v_ofs]
+			mov		  [Left_U], eax
+			mov		  [Left_V], ebx
+			mov		  ecx, [esi + edi + u_ofs]
+			mov		  edx, [esi + edi + v_ofs]
+			sub		  ecx, eax
+			sub		  edx, ebx
+			sar		  ecx, 3
+			mov		  eax, [esi + ElementSize + u_ofs]
+			sar		  edx, 3
+			mov		  [Delta_Left_U], ecx
+			mov		  [Delta_Left_V], edx
+			mov		  ebx, [esi + ElementSize + v_ofs]
+			mov		  [Right_U], eax
+			mov		  [Right_V], ebx
+			mov		  ecx, [esi + edi + u_ofs + ElementSize]
+			mov		  edx, [esi + edi + v_ofs + ElementSize]
+			sub		  ecx, eax
+			sub		  edx, ebx
+			sar		  ecx, 3
+			sar		  edx, 3
+			mov		  [Delta_Right_U], ecx
+			mov		  [Delta_Right_V], edx
+
+			mov[PointsList], esi
+			mov edi, [ScanLine]
+			mov[Counter], 8
+			Inner8:
+			mov eax, [Left_U]
+			mov ebx, [Left_V]
+			mov ecx, [Right_U]
+			mov edx, [Right_V]
+			sub ecx, eax
+			sub edx, ebx
+			sar ecx, 3
+			sar edx, 3
+			mov[du], ecx
+			mov[dv], edx
+
+			xor edx, edx
+			mov dl, ah
+			mov dh, bh
+			pxor      mm0, mm0
+			mov esi, [Texture]
+			; inner loop(unrolled)
+
+			movd		mm0, [esi + edx * 4]
+			add			eax, [du]
+			add			ebx, [dv]
+			mov			dl, ah
+			mov			dh, bh
+			movd		[edi], mm0
+
+			movd		mm0, [esi + edx * 4]
+			add			eax, [du]
+			add			ebx, [dv]
+			mov			dl, ah
+			mov			dh, bh
+			movd		[edi+4], mm0
+
+			movd		mm0, [esi + edx * 4]
+			add			eax, [du]
+			add			ebx, [dv]
+			mov			dl, ah
+			mov			dh, bh
+			movd		[edi+8], mm0
+
+			movd		mm0, [esi + edx * 4]
+			add			eax, [du]
+			add			ebx, [dv]
+			mov			dl, ah
+			mov			dh, bh
+			movd		[edi+12], mm0
+
+			movd		mm0, [esi + edx * 4]
+			add			eax, [du]
+			add			ebx, [dv]
+			mov			dl, ah
+			mov			dh, bh
+			movd		[edi+16], mm0
+
+			movd		mm0, [esi + edx * 4]
+			add			eax, [du]
+			add			ebx, [dv]
+			mov			dl, ah
+			mov			dh, bh
+			movq		[edi+20], mm0
+
+			movd		mm0, [esi + edx * 4]
+			add			eax, [du]
+			add			ebx, [dv]
+			mov			dl, ah
+			mov			dh, bh
+			movd		[edi+24], mm0
+
+			movd		mm0, [esi + edx * 4]
+			movd		[edi + 28], mm0
+
+			; inner loop end(unrolled)
+			; sub		  edi, 32
+			add       edi, [MMXWobBPSL]
+			mov       eax, [Left_U]
+			mov       ebx, [Left_V]
+			add       eax, [Delta_Left_U]
+			add       ebx, [Delta_Left_V]
+			mov		  [Left_U], eax
+			mov		  [Left_V], ebx
+			mov       ebx, [Right_V]
+			mov       eax, [Right_U]
+			add       eax, [Delta_Right_U]
+			add       ebx, [Delta_Right_V]
+			mov		  [Right_U], eax
+			mov		  [Right_V], ebx
+			mov       esi, [Counter]
+			dec       esi
+			mov		  [Counter], esi
+			jne       Inner8
+			mov       eax, [ScanLine]
+			add       eax, 32
+			mov		  [ScanLine], eax
+			mov       esi, [PointsList]
+			add		  esi, ElementSize
+			mov		  [PointsList], esi
+			mov       ebx, [x]
+			dec       ebx
+			mov		  [x], ebx
+			jne       DrawLoop
+			mov		  ecx, [MMXWobNumOfHorizontalBlocks]
+			mov		  [x], ecx
+			mov       ecx, [ScanLine]
+			mov       ebx, [y]
+			add		  ecx, [MMXWobBlockJump]; (8 - 1)*ScreenWidth * 4
+			add		  esi, ElementSize
+			mov[PointsList], esi
+			mov[ScanLine], ecx
+			dec       ebx
+			mov[y], ebx
+			jne       DrawLoop
+			emms
+
 	}
+#undef	u_ofs
+#undef	v_ofs
+#undef	ElementSize
 }
 
-extern "C" void Grid_Texture_MapASM_320_(void);
-void Grid_Texture_MapASM_320V(char *Texture,GridPoint *Points,char *VirScr)
-{
-	__asm
-	{
-		mov ecx, [Texture]
-			mov esi, [Points]
-			mov edi, [VirScr]
-			pushad
-			call Grid_Texture_MapASM_320_
-			popad
-	}
-}
-
-extern "C" void Grid_Texture_MapASM_XXX_(void);
-void Grid_Texture_MapASM_XXXV(char *Texture,GridPoint *Points,char *VirScr)
-{
-	__asm
-	{
-			mov ecx, [Texture]
-			mov esi, [Points]
-			mov edi, [VirScr]
-			pushad
-			call Grid_Texture_MapASM_XXX_
-			popad
-	}
-}
-
-extern "C" void Grid_Texture_MapASMMX_(void);
-extern "C" void Grid_Texture_MapASMMXV(char *Texture,GridPoint *Points,char *VirScr)
-{
-	__asm
-	{
-			mov ecx, [Texture]
-			mov esi, [Points]
-			mov edi, [VirScr]
-			pushad
-;			Inoperative routine (12/04/02)
-;			call Grid_Texture_MapASMMX_
-			popad
-	}
-}
 
 extern "C" void Grid_Texture_Mapper_TG_(void);
-void Grid_Texture_Mapper_TGV(char *Texture,NewGridPoint *Points,char *VirScr)
+void Grid_Texture_Mapper_TGV(char *Texture,GridPointTG *Points,char *VirScr)
 {
+	int Delta_Left_U = 0;
+	int Delta_Left_V = 0;
+	int Left_U = 0;
+	int Left_V = 0;
+	int Right_U = 0;
+	int Right_V = 0;
+	int Delta_Right_U = 0;
+	int Delta_Right_V = 0;
+	int du = 0;
+	int dv = 0;
+	int lu = 0;
+	int lv = 0;
+	int ScanLine = 0;
+	int PointsList = 0;
+	//int Texture = 0;
+	int x = 0;
+	int y = 0;
+	int Tebp = 0;
+	int t = 0;
+	int Counter = 0;
+	
+#define u_ofs		0
+#define v_ofs		4
+#define RGBA_ofs	8
+#define ElementSize 16
 	__asm
 	{
-			mov ecx, [Texture]
-			mov esi, [Points]
-			mov edi, [VirScr]
-			pushad
-			call Grid_Texture_Mapper_TG_
-			popad
+		mov esi, [Points]
+		mov edi, [VirScr]
+
+		//pushad
+		//call Grid_Texture_Mapper_TG_
+		//popad
+
+		mov	[ScanLine], edi
+		mov	[PointsList], esi
+		mov eax, [MMXWobNumOfHorizontalBlocks]
+		mov	[x], eax
+		mov eax, [MMXWobNumOfVerticalBlocks]
+		mov	[y], eax
+
+		DrawLoop:
+			mov edi, [MMXWobNumOfHorizontalBlocks]
+			mov eax, [esi + u_ofs]
+			inc edi
+			shl edi, 4
+
+			mov ebx,  [esi + v_ofs]
+			mov		  [Left_U], eax
+			mov		  [Left_V], ebx
+			mov		  ecx, [esi + edi + u_ofs]
+			mov		  edx, [esi + edi + v_ofs]
+			sub		  ecx, eax
+			sub		  edx, ebx
+			sar		  ecx, 3
+			mov		  eax, [esi + ElementSize + u_ofs]
+			sar		  edx, 3
+			mov		  [Delta_Left_U], ecx
+			mov		  [Delta_Left_V], edx
+			mov		  ebx, [esi + ElementSize + v_ofs]
+			mov		  [Right_U], eax
+			mov		  [Right_V], ebx
+			mov		  ecx, [esi + edi + u_ofs + ElementSize]
+			mov		  edx, [esi + edi + v_ofs + ElementSize]
+			sub		  ecx, eax
+			sub		  edx, ebx
+			sar		  ecx, 3
+			sar		  edx, 3
+			mov		  [Delta_Right_U], ecx
+			mov		  [Delta_Right_V], edx
+
+			; MMX stuff
+			; MM4 - Left RGBA
+			; MM5 - Delta Left RGBA
+			; MM6 - Right RGBA
+			; MM7 - Delta Right RGBA
+			movq	mm4, [esi + RGBA_ofs]; Left RGBA
+			movq	mm5, [esi + edi + RGBA_ofs]; Bottom Left RGBA
+			psubw	mm5, mm4
+			psraw	mm5, 3
+			movq    mm6, [esi + ElementSize + RGBA_ofs]; Right RGBA
+			movq    mm7, [esi + edi + ElementSize + RGBA_ofs]; Bottom Right RGBA
+			psubw	mm7, mm6
+			psraw	mm7, 3
+
+			mov	[PointsList], esi
+			mov edi, [ScanLine]
+			mov	[Counter], 8
+			Inner8:
+			; MMX stuff
+				; MM2 - Left RGBA
+				; MM3 - Delta RGBA
+				movq	mm2, mm4
+				movq	mm3, mm6
+				psubw   mm3, mm2
+				psraw	mm3, 3
+				mov eax, [Left_U]
+				mov ebx, [Left_V]
+				mov ecx, [Right_U]
+				mov edx, [Right_V]
+				sub ecx, eax
+				sub edx, ebx
+				sar ecx, 3
+				sar edx, 3
+				mov[du], ecx
+				mov[dv], edx
+
+				xor edx, edx
+				mov dl, ah
+				mov dh, bh
+
+				mov esi, [Texture]
+				; inner loop(unrolled)
+
+				punpcklbw	mm0, [esi + edx * 4]
+				psrlw		mm0, 8
+				pmulhuw		mm0, mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				mov			dl, ah
+				mov			dh, bh
+
+				punpcklbw	mm1, [esi + edx * 4]
+				psrlw		mm1, 8
+				pmulhuw		mm1, mm2
+				paddw		mm2, mm3
+				psllw		mm0, 1
+				psllw		mm1, 1
+				packuswb	mm0, mm1
+				movq		[edi], mm0
+				add			eax, [du]
+				add			ebx, [dv]
+				mov			dl, ah
+				mov			dh, bh
+
+				punpcklbw	mm0, [esi + edx * 4]
+				psrlw		mm0, 8
+				pmulhuw		mm0, mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				mov			dl, ah
+				mov			dh, bh
+				punpcklbw	mm1, [esi + edx * 4]
+
+				psrlw		mm1, 8
+				pmulhuw		mm1, mm2
+				paddw		mm2, mm3
+				psllw		mm0, 1
+				psllw		mm1, 1
+				packuswb	mm0, mm1
+				movq		[edi + 8], mm0
+				add			eax, [du]
+				add			ebx, [dv]
+				mov			dl, ah
+				mov			dh, bh
+
+				punpcklbw	mm0, [esi + edx * 4]
+				psrlw		mm0, 8
+				pmulhuw		mm0, mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				mov			dl, ah
+				mov			dh, bh
+
+				punpcklbw	mm1, [esi + edx * 4]
+				psrlw		mm1, 8
+				pmulhuw		mm1, mm2
+				paddw		mm2, mm3
+				psllw		mm0, 1
+				psllw		mm1, 1
+				packuswb	mm0, mm1
+				movq		[edi + 16], mm0
+				add			eax, [du]
+				add			ebx, [dv]
+				mov			dl, ah
+				mov			dh, bh
+
+				punpcklbw	mm0, [esi + edx * 4]
+				psrlw		mm0, 8
+				pmulhuw		mm0, mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				mov			dl, ah
+				mov			dh, bh
+
+				punpcklbw	mm1, [esi + edx * 4]
+				psrlw		mm1, 8
+				pmulhuw		mm1, mm2
+				psllw		mm0, 1
+				psllw		mm1, 1
+				packuswb	mm0, mm1
+				movq		[edi + 24], mm0
+
+				; inner loop end(unrolled)
+				; sub		  edi, 32
+				add       edi, [MMXWobBPSL]
+				paddw	  mm4, mm5;	Left RGBA
+				paddw	  mm6, mm7;	Left RGBA
+				mov       eax, [Left_U]
+				mov       ebx, [Left_V]
+				add       eax, [Delta_Left_U]
+				add       ebx, [Delta_Left_V]
+				mov		  [Left_U], eax
+				mov		  [Left_V], ebx
+				mov       ebx, [Right_V]
+				mov       eax, [Right_U]
+				add       eax, [Delta_Right_U]
+				add       ebx, [Delta_Right_V]
+				mov		  [Right_U], eax
+				mov		  [Right_V], ebx
+				mov       esi, [Counter]
+				dec       esi
+				mov	[Counter], esi
+			jne       Inner8
+			mov       eax, [ScanLine]
+			add       eax, 32
+			mov	[ScanLine], eax
+			mov       esi, [PointsList]
+			add		  esi, ElementSize
+			mov	[PointsList], esi
+			mov       ebx, [x]
+			dec       ebx
+			mov	[x], ebx
+		jne       DrawLoop
+		mov		  ecx, [MMXWobNumOfHorizontalBlocks]
+		mov	[x], ecx
+		mov       ecx, [ScanLine]
+		mov       ebx, [y]
+		add		  ecx, [MMXWobBlockJump]; (8 - 1)*ScreenWidth * 4
+		add		  esi, ElementSize
+		mov	[PointsList], esi
+		mov	[ScanLine], ecx
+		dec       ebx
+		mov	[y], ebx
+		jne       DrawLoop
+		emms
+
 	}
+#undef	u_ofs
+#undef	v_ofs
+#undef	RGBA_ofs
+#undef	ElementSize
 }
-*/
+
+void Grid_Texture_Mapper_TGV_XMM(char *Texture, GridPointTG *Points, char *VirScr)
+{
+	uint128 DULC;
+	uint128 DURC;
+	uint128 color1;
+	uint128 color2;
+	int Delta_Left_U = 0;
+	int Delta_Left_V = 0;
+	int Left_U = 0;
+	int Left_V = 0;
+	int Right_U = 0;
+	int Right_V = 0;
+	int Delta_Right_U = 0;
+	int Delta_Right_V = 0;
+	int du = 0;
+	int dv = 0;
+	int lu = 0;
+	int lv = 0;
+	int ScanLine = 0;
+	int PointsList = 0;
+	int x = 0;
+	int y = 0;
+	int t = 0;
+	int Counter = 0;
+
+#define u_ofs		0
+#define v_ofs		4
+#define RGBA_ofs	8
+#define ElementSize 16
+	__asm
+	{
+		mov esi, [Points]
+		mov edi, [VirScr]
+
+		mov[ScanLine], edi
+		mov[PointsList], esi
+		mov eax, [MMXWobNumOfHorizontalBlocks]
+		mov[x], eax
+		mov eax, [MMXWobNumOfVerticalBlocks]
+		mov[y], eax
+
+		DrawLoop :
+		mov edi, [MMXWobNumOfHorizontalBlocks]
+			mov eax, [esi + u_ofs]
+			inc edi
+			shl edi, 4
+
+			mov ebx, [esi + v_ofs]
+			mov		  [Left_U], eax
+			mov		  [Left_V], ebx
+			mov		  ecx, [esi + edi + u_ofs]
+			mov		  edx, [esi + edi + v_ofs]
+			sub		  ecx, eax
+			sub		  edx, ebx
+			sar		  ecx, 3
+			mov		  eax, [esi + ElementSize + u_ofs]
+			sar		  edx, 3
+			mov		  [Delta_Left_U], ecx
+			mov		  [Delta_Left_V], edx
+			mov		  ebx, [esi + ElementSize + v_ofs]
+			mov		  [Right_U], eax
+			mov		  [Right_V], ebx
+			mov		  ecx, [esi + edi + u_ofs + ElementSize]
+			mov		  edx, [esi + edi + v_ofs + ElementSize]
+			sub		  ecx, eax
+			sub		  edx, ebx
+			sar		  ecx, 3
+			sar		  edx, 3
+			mov		  [Delta_Right_U], ecx
+			mov		  [Delta_Right_V], edx
+
+			; MMX stuff
+			; MM4 - Left RGBA
+			; MM5 - Delta Left RGBA
+			; MM6 - Right RGBA
+			; MM7 - Delta Right RGBA
+			movq	mm4, [esi + RGBA_ofs]; Left RGBA
+			movq	mm5, [esi + edi + RGBA_ofs]; Bottom Left RGBA
+			psubw	mm5, mm4
+			psraw	mm5, 3
+			movq    mm6, [esi + ElementSize + RGBA_ofs]; Right RGBA
+			movq    mm7, [esi + edi + ElementSize + RGBA_ofs]; Bottom Right RGBA
+			psubw	mm7, mm6
+			psraw	mm7, 3
+			; movdqa[DULC], xmm5
+			; movdqa[DURC], xmm7
+
+			mov[PointsList], esi
+			mov edi, [ScanLine]
+			mov[Counter], 8
+			Inner8:
+			; MMX stuff
+				; MM2 - Left RGBA
+				; MM3 - Delta RGBA
+				movq	mm2, mm4
+				movq	mm3, mm6
+				psubw   mm3, mm2
+				psraw	mm3, 3
+				mov eax, [Left_U]
+				mov ebx, [Left_V]
+				mov ecx, [Right_U]
+				mov edx, [Right_V]
+				sub ecx, eax
+				sub edx, ebx
+				sar ecx, 3
+				sar edx, 3
+				mov[du], ecx
+				mov[dv], edx
+
+				xor edx, edx
+				mov dl, ah
+				mov dh, bh
+
+				mov esi, [Texture]
+				; inner loop(unrolled)
+
+				movq[color1], mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				PINSRD		xmm0, [esi + edx * 4], 0
+				mov			dl, ah
+				mov			dh, bh
+
+				movq[color1 + 8], mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				PINSRD		xmm0, [esi + edx * 4], 1
+				mov			dl, ah
+				mov			dh, bh
+
+				movq[color2], mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				PINSRD		xmm0, [esi + edx * 4], 2
+				mov			dl, ah
+				mov			dh, bh
+
+				movq[color2 + 8], mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				PINSRD		xmm0, [esi + edx * 4], 3
+				mov			dl, ah
+				mov			dh, bh
+
+
+				pxor		xmm1, xmm1
+				pxor		xmm2, xmm2
+				movdqa		xmm3, [color1]
+				movdqa		xmm4, [color2]
+				punpcklbw	xmm1, xmm0
+				punpckhbw	xmm2, xmm0
+				psrlw		xmm3, 8
+				psrlw		xmm4, 8
+				pmulhuw		xmm1, xmm3
+				pmulhuw		xmm2, xmm4
+				psllw		xmm1, 1
+				psllw		xmm2, 1
+				packuswb	xmm1, xmm2
+				movdqa		[edi], xmm1
+
+
+
+				pxor		xmm0, xmm0
+				pxor		xmm1, xmm1
+				pxor		xmm2, xmm2
+
+				movq		[color1], mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				PINSRD		xmm0, [esi + edx * 4], 0
+				mov			dl, ah
+				mov			dh, bh
+
+				movq		[color1 + 8], mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				PINSRD		xmm0, [esi + edx * 4], 1
+				mov			dl, ah
+				mov			dh, bh
+
+				movq[color2], mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				PINSRD		xmm0, [esi + edx * 4], 2
+				mov			dl, ah
+				mov			dh, bh
+
+				movq[color2 + 8], mm2
+				paddw		mm2, mm3
+				add			eax, [du]
+				add			ebx, [dv]
+				PINSRD		xmm0, [esi + edx * 4], 3
+				mov			dl, ah
+				mov			dh, bh
+
+
+				movdqa		xmm3, [color1]
+				movdqa		xmm4, [color2]
+				punpcklbw	xmm1, xmm0
+				punpckhbw	xmm2, xmm0
+				psrlw		xmm3, 8
+				psrlw		xmm4, 8
+				pmulhuw		xmm1, xmm3
+				pmulhuw		xmm2, xmm4
+				psllw		xmm1, 1
+				psllw		xmm2, 1
+				packuswb	xmm1, xmm2
+				movdqa		[edi+16], xmm1
+
+
+				; inner loop end(unrolled)
+				add       edi, [MMXWobBPSL]
+				; paddw	  xmm4, xmm5;	Left RGBA
+				paddw	  xmm4, [DULC];	Left RGBA
+				; paddw	  xmm6, xmm7;	Right RGBA
+				paddw	  xmm6, [DURC];	Right RGBA
+				mov       eax, [Left_U]
+				mov       ebx, [Left_V]
+				add       eax, [Delta_Left_U]
+				add       ebx, [Delta_Left_V]
+				mov[Left_U], eax
+				mov[Left_V], ebx
+				mov       ebx, [Right_V]
+				mov       eax, [Right_U]
+				add       eax, [Delta_Right_U]
+				add       ebx, [Delta_Right_V]
+				mov[Right_U], eax
+				mov[Right_V], ebx
+				mov       esi, [Counter]
+				dec       esi
+				mov[Counter], esi
+			jne       Inner8
+			mov       eax, [ScanLine]
+			add       eax, 32
+			mov[ScanLine], eax
+			mov       esi, [PointsList]
+			add		  esi, ElementSize
+			mov[PointsList], esi
+			mov       ebx, [x]
+			dec       ebx
+			mov[x], ebx
+			jne       DrawLoop
+			mov		  ecx, [MMXWobNumOfHorizontalBlocks]
+			mov[x], ecx
+			mov       ecx, [ScanLine]
+			mov       ebx, [y]
+			add		  ecx, [MMXWobBlockJump]; (8 - 1)*ScreenWidth * 4
+			add		  esi, ElementSize
+			mov[PointsList], esi
+			mov[ScanLine], ecx
+			dec       ebx
+			mov[y], ebx
+			jne       DrawLoop
+			emms
+
+	}
+#undef	u_ofs
+#undef	v_ofs
+#undef	RGBA_ofs
+#undef	ElementSize
+}
+
 #endif
+
+void Setup_Grid_Texture_Mapper_MMX(dword xres, dword yres)
+{
+	MMXWobNumOfHorizontalBlocks = (xres / Grid_Subsamp);
+	MMXWobNumOfVerticalBlocks = (yres / Grid_Subsamp) - 1;
+	MMXWobBlockJump = 7 * CPP * xres;
+	MMXWobBPSL = xres * CPP;
+}
+
 
 /*void Grid_Texture_Mapper(GridPoint *GP,Image *Img,DWord *DAC)
 {
@@ -839,12 +1584,16 @@ void Grid_Texture_MapASMMX(GridPoint *GP,Image *Img,DWord *DAC)
 {
 	CGrid_Texture_MapASMMX((char *)Img->Data,GP,(char *)DAC);
 }
-
-void Grid_Texture_Mapper_TG(NewGridPoint *GP,Image *Img,DWord *DAC)
+*/
+void Grid_Texture_Mapper_TG(GridPointTG *GP,Image *Img,DWord *DAC)
 {
 	CGrid_Texture_Mapper_TG((char *)Img->Data,GP,(char *)DAC);
-}*/
+}
 
+void Grid_Texture_Mapper_T(GridPointT *GP, Image *Img, DWord *DAC)
+{
+	CGrid_Texture_Mapper_T((char *)Img->Data, GP, (char *)DAC);
+}
 
 void GridFX_Test()
 {

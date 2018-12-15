@@ -808,7 +808,7 @@ void AlphaBlend(char *Source,char *Target,DWord &PerSource,DWord &PerTarget)
 			paddusb  xmm1, xmm0
 			paddusb  xmm3, xmm2
 			packuswb xmm1, xmm3
-			movdqa[edi + ecx], xmm1
+			movdqa [edi + ecx], xmm1
 			add ecx, 16
 		jnz AlphaBlendLoop
 		popad

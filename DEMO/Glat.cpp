@@ -1,5 +1,5 @@
 #include "Rev.H"
-
+void AlphaBlend(char *Source, char *Target, DWord &PerSource, DWord &PerTarget);
 
 void Cross_Fade(byte *U1,byte *U2,byte *Target,long Perc)
 {
@@ -94,6 +94,7 @@ void Initialize_Glato()
 	}
 	Load_Texture(PlaneTexture);
 	Convert_Texture2Image(PlaneTexture,PlaneImage);
+//	memset(PlaneImage->Data, 128, 256 * 256 * 4);
 	//PlaneImage->Data[0] = 0x80808080;
 //	WOBPOINTSHEIGHT = 30;
 
@@ -165,6 +166,7 @@ void Initialize_Glato()
 	Gfx_GP = new GridPointT[numGridPoints];
 	Sfx_GP = new GridPointT[numGridPoints];
 	
+	memset(Plane_GP, sizeof(GridPointTG) * numGridPoints, 0);
 	LenTable = new float [numGridPoints];
 	SinTable = new float [TRIG_ACC];
 	CosTable = new float [TRIG_ACC];
@@ -192,7 +194,7 @@ void Initialize_Glato()
 void Run_Glato(void)
 {
 //	Setup_Grid_Texture_Mapper_XXX(XRes, YRes);
-//	Setup_Grid_Texture_Mapper_MMX(XRes, YRes);
+	Setup_Grid_Texture_Mapper_MMX(XRes, YRes);
 
 	Vector CameraPos(0,0,0);
 	Matrix CamMat;
@@ -518,39 +520,45 @@ void Run_Glato(void)
 			}
 
 //		Grid_Texture_Mapper_XXX(Plane_GP,PlaneImage,(DWord *)Page1);
-//		Grid_Texture_Mapper_TG(Plane_GP,PlaneImage,(DWord *)Page1);
-		GridRendererTG(Plane_GP,PlaneImage,(DWord *)Page1, XRes, YRes);
+		Grid_Texture_Mapper_TG(Plane_GP,PlaneImage,(DWord *)Page1);
+		//GridRendererTG(Plane_GP,PlaneImage,(DWord *)Page1, XRes, YRes);
 
 		if (Code)
 		{
 //			Grid_Texture_Mapper_XXX(Code_GP,CodeImage,(DWord *)Page2);
-			GridRendererT(Code_GP,CodeImage,(DWord *)Page2, XRes, YRes);
+			//GridRendererT(Code_GP,CodeImage,(DWord *)Page2, XRes, YRes);
+			Grid_Texture_Mapper_T(Code_GP, CodeImage, (DWord *)Page2);
 			Modulate(&Surf1,&Surf2,0xa0a0a0,0xa0a0a0);
-			Modulate(&Surf2,VSurface,0xa0a0a0,0xa0a0a0);
+			Modulate(&Surf2,VSurface,0xa0a0a0, 0xa0a0a0);
 		}
 		if (Gfx)
 		{
 //			Grid_Texture_Mapper_XXX(Gfx_GP,GfxImage,(DWord *)Page3);
-			GridRendererT(Gfx_GP,GfxImage,(DWord *)Page3, XRes, YRes);
-			Modulate(&Surf1,&Surf3,0xa0a0a0,0xd0d0d0);
-			Modulate(&Surf3,VSurface,0xa0a0a0,0xa0a0a0);
+			Grid_Texture_Mapper_T(Gfx_GP,GfxImage,(DWord *)Page3);
+			Modulate(&Surf1,&Surf3,0xa0a0a0, 0xd0d0d0);
+			Modulate(&Surf3,VSurface,0xa0a0a0, 0xa0a0a0);
  //			Modulate(&Surf2,&Surf3,0xa0a0a0,0xa0a0a0);
 		}
 		if (Sfx)
 		{
 //			Grid_Texture_Mapper_XXX(Sfx_GP,SfxImage,(DWord *)Page4);
-			GridRendererT(Sfx_GP,SfxImage,(DWord *)Page4, XRes, YRes);
+			Grid_Texture_Mapper_T(Sfx_GP,SfxImage,(DWord *)Page4);
 			Modulate(&Surf1,&Surf4,0xa0a0a0,0xa0a0a0);
-			Modulate(&Surf4,VSurface,0xa0a0a0,0xa0a0a0);
+			Modulate(&Surf4,VSurface,0xa0a0a0, 0xa0a0a0);
 		}
 //		memcpy(VPage, Page1, PageSize);
 		if (Timer>3200)
 		{
 			long cfVal = (Timer-3200)*255/300;
 			if (cfVal>255) cfVal = 255;
-			Cross_Fade((byte *)VPage,(byte *)LogoImage->Data,(byte *)VPage,cfVal);
+			DWord SrcPer = ((DWord)cfVal) * 0x01010101;
+			DWord DstPer = ((DWord)(255-cfVal)) * 0x01010101;
+			AlphaBlend((char *)LogoImage->Data, (char *)VPage, SrcPer, DstPer);
 		}
-
+		//if (Timer < 750)
+		//{
+		//	_sleep((750 - Timer) / 5);
+		//}
 		// FPS printer
 		if (g_profilerActive)
 		{

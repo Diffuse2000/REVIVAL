@@ -476,6 +476,8 @@ void Run_Greets()
 			scroll = OutTextXY(VPage, 0, 0, MSGStr, 255);
 			sprintf(MSGStr, "Frame %f", CurFrame);
 			scroll = OutTextXY(VPage,0, scroll+15,MSGStr,255);
+			sprintf(MSGStr, "%d polys/frame", (long)(g_renderedPolys / numFrames));
+			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
 			sprintf(MSGStr, "%dK pixels/frame" , (long)(FillerPixelcount/(1000.0*numFrames)));
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
 			sprintf(MSGStr, "%dK pixels/second" , (long)(FillerPixelcount/1000.0 * 100.0 / Profiler[PROF_RNDR]));

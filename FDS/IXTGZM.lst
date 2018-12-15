@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.15.26730.0	    11/14/18 22:59:19
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    12/10/18 23:23:08
 C:\Projects\REVIVAL\FDS\FILLERS\IXTGZM.ASM		     Page 1 - 1
 
 
@@ -369,41 +369,60 @@ C:\Projects\REVIVAL\FDS\FILLERS\IXTGZM.ASM		     Page 1 - 1
 	   3D800000
 	   3D800000
 	   3D800000
- 00000320 3D70F0E9			rf17	dd		0.0588235,0.0588235,0.0588235,0.0588235
-	   3D70F0E9
-	   3D70F0E9
-	   3D70F0E9
- 00000330 3D638EB0			rf18	dd		0.055556,0.055556,0.055556,0.055556
-	   3D638EB0
-	   3D638EB0
-	   3D638EB0
- 00000340 3D5794A7			rf19	dd		0.052632,0.052632,0.052632,0.052632
-	   3D5794A7
-	   3D5794A7
-	   3D5794A7
+				;	rf17	dd		0.0588235,0.0588235,0.0588235,0.0588235
+				;	rf18	dd		0.055556,0.055556,0.055556,0.055556
+				;	rf19	dd		0.052632,0.052632,0.052632,0.052632
 				;	rf20	dd		0.05,0.05,0.05,0.05
+				;	rf21	dd		0.0476190485,0.0476190485,0.0476190485,0.0476190485
+				;	rf22	dd		0.0454545468,0.0454545468,0.0454545468,0.0454545468
+				;	rf23	dd		0.0434782617,0.0434782617,0.0434782617,0.0434782617
+				;	rf24	dd		0.0416666679,0.0416666679,0.0416666679,0.0416666679
+				;	rf25	dd		0.0399999991,0.0399999991,0.0399999991,0.0399999991
+				;	rf26	dd		0.0384615399,0.0384615399,0.0384615399,0.0384615399
+				;	rf27	dd		0.0370370373,0.0370370373,0.0370370373,0.0370370373
+				;	rf28	dd		0.0357142873,0.0357142873,0.0357142873,0.0357142873
+				;	rf29	dd		0.0344827585,0.0344827585,0.0344827585,0.0344827585
+				;	rf30	dd		0.0333333351,0.0333333351,0.0333333351,0.0333333351
+				;	rf31	dd		0.0322580636,0.0322580636,0.0322580636,0.0322580636
+				;	rf32	dd		0.0312500000,0.0312500000,0.0312500000,0.0312500000
 				 
 					; Integer division table (lock and load)
  = ri1 - 4				RITable equ		ri1 - 4
- 00000350 FFFFFFFF			ri1		dd		0ffffffffh
- 00000354 80000000			ri2		dd	    080000000h
- 00000358 55555555			ri3		dd		055555555h
- 0000035C 40000000			ri4		dd		040000000h
- 00000360 33333333			ri5		dd		033333333h
- 00000364 2AAAAAAA			ri6		dd		02AAAAAAAh
- 00000368 24924924			ri7		dd		024924924h
- 0000036C 20000000			ri8		dd		020000000h
- 00000370 1C71C71C			ri9		dd		01C71C71Ch
- 00000374 19999999			ri10	dd		019999999h
- 00000378 1745D174			ri11	dd		01745D174h
- 0000037C 15555555			ri12	dd		015555555h
- 00000380 13B13B13			ri13	dd		013B13B13h
- 00000384 12492492			ri14	dd		012492492h
- 00000388 11111111			ri15	dd		011111111h
- 0000038C 10000000			ri16	dd		010000000h
+ 00000320 FFFFFFFF			ri1		dd		0ffffffffh
+ 00000324 80000000			ri2		dd	    080000000h
+ 00000328 55555555			ri3		dd		055555555h
+ 0000032C 40000000			ri4		dd		040000000h
+ 00000330 33333333			ri5		dd		033333333h
+ 00000334 2AAAAAAA			ri6		dd		02AAAAAAAh
+ 00000338 24924924			ri7		dd		024924924h
+ 0000033C 20000000			ri8		dd		020000000h
+ 00000340 1C71C71C			ri9		dd		01C71C71Ch
+ 00000344 19999999			ri10	dd		019999999h
+ 00000348 1745D174			ri11	dd		01745D174h
+ 0000034C 15555555			ri12	dd		015555555h
+ 00000350 13B13B13			ri13	dd		013B13B13h
+ 00000354 12492492			ri14	dd		012492492h
+ 00000358 11111111			ri15	dd		011111111h
+ 0000035C 10000000			ri16	dd		010000000h
+				;	ri17	dd		0F0F0F0Fh
+				;	ri18	dd		0E38E38Eh
+				;	ri19	dd		0D79435Eh
+				;	ri20	dd		0CCCCCCCh
+				;	ri21	dd		0C30C30Ch
+				;	ri22	dd		0BA2E8BAh
+				;	ri23	dd		0B21642Ch
+				;	ri24	dd		0AAAAAAAh
+				;	ri25	dd		0A3D70A3h
+				;	ri26	dd		09D89D89h
+				;	ri27	dd		097B425Eh
+				;	ri28	dd		09249249h
+				;	ri29	dd		08D3DCB0h
+				;	ri30	dd		08888888h
+				;	ri31	dd		08421084h
+				;	ri32	dd		08000000h
 
 					; assorted values (debug)
- 00000390 00FFFFFF			whitecolor dd	0ffffffh
+ 00000360 00FFFFFF			whitecolor dd	0ffffffh
 
 					; Vertex Structure
  = 00000000				Vertex_RZ	equ		0h
@@ -422,13 +441,13 @@ C:\Projects\REVIVAL\FDS\FILLERS\IXTGZM.ASM		     Page 1 - 1
 
 					public			_IX_TGZM_Code_Start
 					public			_IX_TGZM_Code_Size
- 00000394 00000000 R			_IX_TGZM_Code_Start	dd	ASM_FILE_START
- 00000398 000006C3			_IX_TGZM_Code_Size	dd	ASM_FILE_END - ASM_FILE_START
+ 00000364 00000000 R			_IX_TGZM_Code_Start	dd	ASM_FILE_START
+ 00000368 000006C3			_IX_TGZM_Code_Size	dd	ASM_FILE_END - ASM_FILE_START
 
 				;;; CODE SEGMENTS ;;;
 
 				align 1
- 039C				_DATA   ENDS
+ 036C				_DATA   ENDS
 
  00000000			_TEXT   SEGMENT PARA PUBLIC 'CODE'
 					ASSUME  cs:_TEXT, ds:_DATA
@@ -878,7 +897,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\IXTGZM.ASM		     Page 1 - 1
  0000022A  03 C9			add			ecx,	ecx
  0000022C  8B D8			mov			ebx,	eax
 
- 0000022E  8B 81 0000034C R		mov			eax,	[RITable+ecx]
+ 0000022E  8B 81 0000031C R		mov			eax,	[RITable+ecx]
  00000234  F7 EA			imul		edx
  00000236  8B C3			mov			eax,	ebx
 
@@ -1648,7 +1667,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\IXTGZM.ASM		     Page 1 - 1
  06C3				_TEXT   ENDS
 
 				END
-Microsoft (R) Macro Assembler Version 14.15.26730.0	    11/14/18 22:59:19
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    12/10/18 23:23:08
 C:\Projects\REVIVAL\FDS\FILLERS\IXTGZM.ASM		     Symbols 2 - 1
 
 
@@ -1658,7 +1677,7 @@ Segments and Groups:
 
                 N a m e                 Size     Length   Align   Combine Class
 
-_DATA  . . . . . . . . . . . . .	32 Bit	 039C	  Para	  Public  'DATA'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 036C	  Para	  Public  'DATA'	
 _TEXT  . . . . . . . . . . . . .	32 Bit	 06C3	  Para	  Public  'CODE'	
 
 
@@ -1761,8 +1780,8 @@ Vertex_VZ  . . . . . . . . . . .	Number	 0008h
 Vertex_X . . . . . . . . . . . .	Number	 000Ch	 
 Vertex_Y . . . . . . . . . . . .	Number	 0020h	 
 _HeightCounter . . . . . . . . .	DWord	 00BC	  _DATA	
-_IX_TGZM_Code_Size . . . . . . .	DWord	 0398	  _DATA	Public
-_IX_TGZM_Code_Start  . . . . . .	DWord	 0394	  _DATA	Public
+_IX_TGZM_Code_Size . . . . . . .	DWord	 0368	  _DATA	Public
+_IX_TGZM_Code_Start  . . . . . .	DWord	 0364	  _DATA	Public
 _L2SPANSIZE  . . . . . . . . . .	Number	 0004h	 
 _L2Size  . . . . . . . . . . . .	DWord	 00D8	  _DATA	
 _PageSize  . . . . . . . . . . .	DWord	 0000	  _DATA	External
@@ -1814,9 +1833,6 @@ rf13 . . . . . . . . . . . . . .	DWord	 02E0	  _DATA
 rf14 . . . . . . . . . . . . . .	DWord	 02F0	  _DATA	
 rf15 . . . . . . . . . . . . . .	DWord	 0300	  _DATA	
 rf16 . . . . . . . . . . . . . .	DWord	 0310	  _DATA	
-rf17 . . . . . . . . . . . . . .	DWord	 0320	  _DATA	
-rf18 . . . . . . . . . . . . . .	DWord	 0330	  _DATA	
-rf19 . . . . . . . . . . . . . .	DWord	 0340	  _DATA	
 rf1  . . . . . . . . . . . . . .	DWord	 0220	  _DATA	
 rf2  . . . . . . . . . . . . . .	DWord	 0230	  _DATA	
 rf3  . . . . . . . . . . . . . .	DWord	 0240	  _DATA	
@@ -1826,22 +1842,22 @@ rf6  . . . . . . . . . . . . . .	DWord	 0270	  _DATA
 rf7  . . . . . . . . . . . . . .	DWord	 0280	  _DATA	
 rf8  . . . . . . . . . . . . . .	DWord	 0290	  _DATA	
 rf9  . . . . . . . . . . . . . .	DWord	 02A0	  _DATA	
-ri10 . . . . . . . . . . . . . .	DWord	 0374	  _DATA	
-ri11 . . . . . . . . . . . . . .	DWord	 0378	  _DATA	
-ri12 . . . . . . . . . . . . . .	DWord	 037C	  _DATA	
-ri13 . . . . . . . . . . . . . .	DWord	 0380	  _DATA	
-ri14 . . . . . . . . . . . . . .	DWord	 0384	  _DATA	
-ri15 . . . . . . . . . . . . . .	DWord	 0388	  _DATA	
-ri16 . . . . . . . . . . . . . .	DWord	 038C	  _DATA	
-ri1  . . . . . . . . . . . . . .	DWord	 0350	  _DATA	
-ri2  . . . . . . . . . . . . . .	DWord	 0354	  _DATA	
-ri3  . . . . . . . . . . . . . .	DWord	 0358	  _DATA	
-ri4  . . . . . . . . . . . . . .	DWord	 035C	  _DATA	
-ri5  . . . . . . . . . . . . . .	DWord	 0360	  _DATA	
-ri6  . . . . . . . . . . . . . .	DWord	 0364	  _DATA	
-ri7  . . . . . . . . . . . . . .	DWord	 0368	  _DATA	
-ri8  . . . . . . . . . . . . . .	DWord	 036C	  _DATA	
-ri9  . . . . . . . . . . . . . .	DWord	 0370	  _DATA	
+ri10 . . . . . . . . . . . . . .	DWord	 0344	  _DATA	
+ri11 . . . . . . . . . . . . . .	DWord	 0348	  _DATA	
+ri12 . . . . . . . . . . . . . .	DWord	 034C	  _DATA	
+ri13 . . . . . . . . . . . . . .	DWord	 0350	  _DATA	
+ri14 . . . . . . . . . . . . . .	DWord	 0354	  _DATA	
+ri15 . . . . . . . . . . . . . .	DWord	 0358	  _DATA	
+ri16 . . . . . . . . . . . . . .	DWord	 035C	  _DATA	
+ri1  . . . . . . . . . . . . . .	DWord	 0320	  _DATA	
+ri2  . . . . . . . . . . . . . .	DWord	 0324	  _DATA	
+ri3  . . . . . . . . . . . . . .	DWord	 0328	  _DATA	
+ri4  . . . . . . . . . . . . . .	DWord	 032C	  _DATA	
+ri5  . . . . . . . . . . . . . .	DWord	 0330	  _DATA	
+ri6  . . . . . . . . . . . . . .	DWord	 0334	  _DATA	
+ri7  . . . . . . . . . . . . . .	DWord	 0338	  _DATA	
+ri8  . . . . . . . . . . . . . .	DWord	 033C	  _DATA	
+ri9  . . . . . . . . . . . . . .	DWord	 0340	  _DATA	
 save_esp . . . . . . . . . . . .	DWord	 0090	  _DATA	
 smc_Hb0  . . . . . . . . . . . .	Byte	 0164	  _TEXT	
 smc_Hb1  . . . . . . . . . . . .	Byte	 0246	  _TEXT	
@@ -1854,7 +1870,7 @@ smc_TB1Hd4 . . . . . . . . . . .	DWord	 02EC	  _TEXT
 smc_TB2Hd3 . . . . . . . . . . .	DWord	 0286	  _TEXT	
 smc_TB2Wd2 . . . . . . . . . . .	DWord	 02E6	  _TEXT	
 t_edi  . . . . . . . . . . . . .	DWord	 00D0	  _DATA	
-whitecolor . . . . . . . . . . .	DWord	 0390	  _DATA	
+whitecolor . . . . . . . . . . .	DWord	 0360	  _DATA	
 
 	   0 Warnings
 	   0 Errors

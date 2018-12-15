@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.15.26730.0	    11/14/18 22:59:19
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    12/10/18 23:23:09
 C:\Projects\REVIVAL\FDS\RENDER\PackedVars.ASM		     Page 1 - 1
 
 
@@ -70,7 +70,7 @@ C:\Projects\REVIVAL\FDS\RENDER\PackedVars.ASM		     Page 1 - 1
  0000				_TEXT   ENDS
 
 				END
-Microsoft (R) Macro Assembler Version 14.15.26730.0	    11/14/18 22:59:19
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    12/10/18 23:23:09
 C:\Projects\REVIVAL\FDS\RENDER\PackedVars.ASM		     Symbols 2 - 1
 
 
@@ -99,5 +99,5 @@ _pf65536 . . . . . . . . . . . .	DWord	 0030	  _DATA	Public
 _pfMaxLight  . . . . . . . . . .	DWord	 0000	  _DATA	Public
 _pfr256  . . . . . . . . . . . .	DWord	 0020	  _DATA	Public
 
-	   0 Warnings
+	   1 Warnings
 	   0 Errors

@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.15.26730.0	    11/14/18 22:59:19
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    12/10/18 23:23:08
 C:\Projects\REVIVAL\FDS\FILLERS\IXTGZTM.ASM		     Page 1 - 1
 
 
@@ -380,29 +380,97 @@ C:\Projects\REVIVAL\FDS\FILLERS\IXTGZTM.ASM		     Page 1 - 1
 	   3D5794A7
 	   3D5794A7
 	   3D5794A7
-				;	rf20	dd		0.05,0.05,0.05,0.05
+ 00000350 3D4CCCCD			rf20	dd		0.05,0.05,0.05,0.05
+	   3D4CCCCD
+	   3D4CCCCD
+	   3D4CCCCD
+ 00000360 3D430C31			rf21	dd		0.0476190485,0.0476190485,0.0476190485,0.0476190485
+	   3D430C31
+	   3D430C31
+	   3D430C31
+ 00000370 3D3A2E8C			rf22	dd		0.0454545468,0.0454545468,0.0454545468,0.0454545468
+	   3D3A2E8C
+	   3D3A2E8C
+	   3D3A2E8C
+ 00000380 3D321643			rf23	dd		0.0434782617,0.0434782617,0.0434782617,0.0434782617
+	   3D321643
+	   3D321643
+	   3D321643
+ 00000390 3D2AAAAB			rf24	dd		0.0416666679,0.0416666679,0.0416666679,0.0416666679
+	   3D2AAAAB
+	   3D2AAAAB
+	   3D2AAAAB
+ 000003A0 3D23D70A			rf25	dd		0.0399999991,0.0399999991,0.0399999991,0.0399999991
+	   3D23D70A
+	   3D23D70A
+	   3D23D70A
+ 000003B0 3D1D89D9			rf26	dd		0.0384615399,0.0384615399,0.0384615399,0.0384615399
+	   3D1D89D9
+	   3D1D89D9
+	   3D1D89D9
+ 000003C0 3D17B426			rf27	dd		0.0370370373,0.0370370373,0.0370370373,0.0370370373
+	   3D17B426
+	   3D17B426
+	   3D17B426
+ 000003D0 3D124925			rf28	dd		0.0357142873,0.0357142873,0.0357142873,0.0357142873
+	   3D124925
+	   3D124925
+	   3D124925
+ 000003E0 3D0D3DCB			rf29	dd		0.0344827585,0.0344827585,0.0344827585,0.0344827585
+	   3D0D3DCB
+	   3D0D3DCB
+	   3D0D3DCB
+ 000003F0 3D088889			rf30	dd		0.0333333351,0.0333333351,0.0333333351,0.0333333351
+	   3D088889
+	   3D088889
+	   3D088889
+ 00000400 3D042108			rf31	dd		0.0322580636,0.0322580636,0.0322580636,0.0322580636
+	   3D042108
+	   3D042108
+	   3D042108
+ 00000410 3D000000			rf32	dd		0.0312500000,0.0312500000,0.0312500000,0.0312500000
+	   3D000000
+	   3D000000
+	   3D000000
 				 
 					; Integer division table (lock and load)
  = ri1 - 4				RITable equ		ri1 - 4
- 00000350 FFFFFFFF			ri1		dd		0ffffffffh
- 00000354 80000000			ri2		dd	    080000000h
- 00000358 55555555			ri3		dd		055555555h
- 0000035C 40000000			ri4		dd		040000000h
- 00000360 33333333			ri5		dd		033333333h
- 00000364 2AAAAAAA			ri6		dd		02AAAAAAAh
- 00000368 24924924			ri7		dd		024924924h
- 0000036C 20000000			ri8		dd		020000000h
- 00000370 1C71C71C			ri9		dd		01C71C71Ch
- 00000374 19999999			ri10	dd		019999999h
- 00000378 1745D174			ri11	dd		01745D174h
- 0000037C 15555555			ri12	dd		015555555h
- 00000380 13B13B13			ri13	dd		013B13B13h
- 00000384 12492492			ri14	dd		012492492h
- 00000388 11111111			ri15	dd		011111111h
- 0000038C 10000000			ri16	dd		010000000h
+ 00000420 FFFFFFFF			ri1		dd		0ffffffffh
+ 00000424 80000000			ri2		dd	    080000000h
+ 00000428 55555555			ri3		dd		055555555h
+ 0000042C 40000000			ri4		dd		040000000h
+ 00000430 33333333			ri5		dd		033333333h
+ 00000434 2AAAAAAA			ri6		dd		02AAAAAAAh
+ 00000438 24924924			ri7		dd		024924924h
+ 0000043C 20000000			ri8		dd		020000000h
+ 00000440 1C71C71C			ri9		dd		01C71C71Ch
+ 00000444 19999999			ri10	dd		019999999h
+ 00000448 1745D174			ri11	dd		01745D174h
+ 0000044C 15555555			ri12	dd		015555555h
+ 00000450 13B13B13			ri13	dd		013B13B13h
+ 00000454 12492492			ri14	dd		012492492h
+ 00000458 11111111			ri15	dd		011111111h
+ 0000045C 10000000			ri16	dd		010000000h
+ 00000460 0F0F0F0F			ri17	dd		0F0F0F0Fh
+ 00000464 0E38E38E			ri18	dd		0E38E38Eh
+ 00000468 0D79435E			ri19	dd		0D79435Eh
+ 0000046C 0CCCCCCC			ri20	dd		0CCCCCCCh
+ 00000470 0C30C30C			ri21	dd		0C30C30Ch
+ 00000474 0BA2E8BA			ri22	dd		0BA2E8BAh
+ 00000478 0B21642C			ri23	dd		0B21642Ch
+ 0000047C 0AAAAAAA			ri24	dd		0AAAAAAAh
+ 00000480 0A3D70A3			ri25	dd		0A3D70A3h
+ 00000484 09D89D89			ri26	dd		09D89D89h
+ 00000488 097B425E			ri27	dd		097B425Eh
+ 0000048C 09249249			ri28	dd		09249249h
+ 00000490 08D3DCB0			ri29	dd		08D3DCB0h
+ 00000494 08888888			ri30	dd		08888888h
+ 00000498 08421084			ri31	dd		08421084h
+ 0000049C 08000000			ri32	dd		08000000h
+
 
 					; assorted values (debug)
- 00000390 00FFFFFF			whitecolor dd	0ffffffh
+ 000004A0 00FFFFFF			whitecolor dd	0ffffffh
 
 					; Vertex Structure
  = 00000000				Vertex_RZ	equ		0h
@@ -421,13 +489,13 @@ C:\Projects\REVIVAL\FDS\FILLERS\IXTGZTM.ASM		     Page 1 - 1
 
 					public			_IX_TGZTM_Code_Start
 					public			_IX_TGZTM_Code_Size
- 00000394 00000000 R			_IX_TGZTM_Code_Start	dd	ASM_FILE_START
- 00000398 000006D1			_IX_TGZTM_Code_Size	dd	ASM_FILE_END - ASM_FILE_START
+ 000004A4 00000000 R			_IX_TGZTM_Code_Start	dd	ASM_FILE_START
+ 000004A8 000006D1			_IX_TGZTM_Code_Size	dd	ASM_FILE_END - ASM_FILE_START
 
 				;;; CODE SEGMENTS ;;;
 
 				align 1
- 039C				_DATA   ENDS
+ 04AC				_DATA   ENDS
 
  00000000			_TEXT   SEGMENT PARA PUBLIC 'CODE'
 					ASSUME  cs:_TEXT, ds:_DATA
@@ -876,7 +944,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\IXTGZTM.ASM		     Page 1 - 1
  0000022A  03 C9			add			ecx,	ecx
  0000022C  8B D8			mov			ebx,	eax
 
- 0000022E  8B 81 0000034C R		mov			eax,	[RITable+ecx]
+ 0000022E  8B 81 0000041C R		mov			eax,	[RITable+ecx]
  00000234  F7 EA			imul		edx
  00000236  8B C3			mov			eax,	ebx
 
@@ -1653,7 +1721,7 @@ C:\Projects\REVIVAL\FDS\FILLERS\IXTGZTM.ASM		     Page 1 - 1
  06D1				_TEXT   ENDS
 
 				END
-Microsoft (R) Macro Assembler Version 14.15.26730.0	    11/14/18 22:59:19
+Microsoft (R) Macro Assembler Version 14.15.26730.0	    12/10/18 23:23:08
 C:\Projects\REVIVAL\FDS\FILLERS\IXTGZTM.ASM		     Symbols 2 - 1
 
 
@@ -1663,7 +1731,7 @@ Segments and Groups:
 
                 N a m e                 Size     Length   Align   Combine Class
 
-_DATA  . . . . . . . . . . . . .	32 Bit	 039C	  Para	  Public  'DATA'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 04AC	  Para	  Public  'DATA'	
 _TEXT  . . . . . . . . . . . . .	32 Bit	 06D1	  Para	  Public  'CODE'	
 
 
@@ -1766,8 +1834,8 @@ Vertex_VZ  . . . . . . . . . . .	Number	 0008h
 Vertex_X . . . . . . . . . . . .	Number	 000Ch	 
 Vertex_Y . . . . . . . . . . . .	Number	 0020h	 
 _HeightCounter . . . . . . . . .	DWord	 00BC	  _DATA	
-_IX_TGZTM_Code_Size  . . . . . .	DWord	 0398	  _DATA	Public
-_IX_TGZTM_Code_Start . . . . . .	DWord	 0394	  _DATA	Public
+_IX_TGZTM_Code_Size  . . . . . .	DWord	 04A8	  _DATA	Public
+_IX_TGZTM_Code_Start . . . . . .	DWord	 04A4	  _DATA	Public
 _L2SPANSIZE  . . . . . . . . . .	Number	 0004h	 
 _L2Size  . . . . . . . . . . . .	DWord	 00D8	  _DATA	
 _PageSize  . . . . . . . . . . .	DWord	 0000	  _DATA	External
@@ -1823,7 +1891,20 @@ rf17 . . . . . . . . . . . . . .	DWord	 0320	  _DATA
 rf18 . . . . . . . . . . . . . .	DWord	 0330	  _DATA	
 rf19 . . . . . . . . . . . . . .	DWord	 0340	  _DATA	
 rf1  . . . . . . . . . . . . . .	DWord	 0220	  _DATA	
+rf20 . . . . . . . . . . . . . .	DWord	 0350	  _DATA	
+rf21 . . . . . . . . . . . . . .	DWord	 0360	  _DATA	
+rf22 . . . . . . . . . . . . . .	DWord	 0370	  _DATA	
+rf23 . . . . . . . . . . . . . .	DWord	 0380	  _DATA	
+rf24 . . . . . . . . . . . . . .	DWord	 0390	  _DATA	
+rf25 . . . . . . . . . . . . . .	DWord	 03A0	  _DATA	
+rf26 . . . . . . . . . . . . . .	DWord	 03B0	  _DATA	
+rf27 . . . . . . . . . . . . . .	DWord	 03C0	  _DATA	
+rf28 . . . . . . . . . . . . . .	DWord	 03D0	  _DATA	
+rf29 . . . . . . . . . . . . . .	DWord	 03E0	  _DATA	
 rf2  . . . . . . . . . . . . . .	DWord	 0230	  _DATA	
+rf30 . . . . . . . . . . . . . .	DWord	 03F0	  _DATA	
+rf31 . . . . . . . . . . . . . .	DWord	 0400	  _DATA	
+rf32 . . . . . . . . . . . . . .	DWord	 0410	  _DATA	
 rf3  . . . . . . . . . . . . . .	DWord	 0240	  _DATA	
 rf4  . . . . . . . . . . . . . .	DWord	 0250	  _DATA	
 rf5  . . . . . . . . . . . . . .	DWord	 0260	  _DATA	
@@ -1831,22 +1912,38 @@ rf6  . . . . . . . . . . . . . .	DWord	 0270	  _DATA
 rf7  . . . . . . . . . . . . . .	DWord	 0280	  _DATA	
 rf8  . . . . . . . . . . . . . .	DWord	 0290	  _DATA	
 rf9  . . . . . . . . . . . . . .	DWord	 02A0	  _DATA	
-ri10 . . . . . . . . . . . . . .	DWord	 0374	  _DATA	
-ri11 . . . . . . . . . . . . . .	DWord	 0378	  _DATA	
-ri12 . . . . . . . . . . . . . .	DWord	 037C	  _DATA	
-ri13 . . . . . . . . . . . . . .	DWord	 0380	  _DATA	
-ri14 . . . . . . . . . . . . . .	DWord	 0384	  _DATA	
-ri15 . . . . . . . . . . . . . .	DWord	 0388	  _DATA	
-ri16 . . . . . . . . . . . . . .	DWord	 038C	  _DATA	
-ri1  . . . . . . . . . . . . . .	DWord	 0350	  _DATA	
-ri2  . . . . . . . . . . . . . .	DWord	 0354	  _DATA	
-ri3  . . . . . . . . . . . . . .	DWord	 0358	  _DATA	
-ri4  . . . . . . . . . . . . . .	DWord	 035C	  _DATA	
-ri5  . . . . . . . . . . . . . .	DWord	 0360	  _DATA	
-ri6  . . . . . . . . . . . . . .	DWord	 0364	  _DATA	
-ri7  . . . . . . . . . . . . . .	DWord	 0368	  _DATA	
-ri8  . . . . . . . . . . . . . .	DWord	 036C	  _DATA	
-ri9  . . . . . . . . . . . . . .	DWord	 0370	  _DATA	
+ri10 . . . . . . . . . . . . . .	DWord	 0444	  _DATA	
+ri11 . . . . . . . . . . . . . .	DWord	 0448	  _DATA	
+ri12 . . . . . . . . . . . . . .	DWord	 044C	  _DATA	
+ri13 . . . . . . . . . . . . . .	DWord	 0450	  _DATA	
+ri14 . . . . . . . . . . . . . .	DWord	 0454	  _DATA	
+ri15 . . . . . . . . . . . . . .	DWord	 0458	  _DATA	
+ri16 . . . . . . . . . . . . . .	DWord	 045C	  _DATA	
+ri17 . . . . . . . . . . . . . .	DWord	 0460	  _DATA	
+ri18 . . . . . . . . . . . . . .	DWord	 0464	  _DATA	
+ri19 . . . . . . . . . . . . . .	DWord	 0468	  _DATA	
+ri1  . . . . . . . . . . . . . .	DWord	 0420	  _DATA	
+ri20 . . . . . . . . . . . . . .	DWord	 046C	  _DATA	
+ri21 . . . . . . . . . . . . . .	DWord	 0470	  _DATA	
+ri22 . . . . . . . . . . . . . .	DWord	 0474	  _DATA	
+ri23 . . . . . . . . . . . . . .	DWord	 0478	  _DATA	
+ri24 . . . . . . . . . . . . . .	DWord	 047C	  _DATA	
+ri25 . . . . . . . . . . . . . .	DWord	 0480	  _DATA	
+ri26 . . . . . . . . . . . . . .	DWord	 0484	  _DATA	
+ri27 . . . . . . . . . . . . . .	DWord	 0488	  _DATA	
+ri28 . . . . . . . . . . . . . .	DWord	 048C	  _DATA	
+ri29 . . . . . . . . . . . . . .	DWord	 0490	  _DATA	
+ri2  . . . . . . . . . . . . . .	DWord	 0424	  _DATA	
+ri30 . . . . . . . . . . . . . .	DWord	 0494	  _DATA	
+ri31 . . . . . . . . . . . . . .	DWord	 0498	  _DATA	
+ri32 . . . . . . . . . . . . . .	DWord	 049C	  _DATA	
+ri3  . . . . . . . . . . . . . .	DWord	 0428	  _DATA	
+ri4  . . . . . . . . . . . . . .	DWord	 042C	  _DATA	
+ri5  . . . . . . . . . . . . . .	DWord	 0430	  _DATA	
+ri6  . . . . . . . . . . . . . .	DWord	 0434	  _DATA	
+ri7  . . . . . . . . . . . . . .	DWord	 0438	  _DATA	
+ri8  . . . . . . . . . . . . . .	DWord	 043C	  _DATA	
+ri9  . . . . . . . . . . . . . .	DWord	 0440	  _DATA	
 save_esp . . . . . . . . . . . .	DWord	 0090	  _DATA	
 smc_Hb0  . . . . . . . . . . . .	Byte	 0164	  _TEXT	
 smc_Hb1  . . . . . . . . . . . .	Byte	 0246	  _TEXT	
@@ -1859,7 +1956,7 @@ smc_TB1Hd4 . . . . . . . . . . .	DWord	 02FA	  _TEXT
 smc_TB2Hd3 . . . . . . . . . . .	DWord	 0286	  _TEXT	
 smc_TB2Wd2 . . . . . . . . . . .	DWord	 02F4	  _TEXT	
 t_edi  . . . . . . . . . . . . .	DWord	 00D0	  _DATA	
-whitecolor . . . . . . . . . . .	DWord	 0390	  _DATA	
+whitecolor . . . . . . . . . . .	DWord	 04A0	  _DATA	
 
 	   0 Warnings
 	   0 Errors

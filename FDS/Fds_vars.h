@@ -418,8 +418,8 @@ typedef struct
 
 struct GridPointTG
 {
-	mmreg BGRA;
 	long u, v;	
+	mmreg BGRA;
 };
 
 struct GridPointT
