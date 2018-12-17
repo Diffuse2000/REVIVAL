@@ -175,7 +175,14 @@ void Animate_Objects(Scene *Sc)
 	// lalala, HARARCHIA , Ver 3, it now rulati
 	for (Obj=Sc->ObjectHead;Obj;Obj=Obj->Next)
 	{
-		MatrixXVector(*Obj->Rot,&Obj->Pivot,&U);
+		if (Obj->Pivot.is_zero()) {
+			U.x = U.y = U.z = 0.0f;
+		} else {
+			MatrixXVector(*Obj->Rot, &Obj->Pivot, &U);
+		}
+		//printf("%s U: \n", Obj->Name);
+		//U.print();
+		//printf("\n");
 		Vector_SelfSub(Obj->Pos,&U);
 		if (Obj->Parent)
 		{
@@ -225,7 +232,7 @@ void Transform_Objects(Scene *Sc)
 	Omni *O;
 	Matrix M,IM;
 	float M34[3][4];
-	Vector AP,S,U,V,*W=(Vector *)(&M),*W2,*Scl;
+	Vector AP,S,U,OS,V,*W=(Vector *)(&M),*W2,*Scl;
 	float L1,L2,L3;
 	Vertex *Vtx,*VEnd;
 	Face *F,*FEnd;
@@ -266,10 +273,14 @@ void Transform_Objects(Scene *Sc)
 		V.x = CntrEX*S.z+PX*S.x;
 		V.y = CntrEY*S.z-PY*S.y;
 		V.z = S.z;
+
 		// make a corrected sphere center vector
 		MatrixXVector(IM,&T->BSphereCtr,&AP);
 		Vector_SelfAdd(&S,&AP);
-		
+
+		Vector_Copy(&OS, &S);
+
+
 		//    Vector_Copy(&V,&S);
 		// ready
 		// 4x3 AFFINE XFORM
@@ -352,7 +363,17 @@ void Transform_Objects(Scene *Sc)
 		if (!(F->Txtr->Flags&Mat_TwoSided))
         F->Flags = (AP.x*F->N.x + AP.y*F->N.y + AP.z*F->N.z>=F->NormProd);*/
 		
-		
+		Vector *BSC = &T->BSphereScreenPos;
+
+		//BSC->x = M34[0][0] * V.x + M34[0][1] * V.y + M34[0][2] * V.z + M34[0][3];
+		//BSC->y = M34[1][0] * V.x + M34[1][1] * V.y + M34[1][2] * V.z + M34[1][3];
+		//BSC->z = M34[2][0] * V.x + M34[2][1] * V.y + M34[2][2] * V.z + M34[2][3];
+		BSC->x = V.x;
+		BSC->y = V.y;
+		BSC->z = V.z;
+
+		BSC->x /= BSC->z;
+		BSC->y /= BSC->z;
 		//    Main vertex loop,in case no restrictions apply.
 		if (!(T->Flags&Tri_Phong))
 		{

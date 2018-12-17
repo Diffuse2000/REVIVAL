@@ -171,6 +171,9 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Lib>
       <OutputFile>.\Debug\FDS.lib</OutputFile>
@@ -196,6 +199,9 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Lib>
       <OutputFile>.\Debug\FDS.lib</OutputFile>

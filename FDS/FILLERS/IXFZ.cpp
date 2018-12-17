@@ -108,8 +108,11 @@ static void CalcRightSection (IXVertexG *V1, IXVertexG *V2)
 	
 	// Calculate number of scanlines
 	dword iy1, iy2;
-	Fist(iy1,V1->y);
-	Fist(iy2,V2->y);
+	//Fist(iy1,V1->y);
+	//Fist(iy2,V2->y);
+	iy1 = ceilf(V1->y);
+	iy2 = ceilf(V2->y);
+
 	Right.ScanLines = iy2 - iy1;
 	
 	if (Right.ScanLines == 0)
@@ -137,8 +140,12 @@ static void CalcLeftSection (IXVertexG *V1, IXVertexG *V2)
 	
 	// Calculate number of scanlines
 	dword iy1, iy2;
-	Fist(iy1,V1->y);
-	Fist(iy2,V2->y);
+	//Fist(iy1,V1->y);
+	//Fist(iy2,V2->y);
+
+	iy1 = ceilf(V1->y);
+	iy2 = ceilf(V2->y);
+
 
 	Left.ScanLines = iy2 - iy1;
 	

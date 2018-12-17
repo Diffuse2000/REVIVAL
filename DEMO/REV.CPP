@@ -713,7 +713,9 @@ DWORD StubInit__(void)
 	//SetTimer(G_hWnd,1,1000/TimerFreq,NULL);
 	int TimerFreq = 100;
 	TimerInit(TimerFreq);
-	
+	// redirect console output to a file
+	freopen("logfile.txt", "w+", stdout);
+
 	return 0;
 }
 
@@ -1297,6 +1299,7 @@ void Run_RainFX()
 
 void CodeEntry(void *var)
 {
+	_controlfp(_EM_INEXACT, _MCW_EM);
 	ConfigurationDB cfg;
 	g_cfg = &cfg;
 	if (0)
@@ -1393,7 +1396,7 @@ void CodeEntry(void *var)
 	Timer = 0;
 	if (Timer<=0) Timer = 1;
 	Run_City();
-//	SavePolyStats("City.stat");
+	SavePolyStats("City.stat");
 
 	if (Timer <= 0) Timer = 1;
 	Run_Chase();
@@ -1402,13 +1405,14 @@ void CodeEntry(void *var)
 	Run_Fountain();
 
 //	SavePolyStats("Fountain.stat");
+	if (Timer<=0) Timer = 1;
+	Run_Greets();
+	
 	if (Timer <= 0) Timer = 1;
 	Timer = 1;
 	Run_Crash();
 
-	if (Timer<=0) Timer = 1;
-	Run_Greets();
-//	SavePolyStats("Greets.stat");
+	//	SavePolyStats("Greets.stat");
 //	Run_RainFX();
 //	Run_Koch();
 //	Run_Nova();

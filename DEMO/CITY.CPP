@@ -4,6 +4,7 @@
 
 #define FRONT_TO_BACK_SORTING
 #define CITY_RAIN
+#define TRACE_OBJECTS
 
 static Scene *CitySc;
 static Scene *SkySc;
@@ -730,10 +731,10 @@ OUT:FEnd=T->Faces+T->FIndex;
 			Vtx->PY=CntrEY-Vtx->TPos.y*PY*Vtx->RZ;
 			// Insert to List
 			dz = Vtx->TPos.z;
-			//dz *=-16384;
-			//dz +=0x7FFFFFFF;
-			//RoundToInt(&O->Face.SortZ.DW,dz);
-			// *Ins++ = &O->F; // no insertion : flares are not reflected for now
+			dz *=-16384;
+			dz +=0x7FFFFFFF;
+			RoundToInt((long *)&O->F.SortZ.DW,dz);
+			*Ins++ = &O->F; // no insertion : flares are not reflected for now
 		}
 	}
 	COmnies = (Ins-FList)-CPolys;
@@ -743,9 +744,9 @@ OUT:FEnd=T->Faces+T->FIndex;
 		{
 			if ((dz=Sc->Pcl[I].V.TPos.z)>=Sc->NZP) {
 				F = &Sc->Pcl[I].F;
-				//dz *=-16384;
-				//dz +=0x7FFFFFFF;
-				//RoundToInt(&F->SortZ.DW,dz);
+				dz *=-16384;
+				dz +=0x7FFFFFFF;
+				RoundToInt((long*)&F->SortZ.DW,dz);
 #ifdef FRONT_TO_BACK_SORTING
 				F->SortZ.F = 2*fzp-dz;
 #else
@@ -785,16 +786,19 @@ static void SceneCorrections()
 
 		// disable/enable omnies
 		//if (OmniDisable[index]) O->Flags &=~OmniLight_Active;
-
+		O->Flags &= ~Omni_Active;
 		// adjust size / disable flares
 //		if (OmniSizeMult[index] == 0)
-//			O->Flags &=~OmniLight_Flare;
-//		Spline_Scale(&O->Size, OmniSizeMult[index]);
+			O->Flags &=~Omni_Flare;
+			O->Flags &= ~Omni_PointFlare;
+			//		Spline_Scale(&O->Size, OmniSizeMult[index]);
 
 		// adjust range
 //		Spline_Scale(&O->Range, OmniRangeMult[index]);
 		if (O->L.R == 255.0)
 			Spline_Scale(&O->Range, redRangeMult);
+
+		O->Flags = 0;
 		index++;
 	}
 }
@@ -1223,7 +1227,7 @@ static void initRain(Scene *Sc)
 		getRadialRandomHeight(InitialCenter, Sc->Pcl[i].V.Pos);
 
 		// Particle Virtual Face -> Particle Vertex		
-		Sc->Pcl[i].F.FlareSize = 1.0f; 
+		Sc->Pcl[i].F.FlareSize = 3.0f; 
 		Sc->Pcl[i].F.A = Sc->Pcl[i].F.B = &Sc->Pcl[i].V;
 		// manual assignment
 		Sc->Pcl[i].F.Filler = drawRainDrop;
@@ -1317,7 +1321,7 @@ void Initialize_City()
 	memset(CitySc,0,sizeof(Scene));
 	LoadFLD(CitySc,"Scenes\\CITY.FLD");
 //	CitySc->EndFrame = 1046.0f;
-	CTPartTime = 100.0f*(CitySc->EndFrame-CitySc->StartFrame)/25.0f;
+	CTPartTime = 100.0f*(CitySc->EndFrame-CitySc->StartFrame)/50.0f;
 //	printf("FLD-loaded MEM = %d\n",DPMI_Free_Memory());
 	CitySc->NZP = 20.0;
 	CitySc->FZP = 5000.0f;
@@ -1338,7 +1342,7 @@ void Initialize_City()
 	Reflective_Surface_Setup();
 	AddCameraOmni(); 
 
-	SceneCorrections();
+//	SceneCorrections();
 
 
 	Preprocess_Scene(CitySc);
@@ -1631,6 +1635,27 @@ void Run_City()
 		Profiler[PROF_SORT] += Timer;
 		Profiler[PROF_RNDR] -= Timer;
 		Render();
+
+#ifdef TRACE_OBJECTS
+		//printf("frame: %f\n\t", CurFrame);
+		for (Object *O = CitySc->ObjectHead; O; O = O->Next)
+		{
+			//for (Object *po = O; po; po = po->Parent) {
+			//	printf("%s->", po->Name);
+			//}
+			//printf("NULL\n");
+			if (O->Type != Obj_TriMesh) continue;
+			TriMesh * T = (TriMesh *)O->Data;
+			if (T->Flags&Tri_Inside || T->Flags & Tri_Ahead) {
+				if (T->BSphereScreenPos.x < XRes && T->BSphereScreenPos.y < YRes && T->BSphereScreenPos.x > 0 && T->BSphereScreenPos.y > 0) {
+					char text[255] = { 0 };
+					snprintf(text, 254, "%s (%d)", O->Name, O->Number);
+					OutTextXY(VPage, T->BSphereScreenPos.x, T->BSphereScreenPos.y, text, 255);
+				}
+			}
+		}
+#endif
+
 		Profiler[PROF_RNDR] += Timer;
 
 		// FPS printer
@@ -1648,12 +1673,14 @@ void Run_City()
 			}
 			scroll = OutTextXY(VPage,0,0,MSGStr,255);
 
+			sprintf(MSGStr, "%f frame", CurFrame);
+			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
 			sprintf(MSGStr, "%dK pixels/frame" , (long)(FillerPixelcount/(1000.0*numFrames)));
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
 			sprintf(MSGStr, "%dK pixels/second" , (long)(FillerPixelcount/1000.0 * 100.0 / Profiler[PROF_RNDR]));
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
-	//		sprintf(MSGStr, "%d polys/frame" , (long)(g_renderedPolys / numFrames) );
-	//		OutTextXY(VPage,0,45,MSGStr,255);
+			sprintf(MSGStr, "%d polys/frame" , (long)(g_renderedPolys / numFrames) );
+			OutTextXY(VPage,0,45,MSGStr,255);
 	//		numDropsRendered=0;
 	//		sprintf(MSGStr, "%d raindrops" , (long)(numDropsRendered) );
 	//		OutTextXY(VPage,0,60,MSGStr,255);

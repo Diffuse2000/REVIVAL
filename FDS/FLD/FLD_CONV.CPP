@@ -55,7 +55,7 @@ void AddTriMesh(Scene *Sc,TriMesh *T,char *ObjName,Vector Pivot)
 	Obj->Pos = &T->IPos;
 	Obj->Rot = &T->RotMat;
 	Obj->Name=strdup(ObjName);
-	Obj->Parent=(Object *)CurParent;
+	Obj->ParentID = CurParent;
 	Vector_Copy(&Obj->Pivot,&Pivot);
 	Vector_SelfScale(&Obj->Pivot,Scene_Scale);
 
@@ -107,7 +107,7 @@ void AddOmni(Scene *Sc,Omni *Om,char *ObjName)
 	Obj->Name = ObjName;
 	Obj->Pos = &Om->IPos;
 	Obj->Rot = &Mat_ID;
-	Obj->Parent=(Object *)CurParent;
+	Obj->ParentID=CurParent;
 	Vector_Form(&Om->IPos,0,0,0);
 	Om->Flags = Omni_Active | Omni_Flare; // lights are active and rendered as flares by default.
 	Om->F.A = Om->F.B = Om->F.C = &Om->V;
@@ -333,8 +333,17 @@ Camera *ConvertCamera(FldCamera *Src,Scene *Sc)
 	Cam->Source.NumKeys=Src->Keys;
 	Cam->Source.Keys=new SplineKey[Src->Keys];
 	memset(Cam->Source.Keys,0,sizeof(SplineKey)*Src->Keys);
-	for (i=0;i<Src->Keys;i++)
-		ConvertKey(&Src->KF[i],&Cam->Source.Keys[i],1.0);
+	printf("Camera Source:\n");
+	for (i = 0; i < Src->Keys; i++) {
+		printf("Key: %d: Frame: %f", i, Src->KF[i].FrameNumber);
+		Src->KF[i].Position.print();
+		Src->KF[i].Rotation.print();
+		Src->KF[i].Scale.print();
+		printf("\n");
+
+		ConvertKey(&Src->KF[i], &Cam->Source.Keys[i], 1.0);
+	}
+
 	Spline_Init_3D(&Cam->Source);
 	if (Src->Flags&EndBehavior_Repeat) Cam->Source.Flags=TrackREPEAT;
 
@@ -375,9 +384,11 @@ Camera *ConvertCamera(FldCamera *Src,Scene *Sc)
 	}
 	else
 	{
+		printf("Camera Target:\n");
 		Obj=Sc->TriMeshHead;
 		for (i=1;i<Src->TargetObject;i++,Obj=Obj->Next);
 		memcpy(&Cam->Target,&Obj->Pos,sizeof(Spline));
+		Cam->Target.print();
 		Cam->Roll.NumKeys=Src->Keys;
 		Cam->Roll.Keys=new SplineKey[Src->Keys];
 		memset(Cam->Roll.Keys,0,sizeof(SplineKey)*Src->Keys);
@@ -466,8 +477,8 @@ Omni *ConvertOmni(FldLight *Src)
 		K=&OL->Size.Keys[i];
 		E=&Src->Intensity->Key[i];
 		K->Frame=E->FrameNumber;
-//		K->Pos.x=E->Channel[0];
-		K->Pos.x=1.0;
+		K->Pos.x=E->Channel[0];
+//		K->Pos.x=1.0;
 		if (i==0)
 		{
 			stValue = K->Pos.x;
@@ -573,19 +584,28 @@ Scene *ConvertFLD(FldScene *FLD)
 		}
 	}
 
-	for (Obj=Sc->ObjectHead;Obj;Obj=Obj->Next)
+	for (Obj = Sc->ObjectHead; Obj; Obj = Obj->Next)
 	{
-		CurParent=(signed short)Obj->Parent;
-		if (CurParent>=0)
+		printf("\tCurrent Object: %s (%d), Parent: %d\n", Obj->Name, Obj->Number, Obj->ParentID);
+		CurParent = (signed short)Obj->ParentID;
+		if (CurParent >= 0)
 		{
-			Obj->Parent=Sc->ObjectHead;
-			for (i=0;i<CurParent;i++)
+			Object *cur = Sc->ObjectHead;
+			for (; cur; cur=cur->Next)
 			{
-				Obj->Parent=Obj->Parent->Next;
-				if (!Obj->Parent) printf("Warning! Parent mismatch!\n");
-      }
+				if (cur->Number == CurParent)
+				{
+					Obj->Parent = cur;
+					printf("\t\tFound Parent Object: %s (%d)\n", cur->Name, cur->Number);
+					break;
+				}
+			}
+			if (!cur) {
+				printf("Warning! Parent mismatch!\n");
+				Obj->Parent = NULL;
+			}
 		}
-		else Obj->Parent=NULL;
+		else { Obj->Parent = NULL; }
 	}
 	Sc->CameraHead=ConvertCamera(FLD->Camera,Sc);
 

@@ -5,9 +5,6 @@
 #include <Math.H>
 #include <String.H>
 #include <DOS.H>
-
-
-
 #include "..\FDS_Defs.H"
 #include "..\FDS_Vars.H"
 #include "..\FDS_Decs.H"
@@ -142,6 +139,8 @@ void Generate_Flare_Image_Test(Image *Img,float FR,float FG,float FB,float blah,
 // All additional variables are considered constant.
 void Generate_Flare_Image(Image *Img,float FR,float FG,float FB)
 {
+    //memset(Img->Data, Img->x * Img->y * 4, 0);
+    //return;
 	signed long X, Y;
 	float D, R, G, B, F, V ,A ,Bump;
 	float Y2;
