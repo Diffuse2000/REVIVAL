@@ -6203,16 +6203,16 @@ Loading general scene data...
 ---a---|Trans texture = 
 ---c---|Bump texture = 
 ---e---|Texture image = F_surf.jpg
------|Material name: "moutain up"
----S---|Color texture = Planar Image Map
+-----|Material name: "moutain"
+---S---|Color texture = Cubic Image Map
 ---u---|Diffuse texture = 
 ---r---|Specular texture = 
 ---f---|Reflection texture = 
 ---a---|Trans texture = 
 ---c---|Bump texture = 
 ---e---|Texture image = F_surf.jpg
------|Material name: "moutain"
----S---|Color texture = Cubic Image Map
+-----|Material name: "moutain up"
+---S---|Color texture = Planar Image Map
 ---u---|Diffuse texture = 
 ---r---|Specular texture = 
 ---f---|Reflection texture = 
@@ -6301,76 +6301,16 @@ Loading general scene data...
 ---|Loading keyframer info...
 -----|Loading 1 keys...
 -|Loading object...
----|Object name: "sky.lwo"
----|Loading 1 materials...
------|Material name: "sky"
----S---|Color texture = Spherical Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = Sky.jpg
----|Loading modeller info(faces/vertices)...
----|Loading keyframer info...
------|Loading 1 keys...
--|Loading object...
----|Object name: "SHIP1.lwo"
----|Loading 6 materials...
------|Material name: "spc1 front glass"
----S---|Color texture = Planar Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = s1_up.jpg
------|Material name: "spc 1hull"
----S---|Color texture = Planar Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = s1_side.jpg
------|Material name: "spc1 hull up"
----S---|Color texture = Planar Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = s1_up.jpg
------|Material name: "spc1 engine 2"
----S---|Color texture = Planar Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = s1_side.jpg
------|Material name: "spc1 in engine"
----S---|Color texture = Planar Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = Fire2.jpg
------|Material name: "spc1 engine"
----S---|Color texture = Planar Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = s1_side.jpg
----|Loading modeller info(faces/vertices)...
----|Loading keyframer info...
------|Loading 6 keys...
--|Loading object...
----|Object name: "sht1.lwo"
+---|Object name: "pilon.lwo"
 ---|Loading 4 materials...
+-----|Material name: "f_sphere metall"
+---S---|Color texture = Cubic Image Map
+---u---|Diffuse texture = 
+---r---|Specular texture = 
+---f---|Reflection texture = 
+---a---|Trans texture = 
+---c---|Bump texture = 
+---e---|Texture image = f_sphb.jpg
 -----|Material name: "f_sphere base"
 ---S---|Color texture = Cylindrical Image Map
 ---u---|Diffuse texture = 
@@ -6395,14 +6335,6 @@ Loading general scene data...
 ---a---|Trans texture = 
 ---c---|Bump texture = 
 ---e---|Texture image = f_sph.jpg
------|Material name: "f_sphere metall"
----S---|Color texture = Cubic Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = f_sphb.jpg
 ---|Loading modeller info(faces/vertices)...
 ---|Loading keyframer info...
 -----|Loading 1 keys...
@@ -6435,8 +6367,16 @@ Loading general scene data...
 ---|Loading keyframer info...
 -----|Loading 2 keys...
 -|Loading object...
----|Object name: "sht1.lwo"
+---|Object name: "pilon.lwo"
 ---|Loading 4 materials...
+-----|Material name: "f_sphere metall"
+---S---|Color texture = Cubic Image Map
+---u---|Diffuse texture = 
+---r---|Specular texture = 
+---f---|Reflection texture = 
+---a---|Trans texture = 
+---c---|Bump texture = 
+---e---|Texture image = f_sphb.jpg
 -----|Material name: "f_sphere base"
 ---S---|Color texture = Cylindrical Image Map
 ---u---|Diffuse texture = 
@@ -6461,20 +6401,20 @@ Loading general scene data...
 ---a---|Trans texture = 
 ---c---|Bump texture = 
 ---e---|Texture image = f_sph.jpg
------|Material name: "f_sphere metall"
----S---|Color texture = Cubic Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = f_sphb.jpg
 ---|Loading modeller info(faces/vertices)...
 ---|Loading keyframer info...
 -----|Loading 1 keys...
 -|Loading object...
----|Object name: "sht1.lwo"
+---|Object name: "pilon.lwo"
 ---|Loading 4 materials...
+-----|Material name: "f_sphere metall"
+---S---|Color texture = Cubic Image Map
+---u---|Diffuse texture = 
+---r---|Specular texture = 
+---f---|Reflection texture = 
+---a---|Trans texture = 
+---c---|Bump texture = 
+---e---|Texture image = f_sphb.jpg
 -----|Material name: "f_sphere base"
 ---S---|Color texture = Cylindrical Image Map
 ---u---|Diffuse texture = 
@@ -6499,20 +6439,20 @@ Loading general scene data...
 ---a---|Trans texture = 
 ---c---|Bump texture = 
 ---e---|Texture image = f_sph.jpg
------|Material name: "f_sphere metall"
----S---|Color texture = Cubic Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = f_sphb.jpg
 ---|Loading modeller info(faces/vertices)...
 ---|Loading keyframer info...
 -----|Loading 1 keys...
 -|Loading object...
----|Object name: "sht1.lwo"
+---|Object name: "pilon.lwo"
 ---|Loading 4 materials...
+-----|Material name: "f_sphere metall"
+---S---|Color texture = Cubic Image Map
+---u---|Diffuse texture = 
+---r---|Specular texture = 
+---f---|Reflection texture = 
+---a---|Trans texture = 
+---c---|Bump texture = 
+---e---|Texture image = f_sphb.jpg
 -----|Material name: "f_sphere base"
 ---S---|Color texture = Cylindrical Image Map
 ---u---|Diffuse texture = 
@@ -6537,20 +6477,20 @@ Loading general scene data...
 ---a---|Trans texture = 
 ---c---|Bump texture = 
 ---e---|Texture image = f_sph.jpg
------|Material name: "f_sphere metall"
----S---|Color texture = Cubic Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = f_sphb.jpg
 ---|Loading modeller info(faces/vertices)...
 ---|Loading keyframer info...
 -----|Loading 1 keys...
 -|Loading object...
----|Object name: "sht1.lwo"
+---|Object name: "pilon.lwo"
 ---|Loading 4 materials...
+-----|Material name: "f_sphere metall"
+---S---|Color texture = Cubic Image Map
+---u---|Diffuse texture = 
+---r---|Specular texture = 
+---f---|Reflection texture = 
+---a---|Trans texture = 
+---c---|Bump texture = 
+---e---|Texture image = f_sphb.jpg
 -----|Material name: "f_sphere base"
 ---S---|Color texture = Cylindrical Image Map
 ---u---|Diffuse texture = 
@@ -6575,20 +6515,20 @@ Loading general scene data...
 ---a---|Trans texture = 
 ---c---|Bump texture = 
 ---e---|Texture image = f_sph.jpg
------|Material name: "f_sphere metall"
----S---|Color texture = Cubic Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = f_sphb.jpg
 ---|Loading modeller info(faces/vertices)...
 ---|Loading keyframer info...
 -----|Loading 1 keys...
 -|Loading object...
----|Object name: "sht1.lwo"
+---|Object name: "pilon.lwo"
 ---|Loading 4 materials...
+-----|Material name: "f_sphere metall"
+---S---|Color texture = Cubic Image Map
+---u---|Diffuse texture = 
+---r---|Specular texture = 
+---f---|Reflection texture = 
+---a---|Trans texture = 
+---c---|Bump texture = 
+---e---|Texture image = f_sphb.jpg
 -----|Material name: "f_sphere base"
 ---S---|Color texture = Cylindrical Image Map
 ---u---|Diffuse texture = 
@@ -6613,14 +6553,6 @@ Loading general scene data...
 ---a---|Trans texture = 
 ---c---|Bump texture = 
 ---e---|Texture image = f_sph.jpg
------|Material name: "f_sphere metall"
----S---|Color texture = Cubic Image Map
----u---|Diffuse texture = 
----r---|Specular texture = 
----f---|Reflection texture = 
----a---|Trans texture = 
----c---|Bump texture = 
----e---|Texture image = f_sphb.jpg
 ---|Loading modeller info(faces/vertices)...
 ---|Loading keyframer info...
 -----|Loading 1 keys...
@@ -6771,11 +6703,11 @@ Loading general scene data...
 ---|Loading keyframer info...
 -----|Loading 2 keys...
 -|Loading object...
----|Object name: "Camera Target"
+---|Object name: "CameraTarget"
 ---|Loading 0 materials...
 ---|Loading modeller info(faces/vertices)...
 ---|Loading keyframer info...
------|Loading 9 keys...
+-----|Loading 4 keys...
 -|Loading light...
 ---|Light name: "Light"
 ---|Loading keyframer info...
@@ -6806,101 +6738,78 @@ Closing file...
 FLD Reading complete!
 	Current Object: moutine.lwo (0), Parent: -1
 	Current Object: fount.lwo (1), Parent: -1
-	Current Object: sky.lwo (2), Parent: -1
-	Current Object: SHIP1.lwo (3), Parent: -1
-	Current Object: sht1.lwo (4), Parent: -1
-	Current Object: inbal.lwo (5), Parent: 4
-		Found Parent Object: sht1.lwo (4)
-	Current Object: dio.lwo (6), Parent: 4
-		Found Parent Object: sht1.lwo (4)
-	Current Object: sht1.lwo (7), Parent: -1
-	Current Object: sht1.lwo (8), Parent: -1
-	Current Object: sht1.lwo (9), Parent: -1
-	Current Object: sht1.lwo (10), Parent: -1
-	Current Object: sht1.lwo (11), Parent: -1
+	Current Object: pilon.lwo (2), Parent: -1
+	Current Object: inbal.lwo (3), Parent: 2
+		Found Parent Object: pilon.lwo (2)
+	Current Object: dio.lwo (4), Parent: 2
+		Found Parent Object: pilon.lwo (2)
+	Current Object: pilon.lwo (5), Parent: -1
+	Current Object: pilon.lwo (6), Parent: -1
+	Current Object: pilon.lwo (7), Parent: -1
+	Current Object: pilon.lwo (8), Parent: -1
+	Current Object: pilon.lwo (9), Parent: -1
+	Current Object: inbal.lwo (10), Parent: 5
+		Found Parent Object: pilon.lwo (5)
+	Current Object: inbal.lwo (11), Parent: 6
+		Found Parent Object: pilon.lwo (6)
 	Current Object: inbal.lwo (12), Parent: 7
-		Found Parent Object: sht1.lwo (7)
+		Found Parent Object: pilon.lwo (7)
 	Current Object: inbal.lwo (13), Parent: 8
-		Found Parent Object: sht1.lwo (8)
+		Found Parent Object: pilon.lwo (8)
 	Current Object: inbal.lwo (14), Parent: 9
-		Found Parent Object: sht1.lwo (9)
-	Current Object: inbal.lwo (15), Parent: 10
-		Found Parent Object: sht1.lwo (10)
-	Current Object: inbal.lwo (16), Parent: 11
-		Found Parent Object: sht1.lwo (11)
+		Found Parent Object: pilon.lwo (9)
+	Current Object: dio.lwo (15), Parent: 5
+		Found Parent Object: pilon.lwo (5)
+	Current Object: dio.lwo (16), Parent: 6
+		Found Parent Object: pilon.lwo (6)
 	Current Object: dio.lwo (17), Parent: 7
-		Found Parent Object: sht1.lwo (7)
+		Found Parent Object: pilon.lwo (7)
 	Current Object: dio.lwo (18), Parent: 8
-		Found Parent Object: sht1.lwo (8)
+		Found Parent Object: pilon.lwo (8)
 	Current Object: dio.lwo (19), Parent: 9
-		Found Parent Object: sht1.lwo (9)
-	Current Object: dio.lwo (20), Parent: 10
-		Found Parent Object: sht1.lwo (10)
-	Current Object: dio.lwo (21), Parent: 11
-		Found Parent Object: sht1.lwo (11)
-	Current Object: particle_emmiter (22), Parent: -1
-	Current Object: Camera Target (23), Parent: -1
-	Current Object: Light (24), Parent: -1
-	Current Object: fountian flare (25), Parent: -1
+		Found Parent Object: pilon.lwo (9)
+	Current Object: particle_emmiter (20), Parent: -1
+	Current Object: CameraTarget (21), Parent: -1
+	Current Object: Light (22), Parent: -1
+	Current Object: fountian flare (23), Parent: -1
+	Current Object: coz_flares (24), Parent: -1
+	Current Object: coz_flares (25), Parent: -1
 	Current Object: coz_flares (26), Parent: -1
 	Current Object: coz_flares (27), Parent: -1
 	Current Object: coz_flares (28), Parent: -1
 	Current Object: coz_flares (29), Parent: -1
-	Current Object: coz_flares (30), Parent: -1
-	Current Object: coz_flares (31), Parent: -1
 Camera Source:
-Key: 0: Frame: 0.000000(6.993586, -94.599991, -608.620300)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 1: Frame: 152.000000(-1.425719, 28.400009, -295.114014)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 2: Frame: 210.000000(14.913220, 28.400009, -260.466614)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 3: Frame: 238.000000(34.641689, 28.400009, -248.075394)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 4: Frame: 291.000000(187.807495, 90.650009, -161.865707)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 5: Frame: 529.000000(187.807495, 242.750000, -161.865707)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 6: Frame: 638.000000(-86.696533, 39.250031, -82.708603)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 7: Frame: 679.000000(-151.781403, 120.029297, -25.961651)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 8: Frame: 710.000000(-179.060303, 215.150101, 28.810749)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 9: Frame: 737.000000(-147.366394, 277.750092, 99.927757)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 10: Frame: 849.000000(186.495605, 277.750092, 134.630798)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 11: Frame: 954.000000(206.093506, 43.750092, 107.213097)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 12: Frame: 1142.000000(222.826202, 46.050091, -59.598640)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 13: Frame: 1343.000000(200.256805, 46.050091, -102.949303)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
-Key: 14: Frame: 1477.000000(177.565598, 46.050091, -135.953903)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 0: Frame: 0.000000(-8.060263, 79.650009, -90.969078)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 1: Frame: 67.000000(44.820358, 74.399986, -67.387016)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 2: Frame: 140.000000(62.117039, 73.900002, -84.684578)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 3: Frame: 215.000000(79.417030, 96.599998, 34.515419)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 4: Frame: 322.000000(11.867020, 137.050003, 96.415421)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 5: Frame: 355.000000(-30.005650, 73.212852, 142.282303)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 6: Frame: 383.000000(-225.298599, 180.599899, 103.951202)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 7: Frame: 477.000000(-158.705093, 282.249908, -314.107086)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 8: Frame: 624.000000(224.393906, 319.049896, -190.307495)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 9: Frame: 725.000000(-346.400513, 273.799896, 141.165604)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 10: Frame: 771.000000(-328.741302, 248.899902, 137.938293)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 11: Frame: 900.000000(-303.554108, 248.899902, -83.220703)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 12: Frame: 998.000000(-268.947296, 256.149902, -205.986099)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
+Key: 13: Frame: 1239.000000(3.737197, 256.149902, -98.382378)(0.000000, 0.000000, 0.000000)(1.000000, 1.000000, 1.000000)
 Camera Target:
 Flags: 0
-0.149983 -93.699966 -578.350403 0.000000
+0.000000 3.950018 -0.250000 0.000000
 0.000000 0.000000 0.000000 0.000000
 0.000000
 
--16.224899 31.900049 -259.009888 0.000000
+0.000000 3.950018 -0.250000 0.000000
 0.000000 0.000000 0.000000 0.000000
-152.000000
+355.000000
 
-13.240710 31.900049 -222.901505 0.000000
+0.000000 3.950018 -0.250000 0.000000
 0.000000 0.000000 0.000000 0.000000
-210.000000
+659.000000
 
-41.161831 31.900049 -206.441803 0.000000
+0.000000 349.800110 -0.250000 0.000000
 0.000000 0.000000 0.000000 0.000000
-238.000000
-
-3.404392 25.450050 -2.120956 0.000000
-0.000000 0.000000 0.000000 0.000000
-291.000000
-
-3.404392 117.050102 -2.120956 0.000000
-0.000000 0.000000 0.000000 0.000000
-737.000000
-
-3.404392 73.000099 -2.120956 0.000000
-0.000000 0.000000 0.000000 0.000000
-954.000000
-
-3.404392 73.000099 -2.120956 0.000000
-0.000000 0.000000 0.000000 0.000000
-1114.000000
-
-3.404392 134.550095 -2.120956 0.000000
-0.000000 0.000000 0.000000 0.000000
-1343.000000
+1239.000000
 
 Deleting scene...
 0 bytes were freed
@@ -6919,18 +6828,12 @@ Attempting to read: texture file Textures//f_hull.jpg as 24 bpp tmap
 Loaded Texture OK (Textures//f_hull.jpg for mizraka center tubes)
 Attempting to read: texture file Textures//1097al~1.jpg as 24 bpp tmap
 Loaded Texture OK (Textures//1097al~1.jpg for mizraka center)
-Attempting to read: texture file Textures//Sky.jpg as 24 bpp tmap
-Loaded Texture OK (Textures//Sky.jpg for sky)
-Attempting to read: texture file Textures//s1_up.jpg as 24 bpp tmap
-Loaded Texture OK (Textures//s1_up.jpg for spc1 front glass)
-Attempting to read: texture file Textures//s1_side.jpg as 24 bpp tmap
-Loaded Texture OK (Textures//s1_side.jpg for spc 1hull)
-Attempting to read: texture file Textures//Fire2.jpg as 24 bpp tmap
-Loaded Texture OK (Textures//Fire2.jpg for spc1 in engine)
 Attempting to read: texture file Textures//f_sphb.jpg as 24 bpp tmap
-Loaded Texture OK (Textures//f_sphb.jpg for f_sphere base)
+Loaded Texture OK (Textures//f_sphb.jpg for f_sphere metall)
 Attempting to read: texture file Textures//f_sph.jpg as 24 bpp tmap
 Loaded Texture OK (Textures//f_sph.jpg for f_sphere)
+Attempting to read: texture file Textures//Fire2.jpg as 24 bpp tmap
+Loaded Texture OK (Textures//Fire2.jpg for f in shpere)
 Attempting to read: texture file Textures//crystal.jpg as 24 bpp tmap
 Loaded Texture OK (Textures//crystal.jpg for daimond)
 All textures loaded...

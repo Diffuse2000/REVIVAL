@@ -27,32 +27,32 @@ void mem3(void *dst, void *src, int nbytes)
         mov esi, src 
         mov edi, dst 
         mov ecx, nbytes 
-        shr ecx, 6 // 64 bytes per iteration 
+        shr ecx, 7 // 128 bytes per iteration 
 
 loop1: 
-        prefetchnta 64[ESI] // Prefetch next loop, non-temporal 
-        prefetchnta 128[ESI] 
+        prefetchnta 128[ESI] // Prefetch next loop, non-temporal 
+        prefetchnta 256[ESI] 
 
-        movq mm1,  0[ESI] // Read in source data 
-        movq mm2,  8[ESI] 
-        movq mm3, 16[ESI] 
-        movq mm4, 24[ESI] 
-        movq mm5, 32[ESI] 
-        movq mm6, 40[ESI] 
-        movq mm7, 48[ESI] 
-        movq mm0, 56[ESI] 
+        movntdqa xmm1,  0[ESI] // Read in source data 
+		movntdqa xmm2,  16[ESI]
+        movntdqa xmm3, 32[ESI] 
+        movntdqa xmm4, 48[ESI] 
+        movntdqa xmm5, 64[ESI] 
+        movntdqa xmm6, 80[ESI] 
+        movntdqa xmm7, 96[ESI] 
+        movntdqa xmm0, 112[ESI] 
+		   
+        movntdq  0[EDI], xmm1 // Non-temporal stores 
+        movntdq 16[EDI], xmm2 
+        movntdq 32[EDI], xmm3 
+        movntdq 48[EDI], xmm4 
+        movntdq 64[EDI], xmm5 
+        movntdq 80[EDI], xmm6 
+        movntdq 96[EDI], xmm7 
+        movntdq 112[EDI], xmm0 
 
-        movq  0[EDI], mm1 // Non-temporal stores 
-        movq  8[EDI], mm2 
-        movq 16[EDI], mm3 
-        movq 24[EDI], mm4 
-        movq 32[EDI], mm5 
-        movq 40[EDI], mm6 
-        movq 48[EDI], mm7 
-        movq 56[EDI], mm0 
-
-        add esi, 64 
-        add edi, 64 
+        add esi, 128
+        add edi, 128
         dec ecx 
         jnz loop1 
 
@@ -262,7 +262,7 @@ static void V_Flip(VESA_Surface *VS)
 
 	for(y=0; y<VS->Y; y++)
 	{
-//		FastMemcopy(dst, src, VS->X * VS->CPP >> 3);
+		//FastMemcopy(dst, src, VS->X * VS->CPP >> 3);
 		mem3(dst, src, VS->X * VS->CPP); 
 		dst += Secondary.BPSL;
 		src += VS->BPSL;

@@ -1137,16 +1137,15 @@ void Grid_Texture_Mapper_TGV(char *Texture,GridPointTG *Points,char *VirScr)
 				punpcklbw	mm0, [esi + edx * 4]
 				psrlw		mm0, 8
 				pmulhuw		mm0, mm2
-				paddw		mm2, mm3
 				add			eax, [du]
 				add			ebx, [dv]
 				mov			dl, ah
 				mov			dh, bh
+				paddw		mm2, mm3
 
 				punpcklbw	mm1, [esi + edx * 4]
 				psrlw		mm1, 8
 				pmulhuw		mm1, mm2
-				paddw		mm2, mm3
 				psllw		mm0, 1
 				psllw		mm1, 1
 				packuswb	mm0, mm1
@@ -1155,20 +1154,20 @@ void Grid_Texture_Mapper_TGV(char *Texture,GridPointTG *Points,char *VirScr)
 				add			ebx, [dv]
 				mov			dl, ah
 				mov			dh, bh
+				paddw		mm2, mm3
 
 				punpcklbw	mm0, [esi + edx * 4]
 				psrlw		mm0, 8
 				pmulhuw		mm0, mm2
-				paddw		mm2, mm3
 				add			eax, [du]
 				add			ebx, [dv]
 				mov			dl, ah
 				mov			dh, bh
 				punpcklbw	mm1, [esi + edx * 4]
+				paddw		mm2, mm3
 
 				psrlw		mm1, 8
 				pmulhuw		mm1, mm2
-				paddw		mm2, mm3
 				psllw		mm0, 1
 				psllw		mm1, 1
 				packuswb	mm0, mm1
@@ -1177,20 +1176,20 @@ void Grid_Texture_Mapper_TGV(char *Texture,GridPointTG *Points,char *VirScr)
 				add			ebx, [dv]
 				mov			dl, ah
 				mov			dh, bh
+				paddw		mm2, mm3
 
 				punpcklbw	mm0, [esi + edx * 4]
 				psrlw		mm0, 8
 				pmulhuw		mm0, mm2
-				paddw		mm2, mm3
 				add			eax, [du]
 				add			ebx, [dv]
 				mov			dl, ah
 				mov			dh, bh
+				paddw		mm2, mm3
 
 				punpcklbw	mm1, [esi + edx * 4]
 				psrlw		mm1, 8
 				pmulhuw		mm1, mm2
-				paddw		mm2, mm3
 				psllw		mm0, 1
 				psllw		mm1, 1
 				packuswb	mm0, mm1
@@ -1199,15 +1198,16 @@ void Grid_Texture_Mapper_TGV(char *Texture,GridPointTG *Points,char *VirScr)
 				add			ebx, [dv]
 				mov			dl, ah
 				mov			dh, bh
+				paddw		mm2, mm3
 
 				punpcklbw	mm0, [esi + edx * 4]
 				psrlw		mm0, 8
 				pmulhuw		mm0, mm2
-				paddw		mm2, mm3
 				add			eax, [du]
 				add			ebx, [dv]
 				mov			dl, ah
 				mov			dh, bh
+				paddw		mm2, mm3
 
 				punpcklbw	mm1, [esi + edx * 4]
 				psrlw		mm1, 8

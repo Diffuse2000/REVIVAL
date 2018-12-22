@@ -4,7 +4,7 @@
 
 #define FRONT_TO_BACK_SORTING
 #define CITY_RAIN
-#define TRACE_OBJECTS
+//#define TRACE_OBJECTS
 
 static Scene *CitySc;
 static Scene *SkySc;
