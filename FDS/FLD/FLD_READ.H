@@ -84,16 +84,16 @@ typedef struct
 typedef struct FldObj
 {
   char          *Name;
-  unsigned long  Flags;
-  unsigned long  NumOfMat;
+  uint32_t		 Flags;
+  uint32_t		 NumOfMat;
   FldMat        *Material;
-  unsigned long  NumOfVerts;
+  uint32_t		 NumOfVerts;
   Vector        *Verts;
-  unsigned long  NumOfFaces;
+  uint32_t		 NumOfFaces;
   FldFace       *Faces;
-  unsigned long  Keys;
+  uint32_t		 Keys;
   FldKeyFrame   *KF;
-  unsigned long  Parent;
+  uint32_t		 Parent;
   Vector         Pivot;
   FldEnv        *PolygonSize;
   FldObj        *Next;
@@ -140,7 +140,7 @@ typedef struct
 
 extern Material *CurMat,*FirstMat;
 
-extern FldScene *ReadFLD(char *FileName);
+extern FldScene *ReadFLD(const char *FileName);
 extern Scene *ConvertFLD(FldScene *FLD);
 extern void AddMaterial(FldMat *OrgMat,Scene *SceneGroup);
 extern void Get_Mapping(Face *F,FldMat *Mat);

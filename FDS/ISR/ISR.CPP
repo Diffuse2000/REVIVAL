@@ -1,15 +1,15 @@
-#include <StdIO.H>
-#include <StdLib.H>
-#include <ConIO.H>
-#include <DOS.H>
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <dos.h>
 
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
 //Externals
-volatile long Timer;
+volatile int32_t Timer;
 long Old_Int_Count,Old_Int_Rate;
 volatile char Keyboard[128];
 long KeyTT;

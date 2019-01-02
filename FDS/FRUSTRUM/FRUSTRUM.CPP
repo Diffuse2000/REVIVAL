@@ -1,9 +1,11 @@
-#include <StdIO.H>
-#include <StdLIB.H>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
-#include "..\FDS_Defs.H"
+#include <Base/FDS_VARS.H>
+#include <Base/FDS_DECS.H>
+#include <Base/FDS_DEFS.H>
+
+#include <Base/Scene.h>
 
 #define ClipAccurate
 #define COUNT_POLYS

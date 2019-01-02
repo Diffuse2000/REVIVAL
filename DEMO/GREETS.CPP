@@ -1,7 +1,9 @@
-#include "Rev.H"
+#include "REV.H"
 
-#include "Greets.H"
+#include "GREETS.H"
 #include "FillerTest.h"
+#include "MISC/PREPROC.H"
+#include "Base/FDS_DECS.H"
 
 static Scene *GreetSc;
 
@@ -99,7 +101,7 @@ struct GreetsGenerator
 		for (Mat = MatLib; Mat->Next; Mat = Mat->Next) {
 			if (Mat->RelScene == GreetSc && Mat->Txtr && Mat->Txtr->FileName && !strcmp(Mat->Txtr->FileName, "Textures//p_text.jpg"))
 			{
-				Mat->Txtr->Mipmap[0] = (char *)OutBuf;
+				Mat->Txtr->Mipmap[0] = (byte *)OutBuf;
 				Mat->Txtr->Flags = Txtr_Nomip;
 				Mat->Txtr->numMipmaps = 0;
 			}
@@ -196,7 +198,7 @@ struct GreetsGenerator
 			}
 		}
 
-		OutTextXY((char *)CodeImage.Data, 12, 24, "Moshe", 255, 256, 256);
+		OutTextXY((byte *)CodeImage.Data, 12, 24, "Moshe", 255, 256, 256);
 
 		GridRendererT(Code_GP, &CodeImage, TmpBuf, TEXRES, TEXRES);
 
@@ -476,11 +478,11 @@ void Run_Greets()
 			scroll = OutTextXY(VPage, 0, 0, MSGStr, 255);
 			sprintf(MSGStr, "Frame %f", CurFrame);
 			scroll = OutTextXY(VPage,0, scroll+15,MSGStr,255);
-			sprintf(MSGStr, "%d polys/frame", (long)(g_renderedPolys / numFrames));
+			sprintf(MSGStr, "%d polys/frame", (int)(g_renderedPolys / numFrames));
 			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
-			sprintf(MSGStr, "%dK pixels/frame" , (long)(FillerPixelcount/(1000.0*numFrames)));
+			sprintf(MSGStr, "%dK pixels/frame" , (int)(FillerPixelcount/(1000.0*numFrames)));
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
-			sprintf(MSGStr, "%dK pixels/second" , (long)(FillerPixelcount/1000.0 * 100.0 / Profiler[PROF_RNDR]));
+			sprintf(MSGStr, "%dK pixels/second" , (int)(FillerPixelcount/1000.0 * 100.0 / Profiler[PROF_RNDR]));
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
 
 	//		PROFILER: display stats	

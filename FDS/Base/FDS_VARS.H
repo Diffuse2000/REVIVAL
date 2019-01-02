@@ -1,24 +1,9 @@
 #ifndef FDS_VARS_H_INCLUDED
 #define FDS_VARS_H_INCLUDED
 #include "FDS_DEFS.H"
-// FDS - Variables and structures
-typedef unsigned char Byte;
-typedef unsigned short Word;
-typedef unsigned long DWord;
-typedef unsigned char byte;
-typedef unsigned short word;
-typedef   signed short sword;
-typedef unsigned long dword;
-typedef   signed long sdword;
-typedef unsigned long mword;
-typedef   signed long smword;
+#include "BaseDefs.h"
 
-#ifdef _C_VC6
-typedef unsigned __int64 uint64;
-typedef   signed __int64  int64;
-#endif
-
-// _data must be allocated 
+// _data must be allocated
 class mmreg
 {
 public:
@@ -82,30 +67,13 @@ public:
 };
 // implementation using inline functions
 #include "MISC/mmreg.inl"
+#include "Material.h"
+#include "Vertex.h"
+#include "Face.h"
+#include "Camera.h"
+#include "Edge.h"
 
-// [12 Bytes]
-typedef struct
-{
-	float B, G, R, A;
-} Color;
-
-#pragma pack(1)
-// [4 Bytes]
-union QColor
-{
-	dword BGRA;
-	struct
-	{
-		byte B,G,R,A; //Red,Green,Blue,Alpha.
-	};
-};
-
-// [1 KB]
-typedef struct
-{
-	QColor C[256];
-} Palette;
-
+#pragma pack(push, 1)
 // Math variables and structures
 // [4 Bytes]
 struct Four_Chars
@@ -119,194 +87,12 @@ union Radix256
 	Four_Chars CH; // A = Highest byte,D = Lowest Byte.
 };
 
-// [4 Bytes]
-union FDW
-{
-	float F;
-	DWord DW;
-};
-
-// [12 Bytes]
-struct Vector
-{
-	float x, y, z;
-
-	Vector() {}
-	Vector(float _x, float _y, float _z): x(_x), y(_y), z(_z) {}
-	~Vector() {}
-
-	void print() {
-		printf("(%f, %f, %f)", x, y, z);
-	}
-
-	bool is_zero() {
-		return 0.0f == x && x == y && y == z;
-	}
-
-/////////////////////////////////////////////////////////
-	inline static void add(Vector &u, Vector &v, Vector &w)
-	{
-		w.x = u.x + v.x;
-		w.y = u.y + v.y;
-		w.z = u.z + v.z;
-	}
-	
-	// this = u + v;
-	inline void add(Vector &u, Vector &v)
-	{
-		x = u.x + v.x;
-		y = u.y + v.y;
-		z = u.z + v.z;
-	}
-
-	inline Vector operator + (const Vector &u) const
-	{
-		return Vector(x + u.x, y + u.y, z + u.z);
-	}
-
-	inline Vector &operator += (const Vector &u)
-	{
-		x += u.x;
-		y += u.y;
-		z += u.z;
-		return *this;
-	}
-
-/////////////////////////////////////////////////////////
-	inline static void sub(Vector &u, Vector &v, Vector &w)
-	{
-		w.x = u.x - v.x;
-		w.y = u.y - v.y;
-		w.z = u.z - v.z;
-	}
-	
-	// this = u - v;
-	inline void sub(Vector &u, Vector &v)
-	{
-		x = u.x - v.x;
-		y = u.y - v.y;
-		z = u.z - v.z;
-	}
-
-	inline Vector operator - (const Vector &u) const
-	{
-		return Vector(x - u.x, y - u.y, z - u.z);
-	}
-
-	inline Vector &operator -= (const Vector &u)
-	{
-		x -= u.x;
-		y -= u.y;
-		z -= u.z;
-		return *this;
-	}
-
-/////////////////////////////////////////////////////////
-	inline static void cross(Vector &u, Vector &v, Vector &w)
-	{
-		w.x = u.y * v.z - u.z * v.y;
-		w.y = u.z * v.x - u.x * v.z;
-		w.z = u.x * v.y - u.y * v.x;
-	}
-
-	inline void cross(Vector &u, Vector &v)
-	{
-		x = u.y * v.z - u.z * v.y;
-		y = u.z * v.x - u.x * v.z;
-		z = u.x * v.y - u.y * v.x;
-	}
-
-	inline Vector operator ^ (const Vector &v) const
-	{
-
-		return Vector(
-			y * v.z - z * v.y,
-			z * v.x - x * v.z,
-			x * v.y - y * v.x);
-	}
-
-	inline Vector &operator ^= (const Vector &v)
-	{
-		Vector	t(x, y, z);
-		x = t.y * v.z - t.z * v.y;
-		y = t.z * v.x - t.x * v.z;
-		z = t.x * v.y - t.y * v.x;
-		return *this;
-	}
-/////////////////////////////////////////////////////////	
-	inline static float dot(Vector &u, Vector &v) 
-	{
-		return (u.x * v.x + u.y * v.y + u.z * v.z);
-	}
-
-	inline float operator * (const Vector &u) const
-	{
-		return (u.x * x + u.y * y + u.z * z);
-	}
-
-
-/////////////////////////////////////////////////////////
-	Vector &operator *= (float s)
-	{
-		x *= s;
-		y *= s;
-		z *= s;
-		return *this;
-	}
-	Vector &operator /= (float s)
-	{
-		float r = 1/s;
-		x *= r;
-		y *= r;
-		z *= r;
-		return *this;
-	}
-	Vector operator * (float s) const
-	{
-		return Vector(x*s, y*s, z*s);
-	}
-
-	Vector operator / (float s) const
-	{
-		float r = 1/s;
-		return Vector(x*r, y*r, z*r);
-	}
-
-	friend Vector operator * (float s, Vector &v);
-};
-
-inline Vector operator * (float s, Vector &v)
-{
-	return Vector(v.x * s, v.y * s, v.z * s);
-}
-
-// [36 Bytes]
-typedef float Matrix[3][3];
-typedef float Matrix4[4][4]; //stuff
-
 // [8 Bytes]
 struct Complex
 {
 	float x, y;
 };
 
-// [16 Bytes]
-// 08.04.02 - added support for [s, v] notation.
-struct Quaternion
-{
-	union
-	{
-		float W;
-		float s;
-	};
-
-	float x, y, z;
-
-	Vector im()
-	{
-		return Vector(x, y, z);
-	}
-};
 
 // [16 Bytes]
 struct Plane
@@ -320,47 +106,6 @@ struct Line
 	Vector O,D;
 };
 
-// [88 Bytes]
-struct SplineKey
-{
-	void print() {
-		printf("%f %f %f %f\n", Pos.x, Pos.y, Pos.z, Pos.W);
-		printf("%f %f %f %f\n", AA.x, AA.y, AA.z, AA.W);
-		printf("%f\n", Frame);
-
-	}
-
-	float Frame;                   // Key Frame Number
-	
-	Quaternion Pos;                // Normative Quaternion Rotation value
-	Quaternion AA;                 // Angle-Axis Quaternion Rotation value
-	
-	// 5 Spline Attributive keys.
-	float  Tens,                   // Key tension value
-		Cont,                   // Key continuity value
-		Bias,                   // Key bias value
-		EaseTo,                 // Key ease to value
-		EaseFrom;               // Key ease from value
-	
-	Quaternion DS, DD;             // Key Quaternionic Derivatives
-};
-
-// [16 Bytes]
-// Total: [16 Bytes+88 Bytes per Key]
-struct Spline
-{
-	DWord NumKeys,CurKey;
-	SplineKey *Keys;
-	DWord Flags;
-	void print() {
-		printf("Flags: %X\n", Flags);
-		for (int i = 0; i < NumKeys; ++i) {
-			Keys[i].print();
-			printf("\n");
-		}
-	}
-};
-
 struct Vector4
 {
 	float x, y, z, T;
@@ -368,44 +113,7 @@ struct Vector4
 
 extern float SinTab[1440];
 extern float CosTab[1440];
-extern Vector ZeroVector;
 extern Matrix Mat_ID;
-
-// Scene variables and structures
-// [16 Bytes]
-// Total: [16 Bytes+64K per Charperpixel,+1Kb if Palettized]
-typedef struct
-{
-	Palette *Pal;   // Texture's Local Palette. Relevant only for 8BPP Textures
-	char *Data;     // Texture's Storage space.
-	DWord BPP;      // Texture's BPP. Adjusts format in memory.
-	// 0 used when Texture is invalid.
-	// DWord size for Aligning, Should be treated as Byte.
-	char *FileName; // Texture's Originating File-name.
-	
-	// OptClass - Will be used by Assign_Fillers to determine Raster device
-	DWord OptClass; // 0 = 256x256 ; 1 = square 2^n ; 2 = arbitrary size.
-	long SizeX,SizeY;
-	long LSizeX, LSizeY; // log2(SizeX), log2(SizeY).	
-
-	// Mipmapping/blocktiling support.
-	long blockSizeX, blockSizeY; // zero to disable, 1<<blockSize measures length in pixels of each block
-	char *Mipmap[16]; // pointers to up to 16 levels of mipmaps
-	dword numMipmaps; // number of mipmap levels.
-
-	dword ID; 
-	dword Flags;
-} Texture;
-
-typedef struct
-{
-	DWord         * STex;  // Static Texture Map (64x64)
-	DWord         * LMap;  // Light Map (16x16)
-	DWord         * DTex;  // Dynamic Texture Map (64x64)
-	DWord						TCacheEntry; //last frame surface was inserted to cache
-	long            TCacheOffset; //-1 if surface is cached ; Cache pointer index otherwise.
-} Surface;
-
 
 // Digital Image (32bit) with variable size.
 typedef struct
@@ -480,298 +188,6 @@ typedef struct
 
 struct Scene; // Temporary declaration for use with the Material structure.
 
-struct Material
-{
-	// 16 byte alignment variables
-	Color                 BaseCol; //Base Color for the material
-
-	Scene               * RelScene; //Related Scene
-	Texture             * Txtr;
-	DWord                 Flags;
-	DWord                 TFlags; //Texture Flags
-
-	dword				  ID;
-	
-	float                 Luminosity;
-	float                 Diffuse; //Diffuse reflection
-	float                 Specular; //Specular reflection
-	float                 Reflection; //Rebounded light Reflection
-	float                 Transparency; //Transparency ratio
-	unsigned short        Glossiness; //unknown parameter
-	unsigned short        ReflectionMode; //unknown parameter
-	char                * ReflectionImage; //Reflection detail
-	float                 ReflectionSeamAngle; //unknown
-	float                 RefractiveIndex; //Optic Factor
-	float                 EdgeTransparency; //unknown factor
-	float                 MaxSmoothingAngle; //?
-	char                * ColorTexture; //Color Map Textutre Filename
-	char                * DiffuseTexture; //Diffuse Map Texture Filename
-	char                * SpecularTexture; //Specular Map Texture Filename
-	char                * ReflectionTexture; //Reflection Map Texture Filename
-	char                * TransparencyTexture; //Transparency Map Texture Filename
-	char                * BumpTexture; //Bump Map Texture Filename
-	char                * TextureImage; //Texture Map Filename
-	unsigned short        TextureFlags; //Should be replaced by dword TFlags
-	Vector                TextureSize; //Texture Proj. Size in spatial coordinates
-	Vector                TextureCenter; //Texture Origin in space
-	Vector                TextureFallOff; //??
-	Vector                TextureVelocity; //U/V animation speed
-	char                * TextureAlpha; //Texture Map for Alpha Channel
-	unsigned short        NoiseFrequencies; //??
-	unsigned short        TextureWrapX; //Wrap flag for U
-	unsigned short        TextureWrapY; //Wrap flag for V
-	float                 AAStrength; //Antialiasing Strength
-	float                 Opacity; //?? gotta learn some physics
-	Texture							* EnvTexture;
-	float									TFP0;
-	float									TFP1;
-	Material            * Next,
-		* Prev;
-	char                * Name;
-};
-
-// 72 bytes mod 16 = 8
-// 4+20+12+12+12+8+4
-typedef struct
-{
-	// BGRA 128bit construct, fits a single XMM register
-	//float			LB, LG, LR, LA; // Light intensity for R/G/B components.
-	union
-	{
-		dword			BGRA;		// 
-		struct
-		{
-			byte LB, LG, LR, LA;
-		};
-	};
-		
-	float			PX,PY;      // Projected X and Y
-
-	// 17.04.02 consider replacing PX, PY and TPos with x, y, and z.
-	float			UZ, VZ, RZ; // U/Z, V/Z and 1/Z. (should be called UZ, VZ, RZ)
-	Vector			Pos,TPos;   // Position and transformed position
-	Vector			N;          // PseudoNormal
-//	float			EU,EV;      // Environment mapping coordinates
-//	float			REU,REV;    // EU/Z, EV/Z.
-	float			U,V;        // Original mapping coordinates
-	DWord			Flags;
-
-//	dword			align16[3]; // this structure requires 16-byte alignment
-	//  Word           Faces,FRem; // Faces = How many faces share that perticular
-	// vertex, FRem = remaining visible faces.
-	// when FRem reaches 0,the vertex will not be
-	// transformed. (RULEZ)
-} Vertex;
-
-// [72 Bytes]
-// [48 w/o U/V shit]
-// [+12 for L.maps]
-typedef void (*RasterFunc)(Vertex **V, dword numVerts);
-
-typedef struct
-{
-	Vertex        * A;
-	// flares need only one vertex pointer, so B,C can be overwritten with flare-related information
-	Vertex        * B;
-	union
-	{
-		Vertex        * C;
-		float			FlareSize;
-	};
-	
-	dword           Flags;
-	float           NormProd;
-	Vector          N;
-	FDW             SortZ;
-	
-	float           U1,V1,U2,V2,U3,V3; //(U,V) coordinates on face
-	RasterFunc		Filler;
-	Material      * Txtr;
-	//	Surface       * Surf; // For T-Caching.
-} Face;
-
-// [16 Bytes per Status Key]
-typedef struct _Status_
-{
-	float          Frame;
-	DWord          Stat;
-	_Status_     * Next;
-	_Status_     * Prev;
-} ObjectStatus;
-
-// [36 Bytes]
-typedef struct _Object_
-{
-	void           * Data;
-	DWord            Type;
-	DWord            Number;
-	Vector         * Pos;
-	Matrix         * Rot;
-	Vector           Pivot;
-	_Object_       * Next;
-	_Object_       * Prev;
-	_Object_       * Parent;
-	signed short	 ParentID;
-	char           * Name;
-} Object;
-
-// Edge on a RT.Scene Trimesh representation (Useful for Elastic Models,
-// Collision detection, and some other neat stuff like that)
-struct Edge
-{
-	Vertex *A,*B;
-	Face *P,*Q;
-	float Length;
-	DWord Flags;
-};
-
-// [172 Bytes]
-// Total: [220 Bytes + 84 Bytes per Vertex + 56 Bytes per Face +
-//         16 Bytes * (Spline Keys + Hide Keys)]
-typedef struct _TriMesh_
-{
-	// strided array containing precalculated lighting. 
-	// uses packed dword BGRA to reduce memory read bandwidth usage
-	// was optimized out for sse benefit
-	Color			*SL;
-	DWord            VIndex;     //Amount of Vertices on Mesh
-	DWord            FIndex;     //Amount of Faces on Mesh
-	DWord            EIndex;     //Amount of Edges on Mesh
-	Vertex         * Verts;      //Vertex List
-	Face           * Faces;      //Face List
-	Edge           * Edges;      //Edge List
-	Spline           Pos;        //Position Track Spline
-	Spline           Scale;      //Scale Track Spline
-	Spline           Rotate;     //Orientation Track Spline
-	ObjectStatus   * Status;     //Hide Track (crap)
-	ObjectStatus   * CurStat;    //Current Hide status
-	Vector           IPos;       //Interpolated Position
-	Vector           IScale;     //Interpolated Scale
-	Quaternion       IRot;       //Interpolated Orientation (Quaternion)
-	Matrix           RotMat;     //Interpolated Orientation (Matrix)
-	Vector		     Heading;    // Generated by Position Track spline for meshes with the Align to path flag.
-	Vector           BSphereCtr; // Bounding Sphere Center.
-	Vector           BSphereScreenPos; // Bounding Sphere Center.
-	float			 BSphereRadius; // Bounding Sphere Radius.
-	float            BSphereRad; // Bounding Sphere Radius, squared. kept for backward compatibility until pipeline code is updated
-	DWord            Flags;
-
-	// this is a temporary hack and will be removed in the future
-	dword			 SortPriorityBias; // '1' value causes object to always be rendered first
-
-	_TriMesh_      * Next;
-	_TriMesh_      * Prev;
-} TriMesh;
-
-// [152 Bytes]
-// Total: [216 Bytes + 16 Bytes * Spline Keys]
-typedef struct _Camera_
-{
-	Spline           Roll;
-	Spline           FOV;
-	Spline           Source;
-	Spline           Target;
-	Vector           ISource;
-	Vector           ITarget;
-	Matrix           Mat;
-	float            IRoll;
-	float            IFOV;
-	float            PerspX;
-	float            PerspY;
-	DWord            Flags;
-	_Camera_       * Next;
-	_Camera_       * Prev;
-} Camera;
-
-// [256 Bytes]
-typedef struct _Omni_
-{
-	Color            L;
-	Vertex           V;
-	Face             F;
-	Spline           Pos;
-	Spline					 Size;
-	Spline					 Range;
-	//  Spline           Col; // Not Supported - Light Color Track.
-	Vector           IPos;
-	DWord            Flags;
-	float            FallOff;
-	float            HotSpot;
-	float						 ISize;
-	float						 IRange,rRange;
-	_Omni_         * Next;
-	_Omni_         * Prev;
-	dword			 dummy1,dummy2;
-} Omni;
-
-// [68 Bytes]
-typedef struct _SpotLight_
-{
-	Spline           Source;
-	Spline           Target;
-	Vector           ISource;
-	Vector           ITarget;
-	DWord            Flags;
-	_SpotLight_    * Next;
-	_SpotLight_    * Prev;
-} SpotLight;
-
-// entry for TBR - implements multiple lists of entries over a vector.
-struct TBREntry
-{	
-	Face *F;
-	dword next;
-};
-
-// [56 Bytes]
-// Total: [(56 + 16 * Objects + (220 + 84 * Vertices + 56 * Faces + 16 *
-//         (Spline + Hide Keys)) per TriMesh + 216 + (16 * Spline Keys) per
-//         Camera + 200 * Omnies + 68 * SpotLights + 192 * Particles) +
-//         44 * Materials + (64K * CharsperPixel * Textures) + 1Kb * Textures
-//         (only if BPP==8) Bytes] = ALOT.
-struct Scene
-{
-	// 16 Byte Aligned Members
-	Color			 Ambient;			// scene's Ambient illumination
-
-	Object         * ObjectHead;
-	TriMesh        * TriMeshHead;
-	Camera         * CameraHead;
-	Omni           * OmniHead;
-	SpotLight      * SpotLightHead;
-	Surface        * Surfaces;			//<tss> oh yeah, good stuff..
-	DWord            NumOfSurf;	
-	
-	float            StartFrame;		// Scene start frame
-	float            EndFrame;			// Scene end frame
-	DWord            NumOfObjs;			// Number of objects
-	struct Particle *Pcl;				// Particle Dynamic array.
-	void          (* PclExec)();		// Particle Sys. Kinematics and Effects.
-	DWord            NumOfParticles;	// Number of particles
-	Palette        * Pal;				// Collective palette
-	DWord            Flags;				// Scene flags, for optimization
-	float            FZP;				// Far-Z clipping plane
-	float			 NZP;				// Near-Z clipping plane
-	float			 PathingMinVelocity;// at this this velocity is required for objects to change heading.
-
-	TBREntry		*SBuffer;
-	dword			 SBufferCur;
-	dword			 SBufferSize;
-	sdword			*SBufferHead;
-	dword			 NumTiles;
-};
-
-// [16 Bytes]
-// The functionability of this structure is still unclear... (Silvatar)
-// I added the ID variable for more exact tracking of parent fitting
-typedef struct _KeyFrame_
-{
-	Object        * Object;
-	DWord           ID;
-	_KeyFrame_    * Prev;
-	_KeyFrame_    * Next;
-} KeyFrame;
-
 struct CurLight
 {
 	Color Col;
@@ -835,20 +251,16 @@ extern long Bytes1[257];
 extern long Bytes2[257];
 extern long Bytes3[257];
 extern long Bytes4[257];
-extern Texture Phong_Mapping;
 extern float C_rFZP,C_FZP, C_rNZP, C_NZP;
 extern dword g_renderedPolys, g_MipLevel;
 
 extern "C" float g_zscale;
 extern "C" float g_zscale256;
 
-extern long g_FrameTime;
+extern int32_t g_FrameTime;
 
 
 extern DWord Colors32[256];
-
-#pragma pack(1)
-typedef unsigned long DWord;
 
 // Register structures
 struct _RMWORDREGS {
@@ -909,7 +321,7 @@ extern Module_MB *DPMI_Core;
 //char *DPMI_Heap; //Internal Heap (for Aligned memory support)
 //DWord DPMI_Heap_Handle;
 
-#pragma pack(4)
+#pragma pack(push, 4)
 // VESA variables and structures
 typedef char VPalette[768]; // Direct Video 8-BIT Palette
 
@@ -934,7 +346,7 @@ struct Window
 // [92 Bytes]
 struct VESA_Surface
 {
-	char *Data,*Targ;
+	byte *Data,*Targ;
 	float *ZBuffer;
 	long X,Y;
 	long BPP,CPP;
@@ -957,8 +369,8 @@ struct VESA_Surface
 // Packed for [24 Bytes]
 typedef struct
 {
-	char *Ch;
-	char *Len;
+	byte *Ch;
+	byte *Len;
 	char X,Y,BPP;
 	unsigned short XY;
 } Font;
@@ -1013,7 +425,7 @@ extern float CntrEX,CntrEY;
 extern long PageSize,PageSizeW,PageSizeDW;
 
 extern VideoMode VMode;
-extern char *VGAPtr,*VPage; //Direct access pointers to LFB/Banks and v.Page[2].
+extern byte *VGAPtr,*VPage; //Direct access pointers to LFB/Banks and v.Page[2].
 extern float *ZBuffer;
 extern Font *Active_Font;    //Currently Active font
 extern Font *Font1; //a font
@@ -1030,7 +442,7 @@ extern long Basic_FOffs; //basic font offset
 // ISR variables and structures
 const long Rate_Div = 1193180;
 const unsigned int Basic_Rate = 0xFFFF;
-extern volatile long Timer;
+extern volatile int32_t Timer;
 extern long Old_Int_Count,Old_Int_Rate;
 extern volatile char Keyboard[128];
 
@@ -1038,7 +450,7 @@ extern volatile char Keyboard[128];
 extern Material Flare;
 
 // Span buffer variables
-extern char *Bitmap;
+//extern char *Bitmap;
 
 // Frustrum variables
 extern float FOVX,FOVY;
@@ -1050,9 +462,9 @@ extern __int64 precisePixelCount;
 
 typedef int (__stdcall *VPFunc)(
 								void *lpAddress,		// address of region of committed pages
-								dword dwSize,			// size of the region
-								dword flNewProtect,	// desired access protection
-								dword *lpflOldProtect // address of variable to get old protection
+								unsigned long dwSize,			// size of the region
+								unsigned long flNewProtect,	// desired access protection
+								unsigned long *lpflOldProtect // address of variable to get old protection
 								);
 
 //extern long ASM_XRes;
@@ -1085,7 +497,7 @@ struct Particle
 // Radiosity unit - Global variables
 extern DWord SCacheSize;
 
-#pragma pack(1)
+#pragma pack(push , 1)
 
 //stuff
 extern "C" dword WobNumOfHorizontalBlocks;
@@ -1102,7 +514,6 @@ extern "C" DWord WOBPOINTSHEIGHT;
 extern long Grid_X,Grid_Y,Grid_XY;
 extern float Plane_Z2U_Conv;
 extern float Plane_X2V_Conv;
-extern TriMesh *Meatballs; // Target of Meat-Balls tesselation routine
 extern float WRFOV;
 extern Vector *WPDT;
 
@@ -1117,10 +528,10 @@ extern FILE *LogFile;
 
 ///////////////////////
 /// TABLES!!!!!!!!!!!
-extern DWord _t_sqrttab[];
-extern DWord _t_rsqrttab[];
-extern DWord _t_exptab[];
-extern DWord _t_rexptab[];
+extern DWord _t_sqrttab[4096];
+extern DWord _t_rsqrttab[4096];
+extern DWord _t_exptab[4096];
+extern DWord _t_rexptab[4096];
 extern float _t_fxfl;
 
 
@@ -1285,7 +696,7 @@ modify [eax ecx edx];
 
 #endif
 
-#ifdef _C_VC6
+#ifdef WIN32
 inline void MatrixXVector(Matrix M,Vector *U,Vector *V)
 {
 
@@ -1428,19 +839,20 @@ inline void RoundToDW(DWord *dest, float val)
 
 inline float SQRT(float Value)
 {
-	__asm {
-		mov eax, dword ptr [Value]
-			mov   ecx,eax
-			and   eax,0xffffff
-			shr   ecx,23
-			xor   eax,0x800000
-			shr   eax,12
-			mov   edx,[eax*4+_t_sqrttab]
-			mov   ecx,[ecx*4+_t_exptab] 
-			or    ecx,edx
-			mov   _t_fxfl,ecx
-	}
-	return _t_fxfl;
+	return sqrtf(Value);
+	//__asm {
+	//	mov eax, dword ptr [Value]
+	//		mov   ecx,eax
+	//		and   eax,0xffffff
+	//		shr   ecx,23
+	//		xor   eax,0x800000
+	//		shr   eax,12
+	//		mov   edx,[eax*4+_t_sqrttab]
+	//		mov   ecx,[ecx*4+_t_exptab] 
+	//		or    ecx,edx
+	//		mov   _t_fxfl,ecx
+	//}
+	//return _t_fxfl;
 }
 
 /*北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北*/
@@ -1448,27 +860,38 @@ inline float SQRT(float Value)
 
 inline float RSQRT(float Value)
 {
-	__asm {
-		mov eax, dword ptr [Value]
-			mov   ecx,eax
-			and   eax,0xffffff
-			shr   ecx,23
-			xor   eax,0x800000
-			shr   eax,12
-			mov   edx,[eax*4+_t_rsqrttab]
-			mov   ecx,[ecx*4+_t_rexptab]
-			test  edx,edx
-			jz    rsqrt_psqr
-			or    ecx,edx
-			mov   _t_fxfl,ecx
-			jmp   rsqrt_exit
-rsqrt_psqr:
-        add   ecx,0x800000
-			or    ecx,edx
-			mov   _t_fxfl,ecx        
-rsqrt_exit:
+//	return 1.0f / sqrt(Value);
+	float &val = Value;
+	float retval;
+	__asm
+	{
+		//mov edi, [val]
+		rsqrtss xmm0, [val]
+		movss [retval], xmm0
 	}
-	return _t_fxfl;
+	return retval;
+
+//	__asm {
+//		mov eax, dword ptr [Value]
+//			mov   ecx,eax
+//			and   eax,0xffffff
+//			shr   ecx,23
+//			xor   eax,0x800000
+//			shr   eax,12
+//			mov   edx,[eax*4+_t_rsqrttab]
+//			mov   ecx,[ecx*4+_t_rexptab]
+//			test  edx,edx
+//			jz    rsqrt_psqr
+//			or    ecx,edx
+//			mov   _t_fxfl,ecx
+//			jmp   rsqrt_exit
+//rsqrt_psqr:
+//        add   ecx,0x800000
+//			or    ecx,edx
+//			mov   _t_fxfl,ecx        
+//rsqrt_exit:
+//	}
+//	return _t_fxfl;
 }
 
 inline void Fist(word &r, float x)
@@ -1579,5 +1002,9 @@ inline void rcpss(float *s)
 
 
 #endif
+
+#pragma pack (pop)
+#pragma pack (pop)
+#pragma pack (pop)
 
 #endif //FDS_VARS_H_INCLUDED

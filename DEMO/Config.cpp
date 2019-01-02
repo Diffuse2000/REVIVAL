@@ -1,6 +1,6 @@
 #include "Config.h"
 
-char *fld_strdup(char *s)
+char *fld_strdup(const char *s)
 {
 	if (s == NULL)
 		return NULL;
@@ -74,7 +74,7 @@ char *ConfigurationDB::copyCategory()
 	return fld_strdup(_categoryName);
 }
 
-void ConfigurationDB::setCategory(char *name)
+void ConfigurationDB::setCategory(const char *name)
 {
 	_categoryName = fld_strdup(name);
 }
@@ -85,7 +85,7 @@ void ConfigurationDB::addEntry(CFGEntry *e)
 }
 
 
-mword ConfigurationDB::toFile(char *filename)
+mword ConfigurationDB::toFile(const char *filename)
 {	
 	FILE *F = fopen(filename, "wt");
 	mword rv = write(F, 0);
@@ -93,7 +93,7 @@ mword ConfigurationDB::toFile(char *filename)
 	return rv;
 }
 
-mword ConfigurationDB::fromFile(char *filename)
+mword ConfigurationDB::fromFile(const char *filename)
 {
 	FILE *F = fopen(filename, "rt");
 	mword rv = read(F, 0);
@@ -101,13 +101,13 @@ mword ConfigurationDB::fromFile(char *filename)
 	return rv;
 }
 
-mword ConfigurationDB::write(FILE *F, long indent)
+mword ConfigurationDB::write(FILE *F, int32_t indent)
 {
-	long i;
+	int32_t i;
 	for(i=0; i<indent; ++i)
 		fprintf(F, "\t");
 	// Hierarchal DB unsupported	
-	long n = _entries.size(), c = _children.size();
+	int32_t n = _entries.size(), c = _children.size();
 	fprintf(F, "Category %s (%d entries, %d subcategories)\n", _categoryName, n, c);
 	for(i=0; i<n; ++i)
 	{
@@ -118,11 +118,11 @@ mword ConfigurationDB::write(FILE *F, long indent)
 	}
 	return 0;
 }
-mword ConfigurationDB::read(FILE *F, long indent)
+mword ConfigurationDB::read(FILE *F, int32_t indent)
 {
 	// Hierarchal DB unsupported
 	char buffer[128];
-	long n, c;
+	int32_t n, c;
 	fscanf(F, "Category %s (%d entries, %d subcategories)", buffer, &n, &c);
 	setCategory(buffer);
 	_entries.resize(n);
@@ -139,13 +139,13 @@ CFGEntry *ConfigurationDB::readEntry(FILE *F)
 {
 	// read id & type information. NOTE: buffer overflowable.
 	char buffer[128];
-	long type = -1;
+	int32_t type = -1;
 	fscanf(F, "%d%s", &type, buffer);
 	switch (type)
 	{
 	case 0: 
 		{
-			long value;
+			int32_t value;
 			fscanf(F, "%d", &value);
 			return new CFGInteger(buffer, value);
 		}

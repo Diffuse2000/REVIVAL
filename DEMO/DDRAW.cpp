@@ -1,5 +1,8 @@
 #include "DDRAW.h"
 #include <float.h>
+#include <stdio.h>
+#include <Base/FDS_VARS.H>
+#include <Base/FDS_DECS.H>
 
 //#define fprintf //
 
@@ -143,7 +146,7 @@ HRESULT Restore_All()
 {
 	RA_Flag = 0;
 	HRESULT ErrBits = 0;
-	if (ErrBits |= PrimSurf->IsLost()) 
+	if ((ErrBits |= PrimSurf->IsLost())) 
 	{
 		ErrBits |= PrimSurf->Restore();
 		if (!ErrBits) {
@@ -166,7 +169,7 @@ static dword V_Lock(VESA_Surface *VS)
 
 	HRESULT hr;
 	DDSURFACEDESC2      ddsd;
-	if (hr = DDObj->TestCooperativeLevel() != DD_OK)
+	if ((hr = DDObj->TestCooperativeLevel() != DD_OK))
 	{		
 //		fprintf(Logfile,"Mismatching Cooperative Level. (Lock)\n");
 		return 1;
@@ -182,7 +185,7 @@ static dword V_Lock(VESA_Surface *VS)
 //Again:
 	if ((hr = Surf->Lock(NULL, &ddsd, DDLOCK_SURFACEMEMORYPTR | DDLOCK_WAIT | DDLOCK_NOSYSLOCK, NULL)) == DD_OK)
 	{
-		Secondary.Data = (char *)ddsd.lpSurface;
+		Secondary.Data = (byte *)ddsd.lpSurface;
 		Secondary.Flags |= VSurf_Locked;
 		//fprintf(Logfile,"Surface (at %xH) Locked.\n",(DWORD)VS->FB);
 		return 0;
@@ -214,7 +217,7 @@ static dword V_Lock(VESA_Surface *VS)
 static dword V_Unlock(VESA_Surface *VS)
 {
 	HRESULT hRet;
-	if (hRet = DDObj->TestCooperativeLevel() != DD_OK) 
+	if ((hRet = DDObj->TestCooperativeLevel() != DD_OK)) 
 	{
 		RA_Flag = 1;
 //		fprintf(Logfile,"Mismatching Cooperative Level. (Unlock)\n");
@@ -263,7 +266,7 @@ static void V_Flip(VESA_Surface *VS)
 	for(y=0; y<VS->Y; y++)
 	{
 		//FastMemcopy(dst, src, VS->X * VS->CPP >> 3);
-		mem3(dst, src, VS->X * VS->CPP); 
+		memcpy(dst, src, VS->X * VS->CPP); 
 		dst += Secondary.BPSL;
 		src += VS->BPSL;
 	}
@@ -326,7 +329,7 @@ dword DDRAW_RemoveDisplay()
     }
 	fclose(Logfile);
 
-	free(DD_MainSurf.Data);
+	_aligned_free(DD_MainSurf.Data);
 
 	return 0;
 }
@@ -339,7 +342,7 @@ static dword V_Create(VESA_Surface *VS)
 	VS->PageSize = VS->BPSL * VS->Y;
 
 	dword ZBufferSize = sizeof(word) * VS->X * VS->Y;
-	if (!(VS->Data = (char *)malloc(VS->PageSize + ZBufferSize))) return 1;
+	if (!(VS->Data = (byte *)malloc(VS->PageSize + ZBufferSize))) return 1;
 	memset(VS->Data,0,VS->PageSize + ZBufferSize);
 
 //	VS->Flags = VSurf_Exists;

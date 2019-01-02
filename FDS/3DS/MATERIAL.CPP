@@ -1,6 +1,6 @@
-#include "I_DEFS.H"
+#include "I_defs.h"
 #include "FUtils.h"
-#include "../Fds_vars.h"
+#include "Base/FDS_VARS.H"
 
 // Material Library Reader, Format: 3DS ver 4.0
 void ReadMaterialName(unsigned int EndPos)
@@ -39,7 +39,7 @@ void ReadMaterialName(unsigned int EndPos)
   }
   Cur_Mat->RelScene = Host;
   Cur_Mat->Name = strdup(MatName);
-  delete MatName;
+  delete []MatName;
   ReadTextureToo = 1;
 }
 
@@ -80,8 +80,8 @@ void ReadMapFile(unsigned int EndPos)
   Cur_Mat->Diffuse = 1.0;
   Cur_Mat->Specular = 1.0; //Rulez
   OUT:
-  delete MapFile;
-  delete NewFile;
+  delete []MapFile;
+  delete []NewFile;
 }
 
 void SetTwoSides(unsigned int EndPos)

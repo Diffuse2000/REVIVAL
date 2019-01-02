@@ -1,10 +1,10 @@
-#include "Rev.H"
+#include "REV.H"
 
-#include "Crash.H"
+#include "CRASH.H"
 
 static Scene *CrashSc;
 
-static long CrPartTime = 0;// 10.0f * 100;
+static int32_t CrPartTime = 0;// 10.0f * 100;
 
 void Initialize_Crash()
 {

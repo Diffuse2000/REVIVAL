@@ -1,6 +1,7 @@
-#include "Rev.H"
+#include "REV.H"
 
-#include "Fountain.H"
+#include "FOUNTAIN.H"
+#include "VESA/VESA.H"
 
 static Scene *FntSc;
 static Vector FntHead(-0.053f,43.381f, 0.251f);
@@ -47,12 +48,12 @@ static dword g_numPcls;
 
 void Particle_Rast(Vertex *A,Vertex *B,Vertex *C)
 {
-	char *Pixel;
+	byte *Pixel;
 	long I,J;
 	if (A->PX>=1&&A->PX<=XRes-2&&A->PY>=1&&A->PY<=YRes_1-1)
 	{
 		//addative 32bit 5 putpixels (currently set on 1)
-		Pixel = VPage+((int)A->PX+YOffs[(int)A->PY]<<2);
+		Pixel = VPage+(((int)A->PX+YOffs[(int)A->PY])<<2);
 		Pixel -= XRes<<2;
 		J = (*Pixel)+A->LB;
 		if (J>255) *Pixel++=255; else *Pixel++=J;
@@ -177,7 +178,7 @@ void Initialize_Particles(Scene *Sc)
 			}
 		}
 
-		PclT[I].Txtr->Data = (char *)Img.Data;
+		PclT[I].Txtr->Data = (byte *)Img.Data;
 	}
 	
 
@@ -923,7 +924,7 @@ void Lightning_Line(Vertex *V1,Vertex *V2)
 //	 memset(Ptr,255,depth<<2);
 
 	if (Dx > Dy) {
-		Ai = Dy-Dx<<1;
+		Ai = (Dy-Dx)<<1;
 		Bi = Dy<<1;
 		D = Bi-Dx;
 		while (Ptr != End) {
@@ -936,7 +937,7 @@ void Lightning_Line(Vertex *V1,Vertex *V2)
 //			memset(Ptr,255,depth<<2);
 		}
 	} else {
-		Ai = Dx-Dy<<1;
+		Ai = (Dx-Dy)<<1;
 		Bi = Dx<<1;
 		D = Bi-Dy;
 		while (Ptr != End) {
@@ -1030,7 +1031,7 @@ void Spark_Line(Vertex *V1,Vertex *V2)
 //	 memset(Ptr,255,depth<<2);
 
 	if (Dx > Dy) {
-		Ai = Dy-Dx<<1;
+		Ai = (Dy-Dx)<<1;
 		Bi = Dy<<1;
 		D = Bi-Dx;
 		while (Ptr != End) {
@@ -1073,7 +1074,7 @@ void Spark_Line(Vertex *V1,Vertex *V2)
 
 		}
 	} else {
-		Ai = Dx-Dy<<1;
+		Ai = (Dx-Dy)<<1;
 		Bi = Dx<<1;
 		D = Bi-Dy;
 		while (Ptr != End) {
@@ -1724,7 +1725,7 @@ void Run_Fountain()
 	long TTrd;
 	Vector U,V;
 
-	char *BPage = new char[PageSize];
+	byte *BPage = new byte[PageSize];
 
 #ifdef _C_WATCOM
 #define VSurface Screen
@@ -1925,12 +1926,12 @@ void Run_Fountain()
 			}
 			scroll = OutTextXY(VPage,0,0,MSGStr,255);
 			sprintf(MSGStr,"%d outer pcls", g_numPcls);
-			sprintf(MSGStr, "%dK pixels/frame" , (long)(FillerPixelcount/(1000.0*numFrames)));
+			sprintf(MSGStr, "%dK pixels/frame" , (int32_t)(FillerPixelcount/(1000.0*numFrames)));
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
-			sprintf(MSGStr, "%dK pixels/second" , (long)(FillerPixelcount/1000.0 * 100.0 / Profiler[PROF_RNDR]));
+			sprintf(MSGStr, "%dK pixels/second" , (int32_t)(FillerPixelcount/1000.0 * 100.0 / Profiler[PROF_RNDR]));
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
 
-			sprintf(MSGStr, "%d polys/frame" , (long)(g_renderedPolys / numFrames) );
+			sprintf(MSGStr, "%d polys/frame" , (int32_t)(g_renderedPolys / numFrames) );
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
 
 	//		PROFILER: display stats
@@ -1977,6 +1978,6 @@ void Run_Fountain()
 	
 	delete FList;
 	delete SList;
-	delete BPage;
+	delete [] BPage;
 	Destroy_Scene(FntSc);
 }

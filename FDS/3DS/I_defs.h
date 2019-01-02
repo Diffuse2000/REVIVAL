@@ -1,10 +1,15 @@
 #ifndef INTERNAL_3DS_DEFS
 #define INTERNAL_3DS_DEFS
 
-#include "../Fds_vars.h"
 
 
 // Definations.
+#include <Base/Object.h>
+#include <Base/TriMesh.h>
+#include <Base/Omni.h>
+#include <Base/KeyFrame.h>
+#include <Base/Camera.h>
+
 #define _Main             0x4D4D  // Main chunk
 #define  _MeshData        0x3D3D  // Mesh data
 #define   _ObjBlock       0x4000  // Object block
@@ -51,9 +56,10 @@ typedef struct
   signed int     Length;
 } Chunk;
 
+
 // Variables
 extern Scene *Host;
-extern FILE *IN_3DS;
+//extern FILE *IN_3DS;
 extern DWord Cur_ID,Chk_ID;
 extern DWord Cur_Track;  // Current Track Chunk
 extern DWord IN_SIZE;

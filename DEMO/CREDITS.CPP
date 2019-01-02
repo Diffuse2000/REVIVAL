@@ -1,6 +1,6 @@
-#include "Rev.H"
+#include "REV.H"
 
-#include "Credits.H"
+#include "CREDITS.H"
 
 void Initialize_Credits()
 {

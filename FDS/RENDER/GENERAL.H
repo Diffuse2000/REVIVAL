@@ -1,5 +1,8 @@
 // Coriolis heritage
 
+#include <Base/Object.h>
+#include <Base/Scene.h>
+
 // General FDS stuff
 int MMXState;
 
@@ -93,7 +96,7 @@ void Init_Randomseed()
 	_localtime(&time_of_day, &tmbuf);
 	srand( tmbuf.tm_sec*tmbuf.tm_min );
 #endif
-#ifdef _C_VC6
+#ifdef WIN32
 	struct tm *newtime;
 	newtime = localtime(&time_of_day); 
 	srand( newtime->tm_sec*newtime->tm_min );
@@ -402,7 +405,7 @@ void Display_Hierarchy_Node(Scene *Sc,Object *Last,char Level)
       if (Last) printf("%s|%s [%s].\n",s,O->Name,Last->Name); else printf("|%s\n",O->Name);
       Display_Hierarchy_Node(Sc,O,Level+1);
     }
-  delete s;
+  delete [] s;
 }
 
 void Display_Hierarchy_Links(Scene *Sc)
@@ -512,7 +515,7 @@ void Detect_MMX()
 }
 #endif
 
-#ifdef _C_VC6
+#ifdef WIN32
 void ClearInterrupts()
 {
 	// disallow CLIs

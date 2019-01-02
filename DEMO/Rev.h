@@ -1,8 +1,10 @@
 #ifndef DEMO_H_INC
 #define DEMO_H_INC
 
-#include "..\fds\fds_decs.h"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 #include "Raytracer.h"
+#include <Base/Scene.h>
 
 enum
 {

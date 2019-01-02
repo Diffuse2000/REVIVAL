@@ -1,7 +1,8 @@
-#include "Rev.H"
-#include "Koch.H"
+#include "REV.H"
+#include "Koch.h"
 
 #include <vector>
+#include <FILLERS/FILLERS.H>
 
 #define NUM_COMETS 0
 #define TRAIL_PCLS 110
@@ -253,7 +254,7 @@ static void InitializeComets(Scene *Sc)
 				Img.Data[x+32*y] = 0x010101 * (dword)((1.0-(fx*fx+fy*fy))*255.0);
 		}
 	}
-	PclT->Txtr->Data = (char *)Img.Data;
+	PclT->Txtr->Data = (byte *)Img.Data;
 
 	for(I=0;I<Sc->NumOfParticles;I++)
 	{
@@ -576,7 +577,7 @@ void Run_Koch()
 	FC.ITarget.z = 0.0;
 	Kick_Camera(&FC.ISource, &FC.ITarget, 180.0, FC.Mat);
 
-	char *BPage = new char[PageSize];
+	byte *BPage = new byte[PageSize];
 
 	VESA_Surface Blur;
 	memcpy(&Blur,MainSurf,sizeof(VESA_Surface));

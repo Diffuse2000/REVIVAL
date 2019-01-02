@@ -1,7 +1,7 @@
 #ifndef DEMO_PHOTONTRACER_H_INCLUDED
 #define DEMO_PHOTONTRACER_H_INCLUDED
 
-#include "Rev.h"
+#include "REV.H"
 
 enum ptErrorCode
 {

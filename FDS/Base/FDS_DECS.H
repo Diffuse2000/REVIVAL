@@ -1,7 +1,7 @@
 #ifndef FDS_DECS_H_INCLUDED
 #define FDS_DECS_H_INCLUDED
 #include "FDS_VARS.H"
-
+#include "Vector.h"
 // Math declarations
 
 #ifndef MathIncluded
@@ -133,17 +133,9 @@ void Add_Scene_3DS(char *FileName);
 
 #ifndef _FLDIncluded
 #define _FLDIncluded
-char LoadFLD(Scene *Sc,char *FileName);
+char LoadFLD(Scene *Sc, const char *FileName);
 #endif
 
-
-#ifndef V3DIncluded
-#define V3DIncluded
-void Material2Face(Material *M,Face *F);
-void Insert_TriMesh2Scene(Scene *Sc,TriMesh *T);
-void Insert_Omni2Scene(Scene *Sc,Omni *O);
-char Load_V3D(Scene *Sc,char *FileName);
-#endif
 
 #ifndef DPMIIncluded
 #define DPMIIncluded
@@ -175,7 +167,7 @@ int DPMI_allocSelector(void);
 void DPMI_setSelectorBase(int sel,dword linAddr);
 void DPMI_setSelectorLimit(int sel,dword limit);
 void Init_Aligned(long Amount);
-char * Get_Aligned_Block();
+void * Get_Aligned_Block();
 void Remove_Aligned_Block(void *Target);
 void Deinit_Aligned();
 
@@ -195,11 +187,11 @@ void VESA_Surface2Global(VESA_Surface *VS);
 char Modesetup();
 void End_Graphics();
 
-void Build_YOffs_Table(VESA_Surface *VS);
+//void Build_YOffs_Table(VESA_Surface *VS);
 
-extern Font * LoadAFT(char *FileName);
-extern long OutTextXY(char *Where,long X,long Y, char *S,char C, int xres = XRes, int yres = YRes);
-extern long Write_String_T32(long X,long Y,char *S,dword C);
+Font * LoadAFT(const char *FileName);
+long OutTextXY(byte *Where,long X,long Y, const char *S,char C, int xres = XRes, int yres = YRes);
+long Write_String_T32(long X,long Y,char *S,dword C);
 void Set_RGB(char Reg,char R,char G,char B);
 void Set_Palette(VPalette Pal);
 void Make_Gouraud_8(char R0,char G0,char B0,char R1,char G1,char B1);
@@ -254,10 +246,6 @@ void DisplayMouse();
 void Hierarchy_Sort(Scene *Sc);
 void Detect_MMX();
 
-void Compute_Face_Normals(TriMesh *T);
-void Compute_Vertex_Normals(TriMesh *T);
-void Compute_Normal_Products(TriMesh *T);
-
 void *getAlignedBlock(mword size, mword alignment = 64);
 void freeAlignedBlock(void *ptr);
 #endif
@@ -267,17 +255,17 @@ void freeAlignedBlock(void *ptr);
 char Identify_Texture(Texture *Tx);
 char Load_Texture(Texture *Tx);
 #ifdef C_WATCOM
-extern "C++" char *LoadJPEG(char *argv1,unsigned int SeekPos);
+extern "C++" char *LoadJPEG(const char *argv1,unsigned int SeekPos);
 #else
-char *LoadJPEG(char *argv1,unsigned int SeekPos);
+char *LoadJPEG(const char *argv1,unsigned int SeekPos);
 #endif
 void View_Texture(Texture *Tx);
-void BPPConvert_Texture(Texture *Tx,char TB);
+void BPPConvert_Texture(Texture *Tx, byte TB);
 void FilterLSB_Texture(Texture *T);
 void Unify_Textures(Scene *Sc);
-char Load_Image_PCX(Image *Img,char *FN);
-char Load_Image_GIF(Image *Img,char *FN);
-char Load_Image_JPEG(Image *Img,char *FN);
+char Load_Image_PCX(Image *Img,	const char *FN);
+char Load_Image_GIF(Image *Img, const char *FN);
+char Load_Image_JPEG(Image *Img, const char *FN);
 void TAS_Set(dword TASType,long X,long Y);
 void Generate_Mipmaps(Texture *Tx, mword blockSizeX, mword blockSizeY, mword enableMip);
 #endif
@@ -312,83 +300,38 @@ void Generate_Flare_Image(Image *Img,float FR,float FG,float FB);
 void Generate_Flare_Image_Test(Image *Img,float FR,float FG,float FB,float blah,float XDec,float YDec);
 void Generate_RGBFlares();
 Material *Generate_RGBFlare(unsigned char R,unsigned char G,unsigned char B);
-void Fit_FlareImage(Omni *O);
-void Generate_Julia_Fractal(Image *Img,Complex *C,Complex *R1,Complex *R2);
-void Generate_Mandelbrot_Fractal(Image *Img,Complex *R1,Complex *R2);
-void Generate_Phoenix_Fractal(Image *Img,float P1,float P2,Complex *R1,Complex *R2);
 
-void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword XRes, dword YRes);
-void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YRes);
-
-void Grid_Texture_Mapper(GridPoint *GP,Image *Img,dword *DAC);
-void Grid_Texture_Mapper_320(GridPoint *GP,Image *Img,dword *DAC);
-void Grid_Texture_Mapper_XXX(GridPoint *GP,Image *Img,dword *DAC);
-void Setup_Grid_Texture_Mapper_XXX(dword xres, dword yres);
 void Setup_Grid_Texture_Mapper_MMX(dword xres, dword yres);
-void Grid_Texture_MapASMMX(GridPoint *GP,Image *Img,dword *DAC);
-//void Grid_Texture_Mapper_TG(NewGridPoint *GP,Image *Img,dword *DAC);
-void Grid_Texture_Mapper_TG(GridPointTG *GP, Image *Img, dword *DAC);
-void Grid_Texture_Mapper_T(GridPointT *GP, Image *Img, dword *DAC);
-void Init_PlanarGrid(GridPoint **GP);
-void GridFX_Test();
+void Grid_Texture_Mapper(GridPoint *GP,Image *Img,dword *DAC);
 void Generate_Fractal_Noise(Image *Img,float Graininess);
 void Generate_Plasma(Image *Img, short p, long seed);
-void Init_Whirlwind(char Spots,float Grav,float Repulse);
-void Init_WWGrav(float U,float V);
-void Reset_WWGrid();
-void Update_WWGrid();
-void Display_WWGrid(Image *Img);
 AGridPoint * Init_Antiwobbler();
 void AW_Staticmap(AGridPoint *AGP);
-void AW_Distort(AGridPoint *AGP,float Bang);
-void AW_FromParticles(AGridPoint *AGP,Particle *P);
-void AntiGrid_Mapper(AGridPoint *AGP,Image *Img,dword *DAC);
-void Init_WRaytrace_Table(float FOV);
-void Affine_Wobbler(GridPoint *Target_GP,float Ang,float Zoom,float XO,float YO);
-void WRaytrace_Cylinder(GridPoint *Target_GP,Vector *Origin,Matrix Orient,float Radius);
-void WRaytrace_CurvedCylinder(GridPoint *Target_GP,Vector *Origin,Matrix Orient,float *Radius);
-void WRaytrace_Plane(GridPoint *Target_GP,Vector *Origin,Matrix Orient,float Height);
-void WRaytrace_Sphere(GridPoint *Target_GP,Vector *Origin,Matrix Orient,float Radius);
-
-// general utility stuff, and some other neat stuff like that
-void Phong_Map(Image *Img,float R,float G,float B,float Power);
-void Hidden_Flare(Image *Src,Vector *L,Image *Trg,long NumRays);
 #endif
 
 #ifndef RenderIncluded
 #define RenderIncluded
 void FDS_Title(void);
-void LoadScenes(char Scenes,char *Name[]);
 char FDS_Init(unsigned short x,unsigned short y,unsigned char BPP);
 #ifdef _C_WATCOM
 void SetGraphicsMode(void);
 #endif
-void Get_Palette2Prime(Scene *Sc);
 void FDS_End(void);
-void Display_Hierarchy_Links(Scene *Sc);
-void MsgToDisplay(dword ID,dword Issue,char *Str);
 extern dword Find_RetraceRate();
 void Init_Randomseed();
 
-void Planar_Mapping(TriMesh *T);
 
 void Preprocess_Scene(Scene *Sc);
-void Default_Texture(Scene *Sc);
-void Init_Default_Material();
-void Init_Flare_Textures(Scene *Sc);
 void Materials_Remap_Aligned();
 void Materials_Load(Scene *Sc);
 void Assign_Fillers(Scene *Sc);
 void FList_Allocate(Scene *Sc);
 void Scene_Computations(Scene *Sc);
-void SetPointFlare(Omni *O);
-void ClearPointFlare(Omni *O);
 
 void Radix_SortingASM(Face **f,Face **s,unsigned int n);
 void Radix_Sorting();
 
 void SetCurrentScene(Scene *Sc);
-void RunScene(Scene *Sc,float Seconds);
 
 void Animate_Objects(Scene *Sc);
 void Transform_Objects(Scene *Sc);
@@ -403,14 +346,6 @@ void Render();
 
 #ifndef FrustrumIncluded
 #define FrustrumIncluded
-void Universal_Frustrum_Elite();
-void Frust_Set_Flat();
-void Frust_Set_L();
-void Frust_Set_Env();
-void Frust_Set_EUV();
-void Frust_Set_UV();
-void Frust_Set_UVL();
-
 
 // Third generation Frustrum clipper
 void InitFrustrumClipper();
@@ -420,56 +355,21 @@ void FrustrumClipper();
 
 #endif
 
+void GridRendererT(GridPointT *GP, Image *Img, dword *page, dword XRes, dword YRes);
+void GridRendererTG(GridPointTG *GP, Image *Img, dword *page, dword XRes, dword YRes);
+
+
 #ifndef FillersIncluded
 #define FillersIncluded
-//Wire frame RULEZ
-//void Draw_Line_8Bit(Vertex *V1,Vertex *V2);
-void Draw_Line_32Bit(Vertex *V1,Vertex *V2);
-void Draw_Line_32Bit_ForKids(Vertex *V1,Vertex *V2);
-//Flat mappers (ZOL!)
-//void Flat_Poly_8Bit(Vertex **V, dword numVerts);
-//void FlatV2_Poly_8Bit(Vertex **V, dword numVerts);
-//void FlatV3_Poly_8Bit(Vertex **V, dword numVerts);
-void Flat_Poly_ManyBits(Vertex **V, dword numVerts);
-void Adv_Flat_32(Vertex **V, dword numVerts);
-// Gouraud/Linear mappers
-void The_Specular_Gouraud(Vertex **V, dword numVerts);
-void The_MMX_Gouraud(Vertex **V, dword numVerts);
-void The_Specular_TGouraud(Vertex **V, dword numVerts);
-// Bi-Linear Interp. Texture mappers
-//void The_Bilinear(Vertex **V, dword numVerts);
-//void The_BiHi(Vertex **V, dword numVerts);
-//void The_BiTrue(Vertex **V, dword numVerts);
-//void The_BiTTrue(Vertex **V, dword numVerts);
-//void The_BiPTrue(Vertex **V, dword numVerts);
-//void The_BiPTTrue(Vertex **V, dword numVerts);
-//void The_BiPNTrue(Vertex **V, dword numVerts);
-
-// Get a g/txtr, kid...3328 bytes.
-//void The_BiGTrue(Vertex **V, dword numVerts);
-//void The_BiGMMXTrue(Vertex **V, dword numVerts);
-
-// Texture/ Fogged gouraud
-//void The_BiMMXTTrue_Fogged(Vertex **V, dword numVerts);
-//void The_BiGMMXTrue_Fogged(Vertex **V, dword numVerts);
 
 // Sprite scalers
-void Dark_Sprite(Vertex **V, dword numVerts);
-void Spirit_16(Vertex **V, dword numVerts);
 void The_Seven_UP(Vertex **V, dword numVerts);
-void The_Seven_UP_64(long X,long Y,long SX,long SY,dword *Bitmap,char *Page);
+void The_Seven_UP_64(long X,long Y,long SX,long SY,dword *Bitmap,byte *Page);
 void The_MMX_Scalar(Vertex **V, dword numVerts);
-void The_MMX_Scalar_32(Vertex **V, dword numVerts);
-void The_ZScale_Shit(Vertex **V, dword numVerts);
-void Particle_Sprite(Vertex **V, dword numVerts);
-void The_Seven_UP_HALFSIZE(Vertex **V, dword numVerts);
-
-void Prefiller(Vertex **V, dword numVerts);
-void Prefiller_T(Vertex **V, dword numVerts);
 
 // House IX technology
 void InitPolyStats(long cells);
-void SavePolyStats(char *fileName);
+void SavePolyStats(const char *fileName);
 void IX_Prefiller_FZ(Vertex **V, dword numVerts);
 void IX_Prefiller_FAcZ(Vertex **V, dword numVerts);
 void IX_Prefiller_GZ(Vertex **V, dword numVerts);
@@ -488,7 +388,7 @@ void TBR_Init(Scene *Sc, mword size);
 void TBR_Sprite(Vertex **V, dword numVerts);
 void TBR_Render(Scene *Sc);
 
-#ifdef _C_VC6
+#ifdef WIN32
 void InitFillers (VPFunc VirtualProtectFunc, dword Protection);
 #endif
 
@@ -544,7 +444,7 @@ extern dword New_SCache(dword Size);
 #ifndef FMod_Included
 #define FMod_Included
 dword FModInit();
-dword FModLoadModule(char *ModuleFilename);
+dword FModLoadModule(const char *ModuleFilename);
 //dword FModLoadModule(void *moduleBuffer, dword moduleLength);
 void FModPlayModule(dword handle);
 void FModFreeModule(dword handle);

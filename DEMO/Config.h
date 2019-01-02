@@ -8,10 +8,10 @@
 #ifndef _FLD_DEMO_CONFIG_H_INCLUDED
 #define _FLD_DEMO_CONFIG_H_INCLUDED
 
-#include "..\fds\fds_decs.h"
+#include "Base/FDS_DECS.H"
 #include <vector>
 
-char *fld_strdup(char *s);
+char *fld_strdup(const char *s);
 
 class CFGEntry
 {
@@ -26,7 +26,7 @@ public:
 	{
 		_id = NULL;
 	}
-	~CFGEntry()
+	virtual ~CFGEntry()
 	{
 		delete [] _id;
 	}
@@ -46,13 +46,13 @@ public:
 
 class CFGInteger : public CFGEntry
 {
-	long _value;
+	int32_t _value;
 public:
 	inline long getValue()
 	{
 		return _value;
 	}
-	inline void setValue(long value)
+	inline void setValue(int32_t value)
 	{
 		_value = value;
 	}
@@ -61,7 +61,7 @@ public:
 	{
 		_value = 0;
 	}
-	inline CFGInteger(char *id, long value)
+	inline CFGInteger(const char *id, int32_t value)
 	{
 		_id = fld_strdup(id);
 		_value = value;
@@ -120,11 +120,11 @@ class ConfigurationDB
 	std::vector<CFGEntry *> _entries;
 	std::vector<ConfigurationDB *> _children;
 
-	mword write(FILE *F, long indent);
-	mword read(FILE *F, long indent);
+	mword write(FILE *F, int32_t indent);
+	mword read(FILE *F, int32_t indent);
 	CFGEntry *readEntry(FILE *F);
 public:
-	void setCategory(char *name);
+	void setCategory(const char *name);
 	char *copyCategory();
 	const char *getCategory();
 
@@ -133,8 +133,8 @@ public:
 	CFGEntry *find(const char *id);
 	long extractInteger(const char *id);
 	char *extractString(const char *id);
-	mword fromFile(char *filename);
-	mword toFile(char *filename);
+	mword fromFile(const char *filename);
+	mword toFile(const char *filename);
 
 	ConfigurationDB();
 	~ConfigurationDB();

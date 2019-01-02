@@ -58,7 +58,7 @@ extern "C" {
 
 /* align struct on 8 bytes boundary */
 #if defined (_WIN32)
-#pragma pack (8)
+#pragma pack (push, 8)
 #else
 #endif
 
@@ -1520,6 +1520,10 @@ IJLAPI(const IJLibVersion*, ijlGetLibVersion, (void));
 IJLAPI(const char*, ijlErrorStr, (IJLERR code));
 
 
+#if defined (_WIN32)
+#pragma pack (pop)
+#else
+#endif
 
 
 #if defined( __cplusplus )

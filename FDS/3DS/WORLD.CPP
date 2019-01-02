@@ -1,6 +1,7 @@
-#include "I_DEFS.H"
+#include "I_defs.h"
 #include "FUtils.h"
-#include "../Fds_vars.h"
+#include "Base/FDS_VARS.H"
+#include "Base/Scene.h"
 
 // Static World/Scene Reader, Format: 3DS ver 4.0
 void New_Object(void)

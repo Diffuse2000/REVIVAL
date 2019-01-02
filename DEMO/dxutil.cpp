@@ -8,7 +8,7 @@
 //-----------------------------------------------------------------------------
 #define POINTER_64
 #define STRICT
-#include "../fds/fds_defs.h"
+#include "Base/FDS_DEFS.H"
 #include "DXUtil.h"
 
 

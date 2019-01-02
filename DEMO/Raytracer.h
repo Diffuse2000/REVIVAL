@@ -1,7 +1,10 @@
 #ifndef _DEMO_RAYTRACER_H_INCLUDED
 #define _DEMO_RAYTRACER_H_INCLUDED
 
-#include "..\fds\fds_decs.h"
+#include "Base/FDS_DECS.H"
+#include "Base/TriMesh.h"
+#include "Base/Face.h"
+#include "Base/Vector.h"
 
 struct rtIntersection
 {

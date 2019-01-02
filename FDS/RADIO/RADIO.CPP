@@ -1,15 +1,18 @@
 // Radiosity / Light mapper
 // Deals with all of the Light-maps involved Raytracing, Texture Caching...
 
-#include <Math.H>
-#include <String.H>
-#include <ConIO.H>
-#include <StdLib.H>
-#include <StdIO.H>
+#include <math.h>
+#include <string.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
+#include "Base/TriMesh.h"
+#include "Base/Omni.h"
+#include "Base/Scene.h"
 
 static Scene *RTSc;
 static TriMesh *RTTri;

@@ -1,14 +1,14 @@
-#include <StdIO.H>
-#include <String.H>
-#include <Math.H>
-#include <StdLib.H>
-#include <Memory.H>
-#include <String.H>
-#include <ConIO.H>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <string.h>
+#include <conio.h>
 
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
-#include "..\FDS_Defs.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
+#include "Base/FDS_DEFS.H"
 
 struct Four_C
 {
@@ -58,13 +58,13 @@ void Fast16232(DWord *Dst,Word *Src,long Num)
 			Xor ECx,-1
 			Inc ECx
 Inner:
-		Mov Ax,Word Ptr [ESI+ECx*2]
+			mov ax, word ptr [ESI+ECx*2]
 			Shl EAx,3
 			Ror EAx,8
 			Shl Ax,2
 			Shl Ah,3
 			Rol EAx,8
-			Mov DWord Ptr [EDI+ECx*4],EAx
+			Mov dword ptr [EDI+ECx*4],EAx
 			Inc ECx
 			JNZ Inner
 	}
@@ -82,13 +82,13 @@ void Fast32216(Word *Dst,DWord *Src,long Num)
 			Xor ECx,-1
 			Inc ECx
 Inner:
-		Mov EAx,DWord Ptr [ESI+ECx*4]
+			Mov EAx,dword ptr [ESI+ECx*4]
 			Shr Ah,2
 			Shl Ax,2
-			Ror EAx,16 ; Partial stall - 6 Cycles
+			Ror EAx,16 //; Partial stall - 6 Cycles
 			Shr Al,3
-			Rol EAx,11 ; Partial stall - 6 Cycles
-			Mov Word Ptr [EDI+ECx*2],Ax
+			Rol EAx,11 //; Partial stall - 6 Cycles
+			Mov word ptr [EDI+ECx*2],Ax
 			Inc ECx
 			JNZ Inner
 	}
@@ -111,7 +111,7 @@ void T16Conv(Word **Data,long OldX,long OldY,long X,long Y)
 void MipmapXY(Image *Img)
 {
 	long X,Y;
-	dword *Mip = new dword[(Img->x+1>>1)*(Img->y+1>>1)];
+	dword *Mip = new dword[((Img->x+1)>>1)*((Img->y+1)>>1)];
 	byte *Trg = (byte *)Mip;
 	byte *Src = (byte *)Img->Data;
 	byte  *Tex;
@@ -123,19 +123,19 @@ void MipmapXY(Image *Img)
 		for(X=0;X<Img->x>>1;X++)
 		{
 			Tex = Src+((X+Y*Img->x)<<3);
-			*Trg++ = (*Tex)+(*(Tex+4))+(*(Tex+X4))+(*(Tex+X4_4))>>2; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+4))+(*(Tex+X4))+(*(Tex+X4_4))>>2; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+4))+(*(Tex+X4))+(*(Tex+X4_4))>>2; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+4))+(*(Tex+X4))+(*(Tex+X4_4))>>2; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4))+(*(Tex+X4))+(*(Tex+X4_4)))>>2; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4))+(*(Tex+X4))+(*(Tex+X4_4)))>>2; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4))+(*(Tex+X4))+(*(Tex+X4_4)))>>2; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4))+(*(Tex+X4))+(*(Tex+X4_4)))>>2; Tex++;
 		}
 		// copy last texel as a two-texel average
 		if (Img->x&1)
 		{
 			Tex = Src+(X4-4+Y*X4);
-			*Trg++ = (*Tex)+(*(Tex+X4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+X4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+X4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+X4))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+X4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+X4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+X4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+X4)))>>1; Tex++;
 		}
 	}
 	if (Img->y&1)
@@ -145,15 +145,15 @@ void MipmapXY(Image *Img)
 		for(X=0;X<Img->x>>1;X++)
 		{
 			Tex = Src+((X+Y*Img->x)<<2);
-			*Trg++ = (*Tex)+(*(Tex+4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+4))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4)))>>1; Tex++;
 		}
 		if (Img->x&1) // copy last texel as it is
 			*((dword *)Trg) = *((dword *)Tex);
 	}
-	delete [] Img->Data;
+	free(Img->Data);
 	Img->x = (Img->x+1)>>1;
 	Img->y = (Img->y+1)>>1;
 	Img->Data = Mip;
@@ -163,7 +163,7 @@ void MipmapXY(Image *Img)
 void MipmapX(Image *Img)
 {
 	long X,Y;
-	dword *Mip = new dword[(Img->x+1>>1)*Img->y];
+	dword *Mip = new dword[((Img->x+1)>>1)*Img->y];
 	byte *Trg = (byte *)Mip;
 	byte *Src = (byte *)Img->Data;
 	byte *Tex;
@@ -175,10 +175,10 @@ void MipmapX(Image *Img)
 		for(X=0;X<Img->x>>1;X++)
 		{
 			Tex = Src+(((X<<1)+Y*Img->x)<<2);
-			*Trg++ = (*Tex)+(*(Tex+4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+4))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+4)))>>1; Tex++;
 		}
 		// copy last texel as it is
 		if (Img->x&1)
@@ -187,7 +187,7 @@ void MipmapX(Image *Img)
 			*((dword *)Trg) = *((dword *)Tex);
 		}
 	}
-	delete [] Img->Data;
+	free(Img->Data);
 	Img->x = (Img->x+1)>>1;
 	Img->Data = Mip;
 }
@@ -196,7 +196,7 @@ void MipmapX(Image *Img)
 void MipmapY(Image *Img)
 {
 	long X,Y;
-	dword *Mip = new dword[Img->x*(Img->y+1>>1)];
+	dword *Mip = new dword[Img->x*((Img->y+1)>>1)];
 	byte *Trg = (byte *)Mip;
 	byte *Src = (byte *)Img->Data;
 	byte *Tex;
@@ -208,10 +208,10 @@ void MipmapY(Image *Img)
 		for(X=0;X<Img->x;X++)
 		{
 			Tex = Src+((X+(Y<<1)*Img->x)<<2);
-			*Trg++ = (*Tex)+(*(Tex+X4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+X4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+X4))>>1; Tex++;
-			*Trg++ = (*Tex)+(*(Tex+X4))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+X4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+X4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+X4)))>>1; Tex++;
+			*Trg++ = ((*Tex)+(*(Tex+X4)))>>1; Tex++;
 		}
 	}
 	if (Img->y&1)
@@ -220,7 +220,7 @@ void MipmapY(Image *Img)
 		// copy last row as it is
 		memcpy(Trg,Src+((Y*Img->x)<<2),X4);
 	}
-	delete [] Img->Data;
+	free(Img->Data);
 	Img->y = (Img->y+1)>>1;
 	Img->Data = Mip;
 }
@@ -236,13 +236,13 @@ void Convert_Texture2Image(Texture *Tx,Image *Img)
 	if (TT->BPP!=32)
 	{
 		// make a new texture, convert it, and hand over the data
-		TT->Data = new char[65536*(TT->BPP+1>>3)];
-		memcpy(TT->Data,Tx->Data,65536*(TT->BPP+1>>3));
+		TT->Data = new byte[65536*((TT->BPP+1)>>3)];
+		memcpy(TT->Data,Tx->Data,65536*((TT->BPP+1)>>3));
 		BPPConvert_Texture(TT,32);
 		Img->Data = (DWord *)TT->Data;
 	} else {
 		// copy txtr as it is
-		Img->Data = new dword[65536];
+		Img->Data = (dword *)_aligned_malloc(sizeof(dword)*65536, 16);
 		memcpy(Img->Data,Tx->Data,262144);
 	}
 	delete TT;
@@ -270,7 +270,7 @@ void Convert_Image2Texture(Image *Img,Texture *Tx)
 	}
 	// Bilinear Filtering
 	if (Tx->Data) delete [] Tx->Data;
-	Tx->Data = new char [262144];
+	Tx->Data = new byte [262144];
 	if (TI->x<256||TI->y<256)
 	{
 		R = (byte *)TI->Data;
@@ -325,7 +325,7 @@ void Scale_Image(Image *Img,long NX,long NY)
 	// copy original Image to TI
 	TI->x = Img->x;
 	TI->y = Img->y;
-	TI->Data = new DWord[TI->x*TI->y];
+	TI->Data = (DWord *)_aligned_malloc(sizeof(DWord) *TI->x*TI->y, 16);
 	memcpy(TI->Data,Img->Data,TI->x*TI->y<<2);
 	
 	// Mipmap image until it's smaller than specified size
@@ -336,8 +336,8 @@ void Scale_Image(Image *Img,long NX,long NY)
 		if (TI->y>NY) {MipmapY(TI); continue;}
 	}
 	// Bilinear Filtering
-	delete Img->Data;
-	Img->Data = new DWord[NX*NY];
+	_aligned_free(Img->Data);
+	Img->Data = (DWord *)_aligned_malloc(sizeof(DWord)*NX*NY, 16);
 	Img->x = NX;
 	Img->y = NY;
 	if (TI->x<NX||TI->y<NY)
@@ -377,7 +377,7 @@ void Scale_Image(Image *Img,long NX,long NY)
 			Y+=dY;
 		}
 	} else memcpy(Img->Data,TI->Data,4*NX*NY);
-	delete TI->Data;
+	_aligned_free(TI->Data);
 	delete TI;
 }
 
@@ -516,8 +516,8 @@ void Image_Convulate_3x3(Image *Img,Matrix M)
 	long I,J;
 	DWord *Conv = new DWord[Img->x*Img->y];
 	long X4 = Img->x<<2;
-	char *P = (char *)Conv;
-	char *R = (char *)Img->Data;
+	byte *P = (byte *)Conv;
+	byte *R = (byte *)Img->Data;
 	//Row 0: use middle line values for upper ones
 	//Col 0: corner
 	*P++=fabs((*R)*(M[0][0]+M[0][1]+M[1][0]+M[1][1])+(*(R+4))*(M[0][2]+M[1][2])+(*(R+X4))*(M[2][0]+M[2][1])+(*(R+X4+4))*M[2][2]); R++;
@@ -550,7 +550,7 @@ void Image_Convulate_3x3(Image *Img,Matrix M)
 		//  delete Img->Data;
 		//  Img->Data = Conv;
 		memcpy(Img->Data,Conv,Img->x*Img->y<<2);
-		delete Conv;
+		delete [] Conv;
 }
 
 void Image_Laplasian(Image *Img)
@@ -609,7 +609,7 @@ void Bump_Image_2D(Image *Prim,Image *BMap,Image *BTbl,long LX,long LY)
 {
 	long X,Y,CX,CY,mx,my,MX,MY,FX,FY,YOL,YOU,Mod;
 	char *Modulation;
-	char *D1,*D2,*D3;
+	byte *D1,*D2,*D3;
 	
 	// Several Checks on the passed parameters.
 	if (!Prim) return;
@@ -620,8 +620,8 @@ void Bump_Image_2D(Image *Prim,Image *BMap,Image *BTbl,long LX,long LY)
 		// Prepare some variables
 		YOL = 3+(Prim->x<<2);
 		YOU = 3-(Prim->x<<2);
-		D1 = (char *)Prim->Data;
-		D3 = (char *)BTbl->Data;
+		D1 = (byte *)Prim->Data;
+		D3 = (byte *)BTbl->Data;
 		Make_Modulation(); //whatever, just make it work
 		CX = BTbl->x>>1;
 		CY = BTbl->y>>1;
@@ -633,7 +633,7 @@ void Bump_Image_2D(Image *Prim,Image *BMap,Image *BTbl,long LX,long LY)
 		
 		if (BMap)
 		{
-			D2 = (char *)BMap->Data;
+			D2 = (byte *)BMap->Data;
 		} else {
 			// No Bumpmap - use Alpha.
 			D1 += (Prim->x<<2);

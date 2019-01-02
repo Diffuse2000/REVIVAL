@@ -1,6 +1,8 @@
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include <Base/Scene.h>
+#include <Base/TriMesh.h>
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
 Camera      * View;
 
@@ -279,8 +281,8 @@ void Advanced_Collision_Detection()
       Sphere2FaceIntersection(&TV,*FP);
     if (CFS == Col_Buff) break; //quit if none were collided (finally)
     // Replicate new list
-    delete ColFace_Stack;
-    delete ColNorm_Stack;
+    delete []ColFace_Stack;
+    delete []ColNorm_Stack;
     ColFace_Stack = Col_Buff;
     ColNorm_Stack = Col_NBuff;
 	}
@@ -436,7 +438,7 @@ void Initiate_LEBuf(Scene *Sc)
 		LEBuf = new LineSeg[LEBufSize];
 		memcpy(LEBuf,TempBuf,LEBufSize*sizeof(LineSeg));
 	}
-	delete TempBuf;
+	delete []TempBuf;
 }
 
 void LSeg2SphereIntersect2D(LineSeg *LE,Vector *Pos,Vector *Vel)

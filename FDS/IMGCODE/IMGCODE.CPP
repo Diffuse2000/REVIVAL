@@ -1,13 +1,15 @@
-#include <StdIO.H>
-#include <ConIO.H>
-#include <StdLib.H>
-#include <DOS.H>
-#include <IO.H>
-#include <String.H>
+#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <dos.h>
+#include <io.h>
+#include <string.h>
 
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
-#include "..\FDS_Defs.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
+#include "Base/FDS_DEFS.H"
+
+#include "Base/Scene.h"
 
 Material * MatLib = NULL; // Internal Material Library. This is global for
 // all Scenes.
@@ -43,7 +45,7 @@ void TAS_Get(Texture *Tx,long X,long Y)
 // Scales Texture Src to Texture Dest. recieves X/Y resolution of Src and
 // Dest in (X1,Y1) and (X2,Y2) accordingly.
 // Both textures should have a common BPP given as a parameter (CP=BPP+1>>3).
-void BitMap_Scale(char *Src,char *Dest,long X1,long Y1,long X2,long Y2,char CP)
+void BitMap_Scale(byte *Src,byte *Dest,long X1,long Y1,long X2,long Y2,char CP)
 {
 	long I,J,A,B;
 	long X,Y,DX,DY;
@@ -64,7 +66,7 @@ void BitMap_Scale(char *Src,char *Dest,long X1,long Y1,long X2,long Y2,char CP)
 
 void BitMapScale2Texture(Texture *Tx,void *Src,long BX,long BY,long CPP)
 {
-	BitMap_Scale((char *)Src,Tx->Data,BX,BY,Tx->SizeX,Tx->SizeY,CPP);
+	BitMap_Scale((byte *)Src,Tx->Data,BX,BY,Tx->SizeX,Tx->SizeY,CPP);
 }
 
 // I HAVE NO FUCKIN IDEA WHY I HAD TO DO THIS.
@@ -114,23 +116,23 @@ extern "C" {
 	}
 }
 
-#include "Quantum.H"
+#include "QUANTUM.H"
 
-void BPPConvert_Texture(Texture *Tx,char TB)
+void BPPConvert_Texture(Texture *Tx,byte TB)
 {
 	long I,J;
 	void (* Read)(DWord Src,QColor *C);
 	void (* Write)(DWord *Src,QColor C);
 	QColor Col;
-	char RR,RW;
-	char *Data,*P1,*P2;
+	byte RR,RW;
+	byte *Data,*P1,*P2;
 	
 	if (!Tx->BPP) return;
 	if (TB!=8&&TB!=15&&TB!=16&&TB!=24&&TB!=32) return;
 	if (Tx->BPP==TB) return;
 	
-	RR = Tx->BPP+1>>3;
-	RW = TB+1>>3;
+	RR = (Tx->BPP+1)>>3;
+	RW = (TB+1)>>3;
 	
 	switch(Tx->BPP)
 	{
@@ -153,7 +155,7 @@ void BPPConvert_Texture(Texture *Tx,char TB)
 		Quantitize(Tx);
 		return;
 	}
-	Data = new char[65536*RW];
+	Data = new byte[65536*RW];
 	P1 = Tx->Data;
 	P2 = Data;
 	
@@ -226,7 +228,7 @@ void Darken_Texture(Texture *T)
 }
 
 // Reduces last DAC bit on the target Texture. A minor
-// Quanlity reduction will follow.
+// Quality reduction will follow.
 void FilterLSB_Texture(Texture *T)
 {
 	long I;
@@ -258,7 +260,7 @@ void FilterLSB_Texture(Texture *T)
 #pragma pack(1)
 struct ImageDetectResult
 {
-	long x, y;
+	int32_t x, y;
 	char BPP; // 0 - file invalid
 };
 
@@ -497,7 +499,7 @@ static Word *prefix;
 
 static int get_next_code(FILE *F)
 {
-	register int i;
+	int i;
 	static unsigned long ret;
 	
 	if( ! nbits_left )
@@ -981,7 +983,7 @@ DWord GetOptClass(long X,long Y)
 	if (X==256&&Y==256) return 0;
 	if (X==Y)
 	{
-		if (X--&X) return 2; //coder style code :)
+		if ((X-1)&X) return 2; //coder style code :)
 		return 1;
 	}
 	return 2;
@@ -1022,8 +1024,8 @@ static char _Load_Texture(Texture *Tx)
 		I = strlen(Tx->FileName);
 		if (strcmp(Tx->FileName+I-4,".PCX")) printf("PCX Extension Mismatch.\n");
 		
-		Txd = new char[IDR.x*IDR.y*(IDR.BPP+1>>3)];
-		printf("Allocated %d Bytes for original Texture\n",IDR.x*IDR.y*(IDR.BPP+1>>3));
+		Txd = new char[IDR.x*IDR.y*((IDR.BPP+1)>>3)];
+		printf("Allocated %d Bytes for original Texture\n",IDR.x*IDR.y*((IDR.BPP+1)>>3));
 		
 		if (IDR.BPP==8)
 		{
@@ -1034,9 +1036,9 @@ static char _Load_Texture(Texture *Tx)
 		if (PCXLoad(Tx->FileName,(unsigned char *)Txd,IDR,Tx->Pal))
 		{
 			Tx->BPP=IDR.BPP; //validate the texture
-			Tx->Data = new char[Tx->SizeX*Tx->SizeY*(Tx->BPP+1>>3)];
+			Tx->Data = new byte[Tx->SizeX*Tx->SizeY*((Tx->BPP+1)>>3)];
 			
-			BitMapScale2Texture(Tx,Txd,IDR.x,IDR.y,IDR.BPP+1>>3);
+			BitMapScale2Texture(Tx,Txd,IDR.x,IDR.y,(IDR.BPP+1)>>3);
 			Tx->OptClass = GetOptClass(Tx->SizeX,Tx->SizeY);
 			
 			delete Txd;
@@ -1063,8 +1065,8 @@ static char _Load_Texture(Texture *Tx)
 		I = strlen(Tx->FileName);
 		if (strcmp(Tx->FileName+I-4,".GIF")) printf("GIF Extension Mismatch.\n");
 		
-		Txd = new char[IDR.x*IDR.y*(IDR.BPP+1>>3)];
-		printf("Allocated %d Bytes for original Texture\n",IDR.x*IDR.y*(IDR.BPP+1>>3));
+		Txd = new char[IDR.x*IDR.y*((IDR.BPP+1)>>3)];
+		printf("Allocated %d Bytes for original Texture\n",IDR.x*IDR.y*((IDR.BPP+1)>>3));
 		
 		if (IDR.BPP==8)
 		{
@@ -1075,10 +1077,10 @@ static char _Load_Texture(Texture *Tx)
 		{
 			Tx->BPP=IDR.BPP; //validate the texture
 			
-			Tx->Data = new char[Tx->SizeX*Tx->SizeY*(Tx->BPP+1>>3)];
-			printf("Allocated memory for texture at %xh\n",(long)Tx->Data);
+			Tx->Data = new byte[Tx->SizeX*Tx->SizeY*((Tx->BPP+1)>>3)];
+			printf("Allocated memory for texture at %xh\n",(uint32_t)Tx->Data);
 			
-			BitMapScale2Texture(Tx,Txd,IDR.x,IDR.y,IDR.BPP+1>>3);
+			BitMapScale2Texture(Tx,Txd,IDR.x,IDR.y,(IDR.BPP+1)>>3);
 			printf("Scaled tex to (%d,%d)\n",Tx->SizeX,Tx->SizeY);
 			
 			delete Txd;
@@ -1105,8 +1107,8 @@ static char _Load_Texture(Texture *Tx)
 		I = strlen(Tx->FileName);
 		if (strcmp(Tx->FileName+I-4,".TGA")) printf("TGA Extension Mismatch.\n");
 		
-		Txd = new char[IDR.x*IDR.y*(IDR.BPP+1>>3)];
-		printf("Allocated %d Bytes for original Texture\n",IDR.x*IDR.y*(IDR.BPP+1>>3));
+		Txd = new char[IDR.x*IDR.y*((IDR.BPP+1)>>3)];
+		printf("Allocated %d Bytes for original Texture\n",IDR.x*IDR.y*((IDR.BPP+1)>>3));
 		
 		if (IDR.BPP==8)
 		{
@@ -1117,9 +1119,9 @@ static char _Load_Texture(Texture *Tx)
 		if (TGALoad(Tx->FileName,(unsigned char *)Txd,Tx->Pal))
 		{
 			Tx->BPP=IDR.BPP; //validate the texture
-			Tx->Data = new char[Tx->SizeX*Tx->SizeY*(Tx->BPP+1>>3)];
+			Tx->Data = new byte[Tx->SizeX*Tx->SizeY*((Tx->BPP+1)>>3)];
 			
-			BitMapScale2Texture(Tx,Txd,IDR.x,IDR.y,IDR.BPP+1>>3);
+			BitMapScale2Texture(Tx,Txd,IDR.x,IDR.y,(IDR.BPP+1)>>3);
 			
 			delete Txd;
 			return 1;
@@ -1160,8 +1162,8 @@ static char _Load_Texture(Texture *Tx)
 		}
 		Tx->BPP=IDR.BPP; //validate the texture
 		TAS_Get(Tx,IDR.x,IDR.y);
-		Tx->Data = new char[Tx->SizeX*Tx->SizeY*(Tx->BPP+1>>3)];
-		BitMapScale2Texture(Tx,Txd+4,IDR.x,IDR.y,IDR.BPP+1>>3);
+		Tx->Data = new byte[Tx->SizeX*Tx->SizeY*((Tx->BPP+1)>>3)];
+		BitMapScale2Texture(Tx,Txd+4,IDR.x,IDR.y,(IDR.BPP+1)>>3);
 		delete Txd;
 		return 1;
 	}
@@ -1328,7 +1330,7 @@ void Generate_Mipmaps(Texture *Tx, mword blockSizeX, mword blockSizeY, mword ena
 
 	dword CPP = (Tx->BPP+7)>>3;
 	//Tx->Data = new char [CPP * numPixels];
-	Tx->Data = (char *)getAlignedBlock(CPP * numPixels);	
+	Tx->Data = (byte *)getAlignedBlock(CPP * numPixels);	
 
 	dword dataOffset = 0;
 	X = Tx->SizeX >> blockSizeX;
@@ -1393,7 +1395,7 @@ void Generate_Mipmaps(Texture *Tx, mword blockSizeX, mword blockSizeY, mword ena
 ////////////////////////////////////////////
 
 // Allocates and does everything by itself
-char Load_Image_PCX(Image *Img,char *FN)
+char Load_Image_PCX(Image *Img, const char *FN)
 {
 	FILE *F;
 	char Ret;
@@ -1408,7 +1410,7 @@ char Load_Image_PCX(Image *Img,char *FN)
 	char *Pal = new char[768];
 	
 	F = fopen(FN,"rb");
-	if (!F) {delete Pal; return 0;}
+	if (!F) {delete [] Pal; return 0;}
 	
 	Ret = 0;
 	
@@ -1501,11 +1503,11 @@ char Load_Image_PCX(Image *Img,char *FN)
 OUT:
 	if (feof(F)) Ret=0;
 	if (F) fclose(F);
-	delete Pal;
+	delete [] Pal;
 	return Ret;
 }
 
-char Load_Image_GIF(Image *Img,char *FN)
+char Load_Image_GIF(Image *Img, const char *FN)
 {
 	Byte *Txd,*Tx;
 	
@@ -1539,21 +1541,23 @@ char Load_Image_GIF(Image *Img,char *FN)
 	
 	Img->Data = new DWord[X*Y];
 	DWord *DWP = Img->Data,*DWE = DWP+X*Y;
-	while(DWP<DWE)
-		*DWP++ = (Pal->C[*Txd].R<<18)+(Pal->C[*Txd].G<<10)+(Pal->C[*Txd++].B<<2);
+	while (DWP < DWE) {
+		*DWP++ = (Pal->C[*Txd].R << 18) + (Pal->C[*Txd].G << 10) + (Pal->C[*Txd].B << 2);
+		Txd++;
+	}
 	delete Tx;
 	delete Pal;
 	return 1;
 }
 
-char Load_Image_JPEG(Image *Img,char *FN)
+char Load_Image_JPEG(Image *Img, const char *FN)
 {
 	char *Tx,*Txd;
 	if (!(Tx=LoadJPEG(FN,0))) return 0;
 	Txd=Tx;
 	Img->x = *(unsigned short *)Txd;
 	Img->y = *(unsigned short *)(Txd+2);
-	Img->Data = new DWord[Img->x*Img->y];
+	Img->Data = (DWord *)_aligned_malloc(sizeof(DWord) * Img->x*Img->y, 16);
 	DWord *VP = Img->Data;
 	Txd+=4;
 	char r,g,b;

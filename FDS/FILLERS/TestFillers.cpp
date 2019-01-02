@@ -4,7 +4,7 @@
   
 \***********************************************/
 
-#include "..\FDS\FDS_DECS.H"
+#include "Base/FDS_DECS.H"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 const	float	AlmostHalf = 0.499999f;

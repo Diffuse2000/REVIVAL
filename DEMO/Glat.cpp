@@ -1,5 +1,6 @@
-#include "Rev.H"
-void AlphaBlend(char *Source, char *Target, DWord &PerSource, DWord &PerTarget);
+#include "REV.H"
+#include "IMGGENR/IMGGENR.H"
+#include "VESA/VESA.H"
 
 void Cross_Fade(byte *U1,byte *U2,byte *Target,long Perc)
 {
@@ -35,10 +36,10 @@ static VESA_Surface Surf2;
 static VESA_Surface Surf3;
 static VESA_Surface Surf4;
 static long numGridPoints;
-static char *Page1;
-static char *Page2;
-static char *Page3;
-static char *Page4;
+static byte *Page1;
+static byte *Page2;
+static byte *Page3;
+static byte *Page4;
 static long TrigOffset;
 static Texture *LogoTexture;
 static Image *LogoImage;
@@ -130,10 +131,10 @@ void Initialize_Glato()
 	Convert_Texture2Image(SfxTexture,SfxImage);
 
 
-	Page1 = new char[PageSize];
-	Page2 = new char[PageSize];
-	Page3 = new char[PageSize];
-	Page4 = new char[PageSize];
+	Page1 = new byte[PageSize];
+	Page2 = new byte[PageSize];
+	Page3 = new byte[PageSize];
+	Page4 = new byte[PageSize];
 
 	// only last YRes - YRes & (~7) lines should be cleared
 	memset(Page1, 0, PageSize);
@@ -166,7 +167,7 @@ void Initialize_Glato()
 	Gfx_GP = new GridPointT[numGridPoints];
 	Sfx_GP = new GridPointT[numGridPoints];
 	
-	memset(Plane_GP, sizeof(GridPointTG) * numGridPoints, 0);
+	memset(Plane_GP, 0, sizeof(GridPointTG) * numGridPoints);
 	LenTable = new float [numGridPoints];
 	SinTable = new float [TRIG_ACC];
 	CosTable = new float [TRIG_ACC];
@@ -323,8 +324,8 @@ void Run_Glato(void)
 					b=r * 0.7f;
 					g= r*0.8f;
 					//r*= 0.5;
-					g-=Timer /(40 * 4);
-					b-=Timer /(80 * 4);
+					//g-=Timer /(40 * 4);
+					//b-=Timer /(80 * 4);
 					//g-=Frames /10;
 					//b-=Frames /20;
 
@@ -361,8 +362,8 @@ void Run_Glato(void)
 					b=r * 0.7f;
 					g= r*0.8f;
 					//r*=0.5;
-					g-=Timer /(40 * 4);
-					b-=Timer /(80 * 4);
+					//g-=Timer /(40 * 4);
+					//b-=Timer /(80 * 4);
 					//g-=Frames /10;
 					//b-=Frames /20;
 
@@ -553,7 +554,7 @@ void Run_Glato(void)
 			if (cfVal>255) cfVal = 255;
 			DWord SrcPer = ((DWord)cfVal) * 0x01010101;
 			DWord DstPer = ((DWord)(255-cfVal)) * 0x01010101;
-			AlphaBlend((char *)LogoImage->Data, (char *)VPage, SrcPer, DstPer);
+			AlphaBlend((byte *)LogoImage->Data, VPage, SrcPer, DstPer);
 		}
 		//if (Timer < 750)
 		//{

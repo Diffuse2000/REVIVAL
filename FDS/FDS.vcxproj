@@ -29,7 +29,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>llvm</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -47,7 +47,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>llvm</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -84,11 +84,25 @@
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(ProjectDir);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
+    <IncludePath>$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Label="LLVM" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <UseLldLink>false</UseLldLink>
+  </PropertyGroup>
+  <PropertyGroup Label="LLVM" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <UseLldLink>true</UseLldLink>
+  </PropertyGroup>
+  <PropertyGroup Label="LLVM" Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -102,17 +116,19 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalOptions>/J %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/J</AdditionalOptions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
       <FloatingPointModel>Fast</FloatingPointModel>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Lib>
       <OutputFile>.\Release\FDS.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -140,7 +156,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalOptions>/J %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/J -Wno-c++11-narrowing %(AdditionalOptions)</AdditionalOptions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -163,7 +179,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
@@ -178,6 +194,10 @@
       <FloatingPointModel>Strict</FloatingPointModel>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <ExceptionHandling>Async</ExceptionHandling>
+      <AdditionalOptions>-Wno-narrowing %(AdditionalOptions) -Wno-deprecated-declarations -Wno-unused-variable</AdditionalOptions>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Lib>
       <OutputFile>.\Debug\FDS.lib</OutputFile>
@@ -219,7 +239,6 @@
   <ItemGroup>
     <ClCompile Include="3DS\3DS_READ.CPP" />
     <ClCompile Include="3DS\FUTILS.CPP">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="3DS\MATERIAL.CPP">
@@ -234,6 +253,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Base\Texture.cpp" />
     <ClCompile Include="CAMERAS\CAMERAS.CPP" />
     <ClCompile Include="FILLERS\F4Vec.cpp" />
     <ClCompile Include="FILLERS\FILLERS.CPP" />
@@ -242,7 +262,6 @@
     <ClCompile Include="FILLERS\IXGZ.cpp" />
     <ClCompile Include="FILLERS\IXTGZ.cpp" />
     <ClCompile Include="FILLERS\IXTZ.cpp" />
-    <ClCompile Include="FILLERS\TEX.CPP" />
     <ClCompile Include="FLD\FLD_CONV.CPP" />
     <ClCompile Include="FLD\FLD_MAT.CPP" />
     <ClCompile Include="FLD\FLD_READ.CPP" />
@@ -261,6 +280,10 @@
     <ClCompile Include="RADIO\RADIO.CPP" />
     <ClCompile Include="RENDER\RENDER.CPP" />
     <ClCompile Include="V3D\V3D_READ.CPP" />
+    <ClCompile Include="VESA\FONTS.CPP">
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
+    </ClCompile>
+    <ClCompile Include="VESA\VESA_TABLES.CPP" />
     <ClCompile Include="VESA\VESA.CPP" />
     <ClCompile Include="ISR\ISR.CPP" />
     <ClCompile Include="DPMI\DPMI.CPP" />
@@ -269,11 +292,36 @@
   <ItemGroup>
     <ClInclude Include="3DS\FUtils.h" />
     <ClInclude Include="3ds\I_defs.h" />
+    <ClInclude Include="Base\BaseDefs.h" />
+    <ClInclude Include="Base\Camera.h" />
+    <ClInclude Include="Base\Color.h" />
+    <ClInclude Include="Base\Edge.h" />
+    <ClInclude Include="Base\Face.h" />
+    <ClInclude Include="Base\FDS_DECS.H" />
+    <ClInclude Include="Base\FDS_DEFS.H" />
+    <ClInclude Include="Base\FDS_VARS.H" />
+    <ClInclude Include="Base\KeyFrame.h" />
+    <ClInclude Include="Base\Material.h" />
+    <ClInclude Include="Base\Matrix.h" />
+    <ClInclude Include="Base\Object.h" />
+    <ClInclude Include="Base\Omni.h" />
+    <ClInclude Include="Base\Quaternion.h" />
+    <ClInclude Include="Base\Scene.h" />
+    <ClInclude Include="Base\Spline.h" />
+    <ClInclude Include="Base\SpotLight.h" />
+    <ClInclude Include="Base\TBR.h" />
+    <ClInclude Include="Base\Texture.h" />
+    <ClInclude Include="Base\TriMesh.h" />
+    <ClInclude Include="Base\Vector.h" />
+    <ClInclude Include="Base\Vertex.h" />
     <ClInclude Include="FILLERS\F4Vec.h" />
+    <ClInclude Include="Fillers\FILLERS.H" />
     <ClInclude Include="FILLERS\IX.h" />
     <ClInclude Include="FLD\FLD_READ.H" />
     <ClInclude Include="FLD\LWREAD.H" />
     <ClInclude Include="IMGCODE\QUANTUM.H" />
+    <ClInclude Include="IMGGENR\PREPROC.H" />
+    <ClInclude Include="IMGGENR\IMGGENR.H" />
     <ClInclude Include="MATH\BASEMATH.H" />
     <ClInclude Include="MDSPLAY\MIDASDLL.H" />
     <ClInclude Include="RENDER\GENERAL.H" />
@@ -284,9 +332,6 @@
     <ClInclude Include="VESA\VESA.H" />
     <ClInclude Include="DPMI\DPMI.H" />
     <ClInclude Include="SkyCube\SkyCube.h" />
-    <ClInclude Include="FDS_DECS.H" />
-    <ClInclude Include="FDS_DEFS.H" />
-    <ClInclude Include="FDS_VARS.H" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="FILLERS\BIHI.ASM">

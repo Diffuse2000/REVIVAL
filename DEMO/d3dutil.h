@@ -8,7 +8,7 @@
 #ifndef D3DUTIL_H
 #define D3DUTIL_H
 
-#include "DXUtil.h"
+#include "dxutil.h"
 
 //-----------------------------------------------------------------------------
 // Name: D3DUtil_InitMaterial()

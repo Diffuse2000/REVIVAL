@@ -12,7 +12,7 @@
 #include "..\FDS_Vars.H"
 #include "..\FDS_Decs.H"
 
-#ifdef _C_VC6
+#ifdef WIN32
 void SetText()
 {
 	return; // Ignore this function (inoperative on win32)

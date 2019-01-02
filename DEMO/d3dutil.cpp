@@ -8,7 +8,7 @@
 //-----------------------------------------------------------------------------
 #define POINTER_64
 #define STRICT
-#include "D3DUtil.h"
+#include "d3dutil.h"
 
 //-----------------------------------------------------------------------------
 // Name: D3DUtil_InitMaterial()
@@ -41,7 +41,8 @@ VOID D3DUtil_InitLight( D3DLIGHT8& light, D3DLIGHTTYPE ltType,
     light.Diffuse.r   = 1.0f;
     light.Diffuse.g   = 1.0f;
     light.Diffuse.b   = 1.0f;
-    D3DXVec3Normalize( (D3DXVECTOR3*)&light.Direction, &D3DXVECTOR3(x, y, z) );
+	D3DXVECTOR3 t(x, y, z);
+    D3DXVec3Normalize( (D3DXVECTOR3*)&light.Direction, &t);
     light.Position.x   = x;
     light.Position.y   = y;
     light.Position.z   = z;
@@ -240,8 +241,9 @@ D3DXQUATERNION D3DUtil_GetRotationFromCursor( HWND hWnd,
     D3DXVECTOR3 vAxis;
     D3DXVec3Cross( &vAxis, &p1, &p2);
 
+	D3DXVECTOR3 tmp(p2 - p1);
     // Calculate angle for the rotation about that axis
-    FLOAT t = D3DXVec3Length( &(p2-p1) ) / ( 2.0f*fTrackBallRadius );
+    FLOAT t = D3DXVec3Length( &(tmp) ) / ( 2.0f*fTrackBallRadius );
     if( t > +1.0f) t = +1.0f;
     if( t < -1.0f) t = -1.0f;
     FLOAT fAngle = 2.0f * asinf( t );
@@ -571,8 +573,8 @@ LRESULT CD3DArcBall::HandleMouseMessages( HWND hWnd, UINT uMsg, WPARAM wParam,
 CD3DCamera::CD3DCamera()
 {
     // Set attributes for the view matrix
-    SetViewParams( D3DXVECTOR3(0.0f,0.0f,0.0f), D3DXVECTOR3(0.0f,0.0f,1.0f),
-                   D3DXVECTOR3(0.0f,1.0f,0.0f) );
+    //SetViewParams( D3DXVECTOR3(0.0f,0.0f,0.0f), D3DXVECTOR3(0.0f,0.0f,1.0f),
+                   //D3DXVECTOR3(0.0f,1.0f,0.0f) );
 
     // Set attributes for the projection matrix
     SetProjParams( D3DX_PI/4, 1.0f, 1.0f, 1000.0f );
@@ -592,7 +594,7 @@ VOID CD3DCamera::SetViewParams( D3DXVECTOR3 &vEyePt, D3DXVECTOR3& vLookatPt,
     m_vEyePt    = vEyePt;
     m_vLookatPt = vLookatPt;
     m_vUpVec    = vUpVec;
-    D3DXVec3Normalize( &m_vView, &(m_vLookatPt - m_vEyePt) );
+    //D3DXVec3Normalize( &m_vView, &(m_vLookatPt - m_vEyePt) );
     D3DXVec3Cross( &m_vCross, &m_vView, &m_vUpVec );
 
     D3DXMatrixLookAtLH( &m_matView, &m_vEyePt, &m_vLookatPt, &m_vUpVec );

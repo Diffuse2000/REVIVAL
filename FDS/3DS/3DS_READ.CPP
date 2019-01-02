@@ -1,22 +1,22 @@
 // Main File Reader, Format: 3DS ver 4.0
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
 #ifdef _C_WATCOM
 #include <Mem.H>
 #endif
-#include <Math.H>
-#include <StdLib.H>
-#include <DOS.H>
-#include <StdIO.H>
+#include <math.h>
+#include <stdlib.h>
+#include <dos.h>
+#include <stdio.h>
 
-#include "I_Defs.H"
+#include "I_defs.h"
 
-#include "FUtils.CPP"
-#include "World.CPP"
-#include "Tracks.CPP"
-#include "Material.CPP"
+#include "WORLD.CPP"
+#include "TRACKS.CPP"
+#include "MATERIAL.CPP"
+#include "FUtils.h"
 
 // Available Readers.
 struct

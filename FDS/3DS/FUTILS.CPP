@@ -1,9 +1,11 @@
-#include "../Fds_vars.h"
-#include "I_DEFS.H"
-#include "../FDS_DECS.H"
+#include <Base/FDS_VARS.H>
+#include "I_defs.h"
+#include <Base/FDS_DECS.H>
+#include <Base/Scene.h>
 
 long Temp;
 Object *Obj_Temp,*Obj_Ptr;
+extern FILE *IN_3DS;     // This is the File handle which will be used
 
 void FSeek(long Where)
 {

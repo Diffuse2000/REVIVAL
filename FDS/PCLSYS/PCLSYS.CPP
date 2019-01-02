@@ -1,11 +1,11 @@
-#include <Math.H>
-#include <StdIO.H>
-#include <StdLib.H>
-#include <String.H>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "..\FDS_Defs.H"     // Definitions
-#include "..\FDS_Vars.H"     // Variables and structures
-#include "..\FDS_Decs.H"     // Declarations
+#include "Base/FDS_DEFS.H"     // Definitions
+#include "Base/FDS_VARS.H"     // Variables and structures
+#include "Base/FDS_DECS.H"     // Declarations
 
 // Explosion related particles, not associated with scene.
 Particle *ExpPcls;
@@ -39,12 +39,12 @@ void Loxodrome(float K,float t,Vector *Out)
 
 void Rast_Explosion_Pcl(Vertex *A,Vertex *B,Vertex *C)
 {
-  char *Pixel;
+  byte *Pixel;
   long I,J;
   if (A->PX>=1&&A->PX<=XRes-2&&A->PY>=1&&A->PY<=YRes_1-1)
   {
     //addative 32bit 5 putpixels (currently set on 1)
-    Pixel = VPage+((int)A->PX+YOffs[(int)A->PY]<<2);
+    Pixel = VPage+(((int)A->PX+YOffs[(int)A->PY])<<2);
     Pixel -= XRes<<2;
     J = (*Pixel)+A->LB;
     if (J>255) *Pixel++=255; else *Pixel++=J;

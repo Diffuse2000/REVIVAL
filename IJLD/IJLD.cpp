@@ -1,7 +1,8 @@
-#include "..\FDS\FDS_DECS.h"
+#include "Base/FDS_DECS.H"
+
 #include "ijl.h"
 
-char *LoadJPEG(char *argv1,unsigned int SeekPos)
+char *LoadJPEG(const char *argv1,unsigned int SeekPos)
 {
 	// check if library requires initialization.
 	JPEG_CORE_PROPERTIES jcprops;

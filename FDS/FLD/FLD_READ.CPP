@@ -3,18 +3,18 @@ Flood Demo System - Flood scene file reader
 -------------------------------------------
 */
 
-#include <STDIO.H>
-#include <DOS.H>
-#include <STDLIB.H>
-#include <CONIO.H>
-#include <STRING.H>
-#include <MATH.H>
+#include <stdio.h>
+#include <dos.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <string.h>
+#include <math.h>
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
-#include "LWRead.H"
+#include "LWREAD.H"
 #include "FLD_READ.H"
 
 
@@ -172,7 +172,7 @@ void ReadObject(FldObject *Obj)
 	fread(&Obj->Flags,1,4,FLD);
 	fread(&Obj->NumOfMat,1,4,FLD);
 #ifdef DebugMode
-	printf("---|Loading %i materials...\n",Obj->NumOfMat);
+	printf("---|Loading %ul materials...\n",Obj->NumOfMat);
 #endif
 	if (Obj->NumOfMat) Obj->Material=new FldMat[Obj->NumOfMat];
 	for (i=0;i<Obj->NumOfMat;i++) ReadMaterial(&Obj->Material[i]);
@@ -201,7 +201,7 @@ void ReadObject(FldObject *Obj)
 	fread(&Obj->Keys,1,4,FLD);
 	Obj->KF=new FldKeyFrame[Obj->Keys];
 #ifdef DebugMode
-	printf("-----|Loading %i keys...\n",Obj->Keys);
+	printf("-----|Loading %ul keys...\n",Obj->Keys);
 #endif
 	for (i=0;i<Obj->Keys;i++) fread(&Obj->KF[i],1,sizeof(FldKeyFrame),FLD);
 	if (Obj->Flags&1) fread(&Obj->Parent,1,4,FLD);
@@ -260,7 +260,7 @@ void ReadCamera(FldCamera *Cam)
 	if (Cam->Flags&2) fread(&Cam->TargetObject,1,4,FLD);
 }
 
-void OpenFLD(char *FileName)
+void OpenFLD(const char *FileName)
 {
 	if (!(FLD=fopen(FileName,"rb")))
 	{
@@ -270,7 +270,7 @@ void OpenFLD(char *FileName)
 	}
 }
 
-FldScene *ReadFLD(char *FileName)
+FldScene *ReadFLD(const char *FileName)
 {
 	FldObject *Obj;
 	FldLight	*Lgt;

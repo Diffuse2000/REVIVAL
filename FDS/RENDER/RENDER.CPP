@@ -1,19 +1,22 @@
-#include <StdIO.H>
-#include <String.H>
-#include <Math.H>
-#include <StdLib.H>
-#include <Memory.H>
-#include <String.H>
-#include <ConIO.H>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <string.h>
+#include <conio.h>
+#include <Base/Vector.h>
+
 #ifdef _C_WATCOM
 #include <i86.H>
 #include <DOS.H>
 #include <Time.H>
 #endif
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
+#include "VESA/VESA.H"
 
 float frand() {
 	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -41,7 +44,7 @@ float g_zscale;
 float g_zscale256;
 
 
-long g_FrameTime;
+int32_t g_FrameTime;
 
 ////////////////
 // LIGHTING
@@ -59,15 +62,15 @@ char G_String[256];
 
 VESA_Surface Layer2;
 
-#include "General.H"
-#include "Sorts.H"
+#include "GENERAL.H"
+#include "SORTS.H"
 
 // RULEZ
 #ifdef _C_WATCOM
 void DO_NOP();
 #pragma aux DO_NOP="NOP";
 #endif
-#ifdef _C_VC6
+#ifdef WIN32
 void DO_NOP()
 {
 	__asm {
@@ -84,8 +87,10 @@ void Animate_Objects(Scene *Sc)
 	Vector U,*W,Z;
 	Matrix M, PathMat;
 	FILE *F;
-	
-	//  F = fopen("Matrix.txt","at");
+    Vector ZeroVector(0.0f, 0.0f, 0.0f);
+
+
+    //  F = fopen("Matrix.txt","at");
 	for (T=Sc->TriMeshHead;T;T=T->Next)
 	{
 		if (T->Flags&Tri_Possessed) continue;
@@ -605,7 +610,7 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 
 			}
 
-			static long BiasedSortValues[] = {0, 0, 0xFFFFFFFF};
+			static long BiasedSortValues[] = {0, 0, (long)0xFFFFFFFF};
 			if (T->SortPriorityBias)
 				F->SortZ.F = BiasedSortValues[T->SortPriorityBias];
 #else
@@ -975,6 +980,165 @@ void StaticLighting(Scene *Sc)
 }
 
 
+
+#ifdef __clang__
+
+void Lighting(Scene *Sc)
+{
+	TriMesh *T;
+	Vertex *V, *VE;
+	Face *F, *FE;
+	Omni *O;
+
+	Vector u, v, w;
+	dword n;
+
+	Matrix M;
+	Material *Mat;
+	float Lumin;
+
+	// hopefully, paragraph aligned
+	static Color *pl = (Color *)getAlignedBlock(sizeof(Color), 16);
+	static Color Ambient;
+
+	// light position vector
+	static CurLight *LA = (CurLight *)getAlignedBlock(sizeof(CurLight) * 128, 16);
+	static CurLight *L, *LE;
+
+	if (!(Sc->Flags & Scn_StaticLighting))
+	{
+		Sc->Flags |= Scn_StaticLighting;
+		StaticLighting(Sc);
+	}
+
+	for (T = Sc->TriMeshHead; T; T = T->Next)
+	{
+		if (T->Flags&(Tri_Invisible | Tri_Noshading)) continue;
+
+		if (T->FIndex)
+		{
+			Mat = T->Faces[0].Txtr;
+			Lumin = Mat->Luminosity;
+		}
+		else Lumin = 0.0;
+
+
+		// Calculate ambient factor
+		// LW3D: Luminosity * base color + scene Ambient * diffuse level
+		if (Mat->Txtr)
+		{
+			Ambient.B = Lumin * 255.0 + Mat->Diffuse * Sc->Ambient.B;
+			Ambient.G = Lumin * 255.0 + Mat->Diffuse * Sc->Ambient.G;
+			Ambient.R = Lumin * 255.0 + Mat->Diffuse * Sc->Ambient.R;
+			Ambient.A = Lumin * 255.0 + Mat->Diffuse * Sc->Ambient.A;
+		} else {
+			Ambient.B = Lumin * Mat->BaseCol.B + Mat->Diffuse * Sc->Ambient.B;
+			Ambient.G = Lumin * Mat->BaseCol.G + Mat->Diffuse * Sc->Ambient.G;
+			Ambient.R = Lumin * Mat->BaseCol.R + Mat->Diffuse * Sc->Ambient.R;
+			Ambient.A = Lumin * Mat->BaseCol.A + Mat->Diffuse * Sc->Ambient.A;
+
+		}
+
+		for (O = Sc->OmniHead, L = LA; O; O = O->Next)
+		{
+			if (!(O->Flags & Omni_Active))
+				continue;
+			if ((T->Flags & Tri_Stationary) && (O->Flags & Omni_Stationary))
+				continue;
+			Vector_Sub(&O->IPos, &T->IPos, &u);
+			MatrixTXVector(T->RotMat, &u, &w);
+			Vector *wp = (Vector *)(T->RotMat);
+			//			float rScale = 1.0/Vector_Length(wp);
+			float rScale = Vector_Length(wp);
+			Vector_SelfScale(&w, rScale*rScale);
+			Vector_Copy(&L->Pos, &w);
+
+			L->Range = O->IRange * rScale;
+			L->Range2 = L->Range * L->Range;
+			L->rRange = 1.0/L->Range;
+
+			// bounding sphere check
+			Vector_Sub(&L->Pos, &T->BSphereCtr, &u);
+			if (T->BSphereRadius + L->Range < Vector_Length(&u))
+				continue;
+
+			if (Mat->Txtr)
+			{
+				float intensity = O->ISize * Mat->Diffuse;
+				L->Col.B = O->L.B * intensity;
+				L->Col.G = O->L.G * intensity;
+				L->Col.R = O->L.R * intensity;
+				L->Col.A = O->L.A * intensity;
+			}
+			else {
+				float intensity = O->ISize * Mat->Diffuse / 256.0;
+				L->Col.B = O->L.B * Mat->BaseCol.B * intensity;
+				L->Col.G = O->L.G * Mat->BaseCol.G * intensity;
+				L->Col.R = O->L.R * Mat->BaseCol.R * intensity;
+				L->Col.A = O->L.A * Mat->BaseCol.A * intensity;
+
+			}
+			L++;
+		}
+		LE = L;
+
+		bool stat = false;
+		if (T->Flags & Tri_Stationary)
+			stat = true;
+
+		Color *sl = T->SL;
+		for (V = T->Verts, VE = V + T->VIndex; V < VE; V++, sl++)
+		{
+			// this compare isn't so bad as soon as it gets into the BTB.
+			if (stat)
+			{
+				pl->B = sl->B;
+				pl->G = sl->G;
+				pl->R = sl->R;
+				pl->A = sl->A;
+			} else {
+				pl->B = Ambient.B;
+				pl->G = Ambient.G;
+				pl->R = Ambient.R;
+				pl->A = Ambient.A;
+			}
+
+			for (L = LA; L < LE; L++)
+			{
+				Vector_Sub(&L->Pos, &V->Pos, &w);
+				float dot = Dot_Product(&w, &V->N);
+				if (dot < 0.0) continue;
+				float v = Vector_Length(&w);
+				float len2 = w.x*w.x + w.y*w.y + w.z*w.z;
+				if (len2 > L->Range2) continue;
+				/*				float len = SQRT(len2);
+								float k = dot / len * (1.0-len*L->rRange);*/
+
+				float len = RSQRT(len2);
+				float k = dot * len * (1.0-L->rRange/len);
+				pl->B += k*L->Col.B;
+				pl->G += k*L->Col.G;
+				pl->R += k*L->Col.R;
+				pl->A += k*L->Col.A;
+
+			}
+
+			// saturation
+			if (pl->B > 250.0) pl->B = 250.0;
+			if (pl->G > 250.0) pl->G = 250.0;
+			if (pl->R > 250.0) pl->R = 250.0;
+			if (pl->A > 250.0) pl->A = 250.0;
+
+			V->LB = pl->B;
+			V->LG = pl->G;
+			V->LR = pl->R;
+			V->LA = pl->A;
+		}
+	}
+}
+
+#else
+
 void Lighting(Scene *Sc)
 {
 	TriMesh *T;
@@ -1142,7 +1306,7 @@ void Lighting(Scene *Sc)
 					// xmm1 = intensity
 					movss	xmm3,	[pfr256]
 					mov		edi,	[Mat]
-					movss	xmm2,	[edi]Mat.Diffuse
+					movss	xmm2,	[edi] Mat.Diffuse
 					mov		edi,	[O]
 					mulss	xmm2,	xmm3
 					movss	xmm1,	[edi]O.ISize
@@ -1278,7 +1442,7 @@ void Lighting(Scene *Sc)
 		}
 	}
 }
-
+#endif
 
 void Restore_Splines(Scene *Sc)
 {
@@ -1400,7 +1564,7 @@ char Check_Texture_Memory_Range(Scene *Sc)
 				if (!M)
 				{
 					printf("Address generation Interlock!!\n"); // some ppl say Asyncrontus Gateway Interlock (AGI) delay...one of them is me -Silvatar.
-					printf("Ptr = %xh\n",(long)Ptr);
+					printf("Ptr = %ph\n", Ptr);
 					printf("Material Name = %s\n",Ptr->Name);
 					return 0;
 				}
@@ -1439,7 +1603,7 @@ void RunScene(Scene *Sc,float Seconds)
 	float FPS;
 	char *Str = new char[80];
 	char AfterFirstFrame = 0,Cur = 0;
-	char *BPage = new char[PageSize];
+	byte *BPage = new byte[PageSize];
 	memset(BPage,0,PageSize);
 	VESA_Surface Blurred;
 	memcpy(&Blurred,Screen,sizeof(VESA_Surface));
@@ -1447,7 +1611,7 @@ void RunScene(Scene *Sc,float Seconds)
 	Blurred.Flags = VSurf_Noalloc;
 	Blurred.Targ = VGAPtr;
 	
-	Layer2.Data = new char [PageSize];
+	Layer2.Data = new byte [PageSize];
 	Layer2.BPP = 32;
 	memset(Layer2.Data,0,sizeof(PageSize));
 	Layer2.Flags = VSurf_Noalloc;
@@ -1601,8 +1765,8 @@ Away:Tot = Timer-TTrd;
 				 //    Transparence(&Layer2,Screen);
 			 }
 			 
-			 if (Keyboard[ScP]) {I=Timer; while (Keypressed()); Timer=I;} //Timefreeze
-			 if (Keyboard[ScTab]) if (View->Next) View=View->Next; else View=&FC;
+			 if (Keyboard[ScP]) { I = Timer; while (Keypressed()) {}; Timer = I; } //Timefreeze
+			 if (Keyboard[ScTab]) { if (View->Next) { View = View->Next; } else { View = &FC; } }
 			 /*		if (Keyboard[ScR]) {
 			 Restore_9();
 			 Deinitialize_VESA();
@@ -1636,7 +1800,7 @@ Away:Tot = Timer-TTrd;
 	Restore_Splines(Sc);
 	delete FList;
 	delete SList;
-	delete Str;
-	delete BPage;
+	delete [] Str;
+	delete [] BPage;
 	delete Layer2.Data;
 }

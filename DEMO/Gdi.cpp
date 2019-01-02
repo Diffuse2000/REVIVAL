@@ -1,5 +1,6 @@
 #define POINTER_64
-#include "GDI.h"
+#include "GDI.H"
+#include "Base/FDS_DECS.H"
 
 /*
 	GDI VIDEO DRIVER 
@@ -90,7 +91,7 @@ static dword V_Create(VESA_Surface *VS)
 	VS->BPSL = VS->CPP * VS->X;
 	VS->PageSize = VS->BPSL * VS->Y;
 	dword ZBufferSize = sizeof(word) * VS->X * VS->Y;
-	if (!(VS->Data = (char *)malloc(VS->PageSize + ZBufferSize))) return 1;
+	if (!(VS->Data = (byte *)malloc(VS->PageSize + ZBufferSize))) return 1;
 	memset(VS->Data,0,VS->PageSize + ZBufferSize);
 //	VS->Flags = VSurf_Exists;
 

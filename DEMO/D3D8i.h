@@ -4,8 +4,8 @@
 
 #include <TCHAR.h>
 #include <D3D8.H>
-#include "D3DUtil.h"
-#include "D3DRes.h"
+#include "d3dutil.h"
+#include "d3dres.h"
 
 //-----------------------------------------------------------------------------
 // Error codes
@@ -162,7 +162,7 @@ protected:
     TCHAR             m_strFrameStats[40]; // String to hold frame stats
 
     // Overridable variables for the app
-    TCHAR*            m_strWindowTitle;    // Title for the app's window
+    const TCHAR*      m_strWindowTitle;    // Title for the app's window
     BOOL              m_bUseDepthBuffer;   // Whether to autocreate depthbuffer
     DWORD             m_dwMinDepthBits;    // Minimum number of bits needed in depth buffer
     DWORD             m_dwMinStencilBits;  // Minimum number of bits needed in stencil buffer
@@ -194,6 +194,7 @@ public:
 
     // Internal constructor
     CD3DApplication();
+	virtual ~CD3DApplication() {}
 };
 
 

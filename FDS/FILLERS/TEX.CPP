@@ -2,9 +2,9 @@
 #include <i86.H>
 #endif
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
 #ifdef _C_WATCOM
 void Fist(long *dst, float f);
@@ -45,8 +45,8 @@ void Init_InvTbl(long Entries)
 		InvTbl[I] = f = 1.0f/(float)I;
 }
 
-static char *PageAddr;
-static char *Tex,*WPtr,*HPtr;
+static byte *PageAddr;
+static byte *Tex,*WPtr,*HPtr;
 static long BPSL = 320; //Bytes per Scan Line.
 
 //static long dUdX,dVdX;
@@ -168,7 +168,7 @@ void TexOuterLoop_Bilinear(IRate *Left,IRate *Right)
 {
 	int x1,x2;
 	float iVal,iV;
-	register long ru,rv;
+	long ru,rv;
 
 	while (Height_--)
 	{
@@ -193,8 +193,8 @@ void TexOuterLoop_Bilinear(IRate *Left,IRate *Right)
 			CVL_ += dVdX16;
 			CZL_ += dZdX16;
 
-			du_ = ru-u_>>4;
-			dv_ = rv-v_>>4;
+			du_ = (ru-u_)>>4;
+			dv_ = (rv-v_)>>4;
 			iVal = 1.0f/CZL_;
 			TexInner_Affine_ASM(WPtr,16,Tex,u_,v_);
 
@@ -206,8 +206,8 @@ void TexOuterLoop_Bilinear(IRate *Left,IRate *Right)
 		}
 		width&=0xF;
 		if (!width) goto NOINNER;
-		du_ = ru-u_>>4;
-		dv_ = rv-v_>>4;
+		du_ = (ru-u_)>>4;
+		dv_ = (rv-v_)>>4;
 		TexInner_Affine_ASM(WPtr,width,Tex,u_,v_);
 
 		NOINNER:

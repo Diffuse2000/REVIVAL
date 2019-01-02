@@ -30,13 +30,13 @@ void Init_Tree()
   memset(Root,0,sizeof(Quantum_Node));
 }
 
-void Texture2QTree(char *Txtr,char TPP)
+void Texture2QTree(byte *Txtr,char TPP)
 {
   char CP;
   void (* Read)(DWord Src,QColor *C);
   QColor Cl;
-  char *Ptr = Txtr;
-  char RB,GB,BB,N;
+  byte *Ptr = Txtr;
+  byte RB,GB,BB,N;
   Quantum_Node *QN;
   unsigned char Mask;
   signed char Shr;
@@ -117,7 +117,7 @@ void Quant_Sorting(long L,long R)
   Quantum_Node *Swapper;
   I=L;
   J=R;
-  Av=QList[L+R>>1]->Count;
+  Av=QList[(L+R)>>1]->Count;
   while(I<=J)
   {
     while (QList[I]->Count<Av) I++;
@@ -229,7 +229,7 @@ void Reduce_QTree(long Limit)
     } else Col++;
 }*/
 
-void Reconstruct_QImage(Texture *Src,char *Dest)
+void Reconstruct_QImage(Texture *Src,byte *Dest)
 {
   long I,K;
   char J;
@@ -237,8 +237,8 @@ void Reconstruct_QImage(Texture *Src,char *Dest)
   char Dif;
   short M;
   QColor Cl;
-  char *P1,*P2;
-  char RR;
+  byte *P1,*P2;
+  byte RR;
   void (* Read)(DWord Src,QColor *C);
   unsigned char RB,GB,BB,N;
   unsigned char Mask;
@@ -249,7 +249,7 @@ void Reconstruct_QImage(Texture *Src,char *Dest)
   P1=Src->Data;
   P2=Dest;
 
-  RR=Src->BPP+1>>3;
+  RR=(Src->BPP+1)>>3;
   switch (Src->BPP)
   {
     case 15: Read=&IMGExtract_15Bit; break;
@@ -336,7 +336,7 @@ void Palettes2QTree(Scene *Sc)
   Material *M;
   Palette *Pal;
   QColor C;
-  char N,RB,GB,BB;
+  byte N,RB,GB,BB;
   long I,J,K;
   long **IEnum,*CEnum,Val;
   char Mask,Shr;
@@ -423,11 +423,11 @@ void Remap_Textures(Scene *Sc)
   unsigned char T_Vector[256];
   Palette *Pal;
   QColor C;
-  char Mask,Shr,Out;
-  char N,RB,GB,BB;
+  byte Mask,Shr,Out;
+  byte N,RB,GB,BB;
   long I;
   Quantum_Node *QN;
-  char *Pen;
+  byte *Pen;
 
   for(M=MatLib;M;M=M->Next)
   {
@@ -467,8 +467,11 @@ void Remap_Textures(Scene *Sc)
   //            abs(M->Txtr.Pal->C[I].R-UPal->C[T_Vector[I]].R)+abs(M->Txtr.Pal->C[I].G-UPal->C[T_Vector[I]].G)+abs(M->Txtr.Pal->C[I].B-UPal->C[T_Vector[I]].B));
     // Convert Textures to new Palette
     Pen = M->Txtr->Data;
-    for(I=0;I<65536;I++)
-      *Pen++=T_Vector[*Pen];
+	for (I = 0; I < 65536; I++) {
+		*Pen = T_Vector[*Pen];
+		++Pen;
+	}
+
     // Update Palette
     memcpy(M->Txtr->Pal,UPal,sizeof(Palette));
   }
@@ -485,7 +488,7 @@ void Delete_Enums()
 void Universal_Palette(Scene *Sc)
 {
   Material *M;
-  long ST;
+  uint32_t ST;
   char TexturesOK = 1;
 
   for(M=MatLib;M;M=M->Next)
@@ -531,8 +534,8 @@ void Universal_Palette(Scene *Sc)
 
 void Quantitize(Texture *Tx)
 {
-  long ST1,ST2;
-  char *Buffer;
+  uint32_t ST1,ST2;
+  byte *Buffer;
   ST1=Timer;
   printf("Doing Octal tree Quantization... Please wait\n");
   printf("* Octal Tree->Initialize\n");
@@ -545,7 +548,7 @@ void Quantitize(Texture *Tx)
   printf("* Octal Tree->Palette\n");
   The_Final_Palette();
   Tx->Pal = UPal;
-  Buffer = new char[65536];
+  Buffer = new byte[65536];
   printf("* Image->Palette\n");
   Reconstruct_QImage(Tx,Buffer);
   delete Tx->Data;

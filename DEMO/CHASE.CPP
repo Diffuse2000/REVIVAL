@@ -1,6 +1,9 @@
-#include "Rev.H"
+#include "REV.H"
+#include <Base/Object.h>
+#include <Base/TriMesh.h>
+#include <Base/Scene.h>
 
-#include "Chase.H"
+#include "CHASE.H"
 
 #define FRONT_TO_BACK_SORTING
 static Scene *ChaseSc;

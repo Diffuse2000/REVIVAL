@@ -1,5 +1,6 @@
 #include "FillerTest.h"
 #define MEASURE_ZSTATS
+#include "Base/Scene.h"
 
 struct IXVertex
 {
@@ -450,9 +451,9 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 //			_dv = (_v1 - _v0) * iWidth;
 //			_dZ = (_Z1 - _Z0) * iWidth;
 //		} else {
-		_du = _u1 - _u0 >> L2SPANSIZE;
-		_dv = _v1 - _v0 >> L2SPANSIZE;
-		_dZ = _Z1 - _Z0 >> L2SPANSIZE;
+		_du = (_u1 - _u0) >> L2SPANSIZE;
+		_dv = (_v1 - _v0) >> L2SPANSIZE;
+		_dZ = (_Z1 - _Z0) >> L2SPANSIZE;
 //		}
 		
 		while (SpanWidth--)
@@ -602,9 +603,9 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 //			_dv = (_v1 - _v0) * iWidth;
 //			_dZ = (_Z1 - _Z0) * iWidth;
 //		} else {
-		_du = _u1 - _u0 >> L2SPANSIZE;
-		_dv = _v1 - _v0 >> L2SPANSIZE;
-		_dZ = _Z1 - _Z0 >> L2SPANSIZE;
+		_du = (_u1 - _u0) >> L2SPANSIZE;
+		_dv = (_v1 - _v0) >> L2SPANSIZE;
+		_dZ = (_Z1 - _Z0) >> L2SPANSIZE;
 //		}
 		
 		while (SpanWidth--)
@@ -817,13 +818,13 @@ static void IXFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page,
 				rWidth = //65536/Width;
 					Fist(65536.0 / (Right.x - Left.x));
 				sdword delta;
-				delta = (sdword)Right.R - (sdword)Left.R >> 8;
+				delta = ((sdword)Right.R - (sdword)Left.R) >> 8;
 				dRdx = delta * rWidth >> 16;
-				delta = (sdword)Right.G - (sdword)Left.G >> 8;
+				delta = ((sdword)Right.G - (sdword)Left.G) >> 8;
 				dGdx = delta * rWidth >> 16;
-				delta = (sdword)Right.B - (sdword)Left.B >> 8;
+				delta = ((sdword)Right.B - (sdword)Left.B) >> 8;
 				dBdx = delta * rWidth >> 16;
-				delta = (sdword)Right.z - (sdword)Left.z >> 8;
+				delta = ((sdword)Right.z - (sdword)Left.z) >> 8;
 				dZdx = delta * rWidth >> 16;
 			} else {
 				dRdx = dGdx = dBdx = 0;
@@ -1071,7 +1072,7 @@ static void drawPoly()
 	DoFace = &F;
 	F.Txtr = &DummyMat;
 	DummyMat.Txtr = &DummyTex;
-	DummyTex.Data = (char *)l_TestTexture;
+	DummyTex.Data = (byte *)l_TestTexture;
 	DummyTex.Mipmap[0] = DummyTex.Data;
 	DoFace->Txtr->Txtr->LSizeX = 8;
 	DoFace->Txtr->Txtr->LSizeY = 8;

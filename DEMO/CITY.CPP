@@ -1,13 +1,13 @@
 
-#include "Rev.H"
-#include "City.H"
+#include "REV.H"
+#include "CITY.H"
 
 #define FRONT_TO_BACK_SORTING
 #define CITY_RAIN
 //#define TRACE_OBJECTS
 
 static Scene *CitySc;
-static Scene *SkySc;
+//static Scene *SkySc;
 static Object *RflObj;
 static Vector RflSurfNorm(0,1,0);
 static float RflSurfOfs = 0;
@@ -132,7 +132,7 @@ void Run_Distort(void)
 		T = (Timer*3>>1)%628;
 		for(Y=-hY;Y<hY-1;Y++)
 			for(X=-hX;X<hX;X++)
-				*Ptr++ = DPtr[(I++) + COTbl[T+(X<<1)-Y<<1]+//-(X>>3)+
+				*Ptr++ = DPtr[(I++) + COTbl[(T+(X<<1)-Y)<<1]+//-(X>>3)+
 					XRes*(SOTbl[(T<<1)+3*X+5*Y])]; //- (Y>>3))];
 		memcpy(Ptr,DPtr+XRes*YRes_1,VESA_BPSL);
 				//(long)(cos(T*0.02+X*0.04-Y*0.02) * 5.0f)
@@ -174,8 +174,12 @@ static void Reflective_Surface_Setup()
 			Vector_Norm(&RflSurfNorm);
 			
 			// patch: modify keys to position zero
-			Vector_Zero(&T->Pos.Keys[0].Pos.im());
-			Vector_Add(&F->A->Pos, &T->Pos.Keys[0].Pos.im(), &U);
+			//Vector_Zero(&T->Pos.Keys[0].Pos.im());
+			Quaternion &P = T->Pos.Keys[0].Pos;
+			P.x = P.y = P.z = 0.0f;
+
+			Vector tmp = T->Pos.Keys[0].Pos.im();
+			Vector_Add(&F->A->Pos, &tmp, &U);
 			RflSurfOfs =-Dot_Product(&RflSurfNorm,&U);
 
 			F = T->Faces;
@@ -1214,8 +1218,7 @@ static void initRain(Scene *Sc)
 //	float typicalParticleSize = 30.0/384.0;
 //	dword typicalSpans = Fist(YRes * typicalParticleSize / 4.0);
 //	TBR_Init(Sc, Sc->NumOfParticles * typicalSpans);
-	Vector InitialCenter;
-	Vector_Copy(&InitialCenter, &Sc->CameraHead->Source.Keys[0].Pos.im());
+	Vector InitialCenter = Sc->CameraHead->Source.Keys[0].Pos.im();
 
 	for(mword i=0; i<NUM_RAIN_PCLS; i++)
 	{
@@ -1622,7 +1625,7 @@ void Run_City()
 //		FastWrite(VPage+PageSize, 0, (XRes*YRes*sizeof(word)) >> 2);
 
 		norefl:
-//		RenderSkyCube(SkySc, View);
+		//RenderSkyCube(SkySc, View);
 
 		// render all objects normally
 		Profiler[PROF_XFRM] -= Timer;
@@ -1675,11 +1678,11 @@ void Run_City()
 
 			sprintf(MSGStr, "%f frame", CurFrame);
 			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
-			sprintf(MSGStr, "%dK pixels/frame" , (long)(FillerPixelcount/(1000.0*numFrames)));
+			sprintf(MSGStr, "%dK pixels/frame" , (int32_t)(FillerPixelcount/(1000.0*numFrames)));
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
-			sprintf(MSGStr, "%dK pixels/second" , (long)(FillerPixelcount/1000.0 * 100.0 / Profiler[PROF_RNDR]));
+			sprintf(MSGStr, "%dK pixels/second" , (int32_t)(FillerPixelcount/1000.0 * 100.0 / Profiler[PROF_RNDR]));
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
-			sprintf(MSGStr, "%d polys/frame" , (long)(g_renderedPolys / numFrames) );
+			sprintf(MSGStr, "%d polys/frame" , (int32_t)(g_renderedPolys / numFrames) );
 			OutTextXY(VPage,0,45,MSGStr,255);
 	//		numDropsRendered=0;
 	//		sprintf(MSGStr, "%d raindrops" , (long)(numDropsRendered) );

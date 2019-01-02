@@ -1,3 +1,8 @@
+#pragma once
+
+#include "Base/FDS_VARS.H"
+
+
 #define LFB_LIMIT 0x003FFFFF
 
 // May not be used
@@ -13,7 +18,7 @@
 
 const char VFormat_Modules[8][40] = {"Abnormal Format","Text Mode (ANSI GFX)","4BPP/16 Colors (EGA)","8BPP/256 Colors (VGA)","15BPP/32K Colors (HiColor)","16BPP/64K Colors (HiColor)","24BPP/16M Colors (TrueColor)","32BPP/16M Colors (TrueColor)"};
 
-#pragma pack(1)
+#pragma pack(push, 1)
 
 /* SuperVGA information block */
 typedef struct {
@@ -82,6 +87,8 @@ struct Video_entry
 };
 
 
+#pragma pack (pop)
+
 // examples for Flip: each surface checks around with the Screen surface.
 // if it's LFB and the VS is main, we Flip regular Rep MOVSD. if it's Banks
 // and VS is main, we Bankflip. if the VS is partial, we try a slow
@@ -98,17 +105,16 @@ extern VESA_Surface *MainSurf,*Screen;
 extern long VESA_Ver;
 extern long PageSize,PageSizeW,PageSizeDW;
 
-extern char *VGAPtr,*VPage;
+extern byte *VGAPtr,*VPage;
 extern float *ZBuffer;
 extern Font *Active_Font;
 extern long *YOffs;
 extern char *VESA_Pal;
 
-extern void VESA_Message(char *Msg);
-extern void VESA_Warning(char *Msg);
+extern void VESA_Message(const char *Msg);
+extern void VESA_Warning(const char *Msg);
 extern char VESA_Init_Video(long X,long Y,long BPP);
 extern void Set_Screen(long X,long Y,long BPP,char ZBuf,float FOV);
-extern void Build_YOffs_Table(VESA_Surface *VS);
 
 extern char *Gouraud_Table;
 extern char *ATable,*STable,*CTable,*TTable;
@@ -135,6 +141,9 @@ extern char *ATable,*STable,*CTable,*TTable;
 
 // Realmode Pointer to Linear Pointer Conversion.
 #define RP2LP(p)   (void*)(((unsigned)(p) >> 12) + ((p) & 0xFFFF))
+
+void Build_YOffs_Table(VESA_Surface *VS);
+
 
 #ifdef _C_WATCOM
 
@@ -768,7 +777,7 @@ __declspec(align(16)) struct uint128 {
 #pragma pack(pop)
 
 // 32bit MMX Alpha blending, 
-void AlphaBlend(char *Source,char *Target,DWord &PerSource,DWord &PerTarget)
+inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarget)
 {
 	uint128 perSrc;
 	perSrc.low = perSrc.high = PerSource | static_cast<uint64>(PerSource) << 32;
@@ -780,12 +789,19 @@ void AlphaBlend(char *Source,char *Target,DWord &PerSource,DWord &PerTarget)
 
 	__asm
 	{
+#ifdef __clang__
 		pushad
-		mov esi, Source
-		mov edi, Target
 		mov ebx, perSrcRef
 		mov ecx, perDstRef
-
+		mov edi, Target
+		mov esi, Source
+#else
+		pushad
+		mov edi, Target
+		mov esi, Source
+		mov ebx, perSrcRef
+		mov ecx, perDstRef
+#endif
 		punpcklbw xmm7, [ebx]
 		punpcklbw xmm6, [ecx]
 		psrlw xmm7, 8
@@ -886,7 +902,7 @@ void AlphaBlend(char *Source,char *Target,DWord &PerSource,DWord &PerTarget)
 	//}
 }
 
-void Transparence_16(char *Source,char *Target)
+inline void Transparence_16(byte *Source,byte *Target)
 {
 	__asm
 	{
@@ -909,7 +925,7 @@ void Transparence_16(char *Source,char *Target)
 	}
 }
 
-void Transparence_32(char *Source,char *Target)
+inline void Transparence_32(byte *Source,byte *Target)
 {
 	__asm 
 	{
@@ -934,7 +950,7 @@ void Transparence_32(char *Source,char *Target)
 
 #endif
 
-void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWord TrgMask)
+inline void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWord TrgMask)
 {
   if (Source->BPP!=Target->BPP) return;
   switch (Source->BPP)
@@ -946,10 +962,10 @@ void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWord TrgM
   }
 }
 
-void Transparence_8(char *Source,char *Target) {}
+inline void Transparence_8(byte *Source,byte *Target) {}
 
 
-void Transparence(VESA_Surface *Source,VESA_Surface *Target)
+inline void Transparence(VESA_Surface *Source,VESA_Surface *Target)
 {
   if (Source->BPP!=Target->BPP) return;
   switch (Source->BPP)

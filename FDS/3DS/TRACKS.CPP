@@ -1,5 +1,5 @@
-#include "../Fds_vars.h"
-#include "I_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "I_defs.h"
 #include "FUtils.h"
 
 // Low-level Animation Tracks Reader, Format: 3DS ver 4.0

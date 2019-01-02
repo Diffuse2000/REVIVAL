@@ -1,6 +1,6 @@
 #ifndef _IC_IMAGECOMPRESSION_H_INCLUDED
 #define _IC_IMAGECOMPRESSION_H_INCLUDED
-#include "..\fds\fds_decs.h"
+#include "Base/FDS_DECS.H"
 
 void ImageCompressionTestCode();
 

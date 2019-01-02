@@ -1,4 +1,4 @@
-#include "../FDS/FDS_DECS.h"
+#include "Base/FDS_DECS.H"
 #include "FMod.h"
 
 //===============================================================================================
@@ -38,7 +38,7 @@ dword FModInit()
 	return 1;
 }
 
-dword FModLoadModule(char *ModuleFilename)
+dword FModLoadModule(const char *ModuleFilename)
 {
 	FMUSIC_MODULE *mod;
 

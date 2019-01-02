@@ -1,4 +1,5 @@
 #include "IX.h"
+#include "Base/Scene.h"
 
 /////////////////////////////////
 // static filler variables (SFV)
@@ -457,9 +458,9 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 //			_dv = (_v1 - _v0) * iWidth;
 //			_dZ = (_Z1 - _Z0) * iWidth;
 //		} else {
-		_du = _u1 - _u0 >> L2SPANSIZE;
-		_dv = _v1 - _v0 >> L2SPANSIZE;
-		_dZ = _Z1 - _Z0 >> L2SPANSIZE;
+		_du = (_u1 - _u0) >> L2SPANSIZE;
+		_dv = (_v1 - _v0) >> L2SPANSIZE;
+		_dZ = (_Z1 - _Z0) >> L2SPANSIZE;
 //		}
 		
 		while (SpanWidth--)
@@ -641,9 +642,9 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 //			_dv = (_v1 - _v0) * iWidth;
 //			_dZ = (_Z1 - _Z0) * iWidth;
 //		} else {
-		_du = _u1 - _u0 >> L2SPANSIZE;
-		_dv = _v1 - _v0 >> L2SPANSIZE;
-		_dZ = _Z1 - _Z0 >> L2SPANSIZE;
+		_du = (_u1 - _u0) >> L2SPANSIZE;
+		_dv = (_v1 - _v0) >> L2SPANSIZE;
+		_dZ = (_Z1 - _Z0) >> L2SPANSIZE;
 //		}
 		
 		while (SpanWidth--)
@@ -872,13 +873,13 @@ static void IXFiller(IXVertexTG *Verts, dword numVerts, void *Texture, void *Pag
 				t *= 65536.0;
 				rWidth = Fist(t);
 				sdword delta;
-				delta = (sdword)Right.R - (sdword)Left.R >> 8;
+				delta = ((sdword)Right.R - (sdword)Left.R) >> 8;
 				dRdx = delta * rWidth >> 16;
-				delta = (sdword)Right.G - (sdword)Left.G >> 8;
+				delta = ((sdword)Right.G - (sdword)Left.G) >> 8;
 				dGdx = delta * rWidth >> 16;
-				delta = (sdword)Right.B - (sdword)Left.B >> 8;
+				delta = ((sdword)Right.B - (sdword)Left.B) >> 8;
 				dBdx = delta * rWidth >> 16;
-				delta = (sdword)Right.z - (sdword)Left.z >> 8;
+				delta = ((sdword)Right.z - (sdword)Left.z) >> 8;
 				dZdx = delta * rWidth >> 16;
 			} else {
 				dRdx = dGdx = dBdx = 0;

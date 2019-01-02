@@ -3,19 +3,20 @@
 		 -----------------------------------------------
 */
 
-#include <STDIO.H>
-#include <DOS.H>
-#include <STDLIB.H>
-#include <CONIO.H>
-#include <STRING.H>
-#include <MATH.H>
+#include <stdio.h>
+#include <dos.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <string.h>
+#include <math.h>
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
-#include "LWRead.H"
-#include "FLD_Read.H"
+#include "LWREAD.H"
+#include "FLD_READ.H"
+#include "Base/Scene.h"
 
 //#define DebugMode
 #define Scene_Scale 1.0
@@ -280,9 +281,9 @@ TriMesh *ConvertTriMesh(FldObject *Src)
 		T->Pos.Keys[i].Pos.z*=Scene_Scale;
 		if (i==0)
 		{
-			Vector_Copy(&stPos, &T->Pos.Keys[i].Pos.im());
-			Vector_Copy(&stRot, &T->Rotate.Keys[i].Pos.im());
-			Vector_Copy(&stScl, &T->Scale.Keys[i].Pos.im());
+			stPos = T->Pos.Keys[i].Pos.im();
+			stRot = T->Rotate.Keys[i].Pos.im();
+			stScl = T->Scale.Keys[i].Pos.im();
 		} else {
 			if ((T->Pos.Keys[i].Pos.x			!= stPos.x) ||
 				(T->Pos.Keys[i].Pos.y			!= stPos.y) ||
@@ -457,7 +458,7 @@ Omni *ConvertOmni(FldLight *Src)
 		ConvertKey(&Src->KF[i],&OL->Pos.Keys[i],Scene_Scale);
 		if (i==0) 
 		{
-			Vector_Copy(&stVec, &OL->Pos.Keys[i].Pos.im());
+			stVec = OL->Pos.Keys[i].Pos.im();
 		} else {
 			if ((stVec.x != OL->Pos.Keys[i].Pos.x) ||
 				(stVec.y != OL->Pos.Keys[i].Pos.y) ||
@@ -586,7 +587,7 @@ Scene *ConvertFLD(FldScene *FLD)
 
 	for (Obj = Sc->ObjectHead; Obj; Obj = Obj->Next)
 	{
-		printf("\tCurrent Object: %s (%d), Parent: %d\n", Obj->Name, Obj->Number, Obj->ParentID);
+		printf("\tCurrent Object: %s (%u), Parent: %u\n", Obj->Name, Obj->Number, Obj->ParentID);
 		CurParent = (signed short)Obj->ParentID;
 		if (CurParent >= 0)
 		{
@@ -596,7 +597,7 @@ Scene *ConvertFLD(FldScene *FLD)
 				if (cur->Number == CurParent)
 				{
 					Obj->Parent = cur;
-					printf("\t\tFound Parent Object: %s (%d)\n", cur->Name, cur->Number);
+					printf("\t\tFound Parent Object: %s (%u)\n", cur->Name, cur->Number);
 					break;
 				}
 			}
@@ -634,7 +635,6 @@ void Delete_Scene(FldScene *Sc)
 	FldLight *L;
 	FldObject *O;
 	FldMat *M;
-	void *Temp;
 	int i;
 
 	Delete_Envelope(Sc->AmbientColor);
@@ -644,23 +644,23 @@ void Delete_Scene(FldScene *Sc)
 	Delete_Envelope(Sc->Camera->zoomFactor);
 	delete Sc->Camera;
 // Delete lights
-	Temp = NULL;
+	FldLight *TempLight = NULL;
 	for (L=Sc->Light;L;L=L->Next)
 	{
-		if (Temp) delete Temp;
+		if (TempLight) delete TempLight;
 //		delete L->Name;
 		delete L->KF;
 		Delete_Envelope(L->Intensity);
 		Delete_Envelope(L->Falloff);
 		Delete_Envelope(L->ConeAngle);
-		Temp = (void *)L;
+		TempLight = L;
 	}
-	if (Temp) delete Temp;
+	if (TempLight) delete TempLight;
 // Delete objects
-	Temp = NULL;
+	FldObject *TempObj = NULL;
 	for (O=Sc->Object;O;O=O->Next)
 	{
-		if (Temp) delete Temp;
+		if (TempObj) delete TempObj;
 //		delete O->Name;
 // Delete materials
 /*		for (i=0,M=&O->Material[i];i<O->NumOfMat;i++)
@@ -682,9 +682,9 @@ void Delete_Scene(FldScene *Sc)
 		delete O->Faces;
 		delete O->KF;
 		Delete_Envelope(O->PolygonSize);
-		Temp = (void *)O;
+		TempObj = O;
 	}
-	if (Temp) delete Temp;
+	if (TempObj) delete TempObj;
 	// Test for memory bugs:
 	int Size=DPMI_Free_Memory()-500000;
 //	char *d=new char[Size];
@@ -695,7 +695,7 @@ void Delete_Scene(FldScene *Sc)
 	Size=DPMI_Free_Memory();
 }
 
-char LoadFLD(Scene *Sc,char *FileName)
+char LoadFLD(Scene *Sc, const char *FileName)
 {
 	//SceneGroup = EnumScene(Sc);
 	SceneGroup = Sc;
@@ -703,9 +703,9 @@ char LoadFLD(Scene *Sc,char *FileName)
 	if (!FS) return 0;
 	Scene *OUT = ConvertFLD(FS);
 	printf("Deleting scene...\n");
-	unsigned long MFree=DPMI_Free_Memory();
+	dword MFree=DPMI_Free_Memory();
 //	Delete_Scene(FS);
-	printf("%i bytes were freed\n",DPMI_Free_Memory()-MFree);
+	printf("%u bytes were freed\n",DPMI_Free_Memory()-MFree);
 	if (!OUT) return 0;
 	memcpy(Sc,OUT,sizeof(Scene));
 	freeAlignedBlock(OUT);

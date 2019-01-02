@@ -1,3 +1,5 @@
+#include "VESA.H"
+
 // Available tables: Y Offset table
 // Next: 8Bit Palette tables (Gouraud-txtr,Transparence,Addative,DAC Emu)
 // Next: 15/16Bit Diffuse tables (Gouraud-txtr)
@@ -31,15 +33,17 @@ void Make_Gouraud_8(char R0,char G0,char B0,char R1,char G1,char B1)
   for(I=0;I<64;I++)
   {
     J=63-I;
-    R=R0*J+R1*I>>6;
-    G=G0*J+G1*I>>6;
-    B=B0*J+B1*I>>6;
+    R=(R0*J+R1*I)>>6;
+    G=(G0*J+G1*I)>>6;
+    B=(B0*J+B1*I)>>6;
     M=192;
     Pal = Screen->Pal;
     for(J=0;J<256;J++)
     {
-      E = abs((*Pal++)-R)+abs((*Pal++)-G)+abs((*Pal++)-B);
-      if (E<M) {M=E; K=J;}
+      //E = abs((*Pal++)-R)+abs((*Pal++)-G)+abs((*Pal++)-B);
+	  E = abs((*(Pal)) - R) + abs((*(Pal+1)) - G) + abs((*(Pal+2)) - B);
+	  Pal += 3;
+	  if (E<M) {M=E; K=J;}
     }
     GrdTbl[I]=K;
   }
@@ -71,12 +75,14 @@ void Make_Addative()
       Pal = Screen->Pal;
       for(K=0;K<256;K++)
       {
-        E = abs((*Pal++)-R)+abs((*Pal++)-G)+abs((*Pal++)-B);
-        if (E<M) {M=E; L=K;}
+        //E = abs((*Pal++)-R)+abs((*Pal++)-G)+abs((*Pal++)-B);
+		E = abs((*Pal) - R) + abs((*(Pal+1)) - G) + abs((*(Pal+2)) - B);
+		Pal += 3;
+		if (E<M) {M=E; L=K;}
       }
       ATable[J+(I<<8)]=L;
     }
-    if (!(I&0x7)) printf("±");
+    if (!(I&0x7)) printf("+");
     Pal1+=3;
   }
   for(I=0;I<256;I++)
@@ -107,12 +113,14 @@ void Make_ColorMap()
         Pal = Screen->Pal;
         for(L=0;L<256;L++)
         {
-          E = abs((*Pal++)-R)+abs((*Pal++)-G)+abs((*Pal++)-B);
-          if (E<M) {M=E; N=L;}
+          // E = abs((*Pal++)-R)+abs((*Pal++)-G)+abs((*Pal++)-B);
+		  E = abs((*Pal) - R) + abs((*(Pal + 1)) - G) + abs((*(Pal + 2)) - B);
+		  Pal += 3;
+		  if (E<M) {M=E; N=L;}
         }
         CTable[K+(J<<5)+(I<<10)]=N;
       }
-    printf("±");
+    printf("+");
   }
   printf("...Complete.\n");
 }
@@ -147,13 +155,15 @@ void Make_Shade(float Dark,float Bright)
       Pal=Screen->Pal;
       for(K=0;K<256;K++)
       {
-        E = abs((*Pal++)-R)+abs((*Pal++)-G)+abs((*Pal++)-B);
-        if (E<M) {M=E; L=K;}
+        //E = abs((*Pal++)-R)+abs((*Pal++)-G)+abs((*Pal++)-B);
+		  E = abs((*Pal) - R) + abs((*(Pal + 1)) - G) + abs((*(Pal + 2)) - B);
+		  Pal += 3;
+		  if (E<M) {M=E; L=K;}
       }
       STable[J+(I<<8)]=L;
     }
     LMul+=dL;
-    if (!(I&1)) printf("±");
+    if (!(I&1)) printf("+");
   }
   printf("...Complete.\n");
 }
@@ -177,9 +187,9 @@ void Make_Transparence()
     Pal2 = Pal1+3;
     for(J=I+1;J<256;J++)
     {
-      R=(*Pal1)    +(*Pal2++)>>1;
-      G=(*(Pal1+1))+(*Pal2++)>>1;
-      B=(*(Pal1+2))+(*Pal2++)>>1;
+      R=((*Pal1)    +(*Pal2++))>>1;
+      G=((*(Pal1+1))+(*Pal2++))>>1;
+      B=((*(Pal1+2))+(*Pal2++))>>1;
 //      R=Pal[I*3] + Pal[J*3]>>1;
 //      G=Pal[I*3+1] + Pal[J*3+1]>>1;
 //      B=Pal[I*3+2] + Pal[J*3+2]>>1;
@@ -189,15 +199,15 @@ void Make_Transparence()
       Pal = Screen->Pal;
       for(K=0;K<256;K++)
       {
-        E = abs((*Pal++)-R)+abs((*Pal++)-G)+abs((*Pal++)-B);
+        E = abs((*(Pal+1))-R)+abs((*(Pal+2))-G)+abs((*(Pal+2))-B);
 //        E = abs(Pal[K*3]-R)+abs(Pal[K*3+1]-G)+abs(Pal[K*3+2]-B);
-//        Pal+=3;
+        Pal+=3;
         if (E<M) {M=E; L=K;}
       }
       TTable[J+(I<<8)]=L;
     }
     Pal1+=3;
-    if (!(I&0xF)) printf("±");
+    if (!(I&0xF)) printf("+");
   }
   for(I=0;I<256;I++)
     for(J=0;J<I;J++)

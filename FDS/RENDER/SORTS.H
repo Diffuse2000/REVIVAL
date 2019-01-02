@@ -7,7 +7,7 @@ void Quick_Sorting(long L,long R)
   Face *Swapper;
   I=L;
   J=R;
-  Av=FList[L+R>>1]->SortZ.DW;
+  Av=FList[(L+R)>>1]->SortZ.DW;
   while(I<=J)
   {
     while (FList[I]->SortZ.DW<Av) I++;

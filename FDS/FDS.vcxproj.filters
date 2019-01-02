@@ -58,6 +58,9 @@
     <Filter Include="Skycube">
       <UniqueIdentifier>{1ec9fc86-43c8-47d8-952a-6b54faca7434}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Base">
+      <UniqueIdentifier>{135c1895-4a3a-4483-be6b-32acee897848}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3DS\3DS_READ.CPP">
@@ -79,9 +82,6 @@
       <Filter>Fillers</Filter>
     </ClCompile>
     <ClCompile Include="FILLERS\IXTZ.cpp">
-      <Filter>Fillers</Filter>
-    </ClCompile>
-    <ClCompile Include="FILLERS\TEX.CPP">
       <Filter>Fillers</Filter>
     </ClCompile>
     <ClCompile Include="FLD\FLD_CONV.CPP">
@@ -168,6 +168,15 @@
     <ClCompile Include="FILLERS\IXTGZ.cpp">
       <Filter>Fillers</Filter>
     </ClCompile>
+    <ClCompile Include="Base\Texture.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="VESA\FONTS.CPP">
+      <Filter>VESA</Filter>
+    </ClCompile>
+    <ClCompile Include="VESA\VESA_TABLES.CPP">
+      <Filter>VESA</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3ds\I_defs.h">
@@ -218,11 +227,83 @@
     <ClInclude Include="SkyCube\SkyCube.h">
       <Filter>Skycube</Filter>
     </ClInclude>
-    <ClInclude Include="FDS_DECS.H" />
-    <ClInclude Include="FDS_DEFS.H" />
-    <ClInclude Include="FDS_VARS.H" />
     <ClInclude Include="3DS\FUtils.h">
       <Filter>3DS</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\BaseDefs.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Camera.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Color.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Edge.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Face.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\FDS_DECS.H">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\FDS_DEFS.H">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\FDS_VARS.H">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\KeyFrame.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Material.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Object.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Omni.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Quaternion.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Scene.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Spline.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\SpotLight.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\TBR.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Texture.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\TriMesh.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Vector.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Vertex.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\Matrix.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="IMGGENR\IMGGENR.H">
+      <Filter>IMGGENR</Filter>
+    </ClInclude>
+    <ClInclude Include="IMGGENR\PREPROC.H">
+      <Filter>MISC</Filter>
+    </ClInclude>
+    <ClInclude Include="Fillers\FILLERS.H">
+      <Filter>Fillers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

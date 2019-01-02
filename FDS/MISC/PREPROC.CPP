@@ -1,20 +1,24 @@
-#include <StdIO.H>
-#include <StdLib.H>
-#include <ConIO.H>
-#include <Math.H>
-#include <Memory.H>
-#include <String.H>
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <math.h>
+#include <memory.h>
+#include <string.h>
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
+
+#include "Base/TriMesh.h"
+#include "Base/Omni.h"
+#include "Base/Scene.h"
 
 #ifdef _C_WATCOM
 #pragma aux REPSTDW=\
 	"Rep StoSD",\
 parm [EDI] [EAX] [ECX];
 #endif
-#ifdef _C_VC6
+#ifdef WIN32
 void REPSTDW(void *buf, DWord val, DWord count)
 {
 	__asm
@@ -63,8 +67,8 @@ void Compute_Optimized_Indices(TriMesh *T)
 		F->B = T->Verts+Conversion[B];
 		F->C = T->Verts+Conversion[C];
 	}
-	delete Buffer;
-	delete Conversion;
+	delete [] Buffer;
+	delete [] Conversion;
 }
 
 // Computes Face/Triangle Plane Normals for Trimesh T.
@@ -598,8 +602,14 @@ void Init_Default_Material()
 {
 	Material *M = MatLib;
 	
-	if (!M) {MatLib = &Default_Mat; MatLib->Prev = NULL;}
-	else {for(;M->Next;M=M->Next); M->Next = &Default_Mat;}
+	if (!M) {
+		MatLib = &Default_Mat; MatLib->Prev = NULL;
+	} else { 
+		for (; M->Next; M = M->Next) {
+		} 
+	
+		M->Next = &Default_Mat; 
+	}
 	
 	Default_Mat.Next = NULL;
 	Default_Mat.Name = strdup("Zol default material");
@@ -861,7 +871,7 @@ void Materials_Remap_Aligned()
 	TriMesh *T;
 	Face *F,*FEnd;
 	long NumOfMats = 0;
-	char *NB;
+	byte *NB;
 	
 	// load txtr by default,if no solid materials really available
 	
@@ -875,7 +885,7 @@ void Materials_Remap_Aligned()
 		for(M=MatLib;M;M=M->Next)
 			if (M->Txtr)
 			{
-				NB = Get_Aligned_Block();
+				NB = (byte *)Get_Aligned_Block();
 				memcpy(NB,M->Txtr->Data,65536);
 				delete M->Txtr->Data;
 				M->Txtr->Data = NB;

@@ -1,4 +1,7 @@
 #include "SkyCube.h"
+#include "Base/Object.h"
+#include "Base/TriMesh.h"
+#include "Base/Scene.h"
 
 static void GenerateSkyTexture(Texture *Tx, long numStars)
 {
@@ -188,7 +191,7 @@ Scene * CreateSkyCube(dword skyType)
 
 		Tx[i]->BPP = 32;
 		dword *data = new dword [256*256];
-		Tx[i]->Data = (char *)data;
+		Tx[i]->Data = (byte *)data;
 		memset(Tx[i]->Data, 0, 256*256*4);
 		GenerateSkyTexture(Tx[i], 200);
 		

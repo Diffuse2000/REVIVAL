@@ -2,8 +2,9 @@
 #define _REV_DDRAW_H_INCLUDED
 
 #define POINTER_64
-#include <DDraw.H>
+#include <ddraw.h>
 #include "Win32Display.h"
+#include "Base/FDS_VARS.H"
 
 #define SAFE_RELEASE(x) if (x) x->Release()
 

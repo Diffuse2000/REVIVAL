@@ -122,9 +122,6 @@ add_executable(REVIVAL
         FDS/MISC/PREPROC.CPP
         FDS/MISC/TABLES.CPP
         FDS/MISC/TxtrLib.cpp
-        FDS/Old/FDS_DECS.H
-        FDS/Old/FDS_DEFS.H
-        FDS/Old/FDS_VARS.H
         FDS/PCLSYS/PCLSYS.CPP
         FDS/RADIO/RADIO.CPP
         FDS/RENDER/GENERAL.H
@@ -140,9 +137,9 @@ add_executable(REVIVAL
         FDS/VESA/TABLES.CPP
         FDS/VESA/VESA.CPP
         FDS/VESA/Vesa.h
-        FDS/FDS_DECS.H
-        FDS/FDS_DEFS.H
-        FDS/Fds_vars.h
+        FDS/Base/FDS_DECS.H
+        FDS/Base/FDS_DEFS.H
+        FDS/Base/FDS_VARS.H
         fmod/FMod.cpp
         fmod/fmod.h
         fmod/fmod_errors.h
@@ -162,4 +159,4 @@ add_executable(REVIVAL
         FMod.old/FMod.cpp
         FMod.old/FMod.h
         IJLD/ijl.h
-        IJLD/IJLD.cpp)
+        IJLD/IJLD.cpp FDS/Base/Texture.cpp FDS/Base/Texture.h FDS/Base/Material.h FDS/Base/Color.h FDS/Base/Scene.h FDS/Base/Object.h FDS/Base/BaseDefs.h FDS/Base/TriMesh.h FDS/Base/Vertex.h FDS/Base/Vector.h FDS/Base/Face.h FDS/Base/Quaternion.h FDS/Base/Camera.h FDS/Base/Omni.h FDS/Base/SpotLight.h FDS/Base/Spline.h FDS/Base/Edge.h FDS/Base/TBR.h FDS/Base/KeyFrame.h FDS/Base/Matrix.h FDS/Base/Surface.h FDS/Base/Palette.h)

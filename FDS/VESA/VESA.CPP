@@ -3,14 +3,11 @@
 //       also make sure all windows + screenclones auto-adjust.
 //       also try to logically support windows, and insert mouse interface
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
 #include "VESA.H"
-
-#include "Fonts.CPP"
-#include "Tables.CPP"
 
 
 #ifdef _C_WATCOM
@@ -48,7 +45,7 @@ long PageSize,PageSizeW,PageSizeDW;
 short CurrentGraphicsMode;
 char Palette_Reserved = 0;
 
-char *VGAPtr,*VPage; //Direct access pointers to LFB/Banks and v.Page[2].
+byte *VGAPtr,*VPage; //Direct access pointers to LFB/Banks and v.Page[2].
 float *ZBuffer;
 Font *Active_Font;    //Currently Active font
 char *VESA_Pal = NULL;
@@ -88,12 +85,12 @@ void VESA_Surface2Global(VESA_Surface *VS)
   YOffs = VS->YTable;
 }
 
-void VESA_Message(char *Msg)
+void VESA_Message(const char *Msg)
 {
 //  printf("<VESA>: %s\n",Msg);
 }
 
-void VESA_Warning(char *Msg)
+void VESA_Warning(const char *Msg)
 {
 //  printf("<VESA> Warning: %s\n",Msg);
 }

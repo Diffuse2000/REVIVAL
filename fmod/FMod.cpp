@@ -1,5 +1,5 @@
-#include "../FDS/FDS_DECS.h"
-#include "FMod.h"
+#include "Base/FDS_DECS.H"
+#include "fmod.h"
 
 //===============================================================================================
 // SIMPLEST.EXE
@@ -34,7 +34,7 @@ dword FModInit()
 	return 1;
 }
 
-dword FModLoadModule(char *ModuleFilename)
+dword FModLoadModule(const char *ModuleFilename)
 {
 	FMUSIC_MODULE *mod;
 

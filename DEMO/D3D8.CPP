@@ -1,3 +1,5 @@
+#include <Base/FDS_VARS.H>
+#include <Base/FDS_DECS.H>
 #include "D3D8.h"
 #include "D3D8i.h"
 
@@ -78,7 +80,7 @@ HRESULT CD3DApplication::DisplayErrorMsg( HRESULT hr, DWORD dwType )
 
     switch( hr )
     {
-        case D3DAPPERR_NODIRECT3D:
+        case (HRESULT)D3DAPPERR_NODIRECT3D:
             _tcscpy( strMsg, _T("Could not initialize Direct3D. You may\n")
                              _T("want to check that the latest version of\n")
                              _T("DirectX is correctly installed on your\n")
@@ -87,12 +89,12 @@ HRESULT CD3DApplication::DisplayErrorMsg( HRESULT hr, DWORD dwType )
                              _T("the installed DirectX DLLs.") );
             break;
 
-        case D3DAPPERR_NOCOMPATIBLEDEVICES:
+        case (HRESULT)D3DAPPERR_NOCOMPATIBLEDEVICES:
             _tcscpy( strMsg, _T("Could not find any compatible Direct3D\n")
                              _T("devices.") );
             break;
 
-        case D3DAPPERR_NOWINDOWABLEDEVICES:
+        case (HRESULT)D3DAPPERR_NOWINDOWABLEDEVICES:
             _tcscpy( strMsg, _T("This sample cannot run in a desktop\n")
                              _T("window with the current display settings.\n")
                              _T("Please change your desktop settings to a\n")
@@ -100,25 +102,25 @@ HRESULT CD3DApplication::DisplayErrorMsg( HRESULT hr, DWORD dwType )
                              _T("sample.") );
             break;
 
-        case D3DAPPERR_NOHARDWAREDEVICE:
+        case (HRESULT)D3DAPPERR_NOHARDWAREDEVICE:
             _tcscpy( strMsg, _T("No hardware-accelerated Direct3D devices\n")
                              _T("were found.") );
             break;
 
-        case D3DAPPERR_HALNOTCOMPATIBLE:
+        case (HRESULT)D3DAPPERR_HALNOTCOMPATIBLE:
             _tcscpy( strMsg, _T("This sample requires functionality that is\n")
                              _T("not available on your Direct3D hardware\n")
                              _T("accelerator.") );
             break;
 
-        case D3DAPPERR_NOWINDOWEDHAL:
+        case (HRESULT)D3DAPPERR_NOWINDOWEDHAL:
             _tcscpy( strMsg, _T("Your Direct3D hardware accelerator cannot\n")
                              _T("render into a window.\n")
                              _T("Press F2 while the app is running to see a\n")
                              _T("list of available devices and modes.") );
             break;
 
-        case D3DAPPERR_NODESKTOPHAL:
+        case (HRESULT)D3DAPPERR_NODESKTOPHAL:
             _tcscpy( strMsg, _T("Your Direct3D hardware accelerator cannot\n")
                              _T("render into a window with the current\n")
                              _T("desktop display settings.\n")
@@ -126,7 +128,7 @@ HRESULT CD3DApplication::DisplayErrorMsg( HRESULT hr, DWORD dwType )
                              _T("list of available devices and modes.") );
             break;
 
-        case D3DAPPERR_NOHALTHISMODE:
+        case (HRESULT)D3DAPPERR_NOHALTHISMODE:
             _tcscpy( strMsg, _T("This sample requires functionality that is\n")
                              _T("not available on your Direct3D hardware\n")
                              _T("accelerator with the current desktop display\n")
@@ -135,25 +137,25 @@ HRESULT CD3DApplication::DisplayErrorMsg( HRESULT hr, DWORD dwType )
                              _T("list of available devices and modes.") );
             break;
 
-        case D3DAPPERR_MEDIANOTFOUND:
+        case (HRESULT)D3DAPPERR_MEDIANOTFOUND:
             _tcscpy( strMsg, _T("Could not load required media." ) );
             break;
 
-        case D3DAPPERR_RESIZEFAILED:
+        case (HRESULT)D3DAPPERR_RESIZEFAILED:
             _tcscpy( strMsg, _T("Could not reset the Direct3D device." ) );
             break;
 
-        case D3DAPPERR_NONZEROREFCOUNT:
+        case (HRESULT)D3DAPPERR_NONZEROREFCOUNT:
             _tcscpy( strMsg, _T("A D3D object has a non-zero reference\n")
                              _T("count (meaning things were not properly\n")
                              _T("cleaned up).") );
             break;
 
-        case E_OUTOFMEMORY:
+        case (HRESULT)E_OUTOFMEMORY:
             _tcscpy( strMsg, _T("Not enough memory.") );
             break;
 
-        case D3DERR_OUTOFVIDEOMEMORY:
+        case (HRESULT)D3DERR_OUTOFVIDEOMEMORY:
             _tcscpy( strMsg, _T("Not enough video memory.") );
             break;
 
@@ -1056,7 +1058,7 @@ static dword V_Create(VESA_Surface *VS)
 	VS->CPP = (VS->BPP+1)>>3;
 	VS->BPSL = VS->CPP * VS->X;
 	VS->PageSize = VS->BPSL * VS->Y;
-	if (!(VS->Data = (char *)malloc(VS->PageSize))) return 1;
+	if (!(VS->Data = (byte *)_aligned_malloc(VS->PageSize, 16))) return 1;
 	memset(VS->Data,0,VS->PageSize);
 //	VS->Flags = VSurf_Exists;
 

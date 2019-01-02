@@ -6,9 +6,9 @@
 // Real next ;) : Add Euler angle spline interpolation. (WAITING: LWS Reader)
 // done. this code was left alone for 6+ months. arrgh.
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
 //Externals
 float SinTab[1440];

@@ -1,12 +1,14 @@
-#include <String.H>
-#include <StdIO.H>
-#include <StdLib.H>
-#include <ConIO.H>
-#include <Math.H>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <math.h>
+#include <Base/Omni.h>
+#include <Base/Scene.h>
 
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
-#include "..\FDS_Defs.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
+#include "Base/FDS_DEFS.H"
 
 float CParticle_ISize;
 float ImageSize = 1000.0;
@@ -26,8 +28,8 @@ void Draw_Line_8Bit(Vertex *V1,Vertex *V2)
   long Ai,Bi,Xi,Yi;
   long Offs;
   long X1,Y1,X2,Y2;
-  char *Ptr = VPage;
-  char *End;
+  byte *Ptr = VPage;
+  byte *End;
 
   X1=V1->PX+0.5; Y1=V1->PY+0.5;
   X2=V2->PX+0.5; Y2=V2->PY+0.5;
@@ -53,7 +55,7 @@ void Draw_Line_8Bit(Vertex *V1,Vertex *V2)
   *Ptr = C;
 
   if (Dx > Dy) {
-    Ai = Dy-Dx<<1;
+    Ai = (Dy-Dx)<<1;
     Bi = Dy<<1;
     D = Bi-Dx;
     while (Ptr != End) {
@@ -65,7 +67,7 @@ void Draw_Line_8Bit(Vertex *V1,Vertex *V2)
       *Ptr = C;
     }
   } else {
-    Ai = Dx-Dy<<1;
+    Ai = (Dx-Dy)<<1;
 		Bi = Dx<<1;
     D = Bi-Dy;
     while (Ptr != End) {
@@ -115,7 +117,7 @@ void Draw_Line_32Bit(Vertex *V1,Vertex *V2)
   *Ptr = C;
 
   if (Dx > Dy) {
-    Ai = Dy-Dx<<1;
+    Ai = (Dy-Dx)<<1;
     Bi = Dy<<1;
     D = Bi-Dx;
     while (Ptr != End) {
@@ -127,7 +129,7 @@ void Draw_Line_32Bit(Vertex *V1,Vertex *V2)
       *Ptr = C;
     }
   } else {
-    Ai = Dx-Dy<<1;
+    Ai = (Dx-Dy)<<1;
     Bi = Dx<<1;
     D = Bi-Dy;
     while (Ptr != End) {
@@ -177,7 +179,7 @@ void Draw_Line_32Bit_ForKids(Vertex *V1,Vertex *V2)
   *Ptr = C;
 
   if (Dx > Dy) {
-    Ai = Dy-Dx<<1;
+    Ai = (Dy-Dx)<<1;
     Bi = Dy<<1;
     D = Bi-Dx;
 		while (Ptr != End) {
@@ -189,7 +191,7 @@ void Draw_Line_32Bit_ForKids(Vertex *V1,Vertex *V2)
       *Ptr = C;
     }
   } else {
-    Ai = Dx-Dy<<1;
+    Ai = (Dx-Dy)<<1;
     Bi = Dx<<1;
     D = Bi-Dy;
     while (Ptr != End) {
@@ -221,7 +223,7 @@ void Flat_Poly_8Bit(Vertex **V, dword numVerts)
 	long x1,x2;
   long EX1,EX2;           //Edge interpolation rate.
   long dX1,dX2;           //Edge interpolation differencial.
-  char *Pen;              //Viewport Scanning Pointer
+  byte *Pen;              //Viewport Scanning Pointer
   char Col=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32; //Average Color.
   char EndAtMiddle=0;     //Flag: End drawing in the middle(ignore Y2->y3).
   long Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
@@ -350,14 +352,14 @@ void Flat_Poly_ManyBits(Vertex **V, dword numVerts)
 	long x1,x2;
 	long EX1,EX2;           //Edge interpolation rate.
 	long dX1,dX2;           //Edge interpolation differencial.
-	char *Pen;              //Viewport Scanning Pointer
+	byte *Pen;              //Viewport Scanning Pointer
 	dword 
 		r=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32, //Average Color.
 		g=(DoFace->A->LG+DoFace->B->LG+DoFace->C->LG)*0.32, //Average Color.
 		b=(DoFace->A->LB+DoFace->B->LB+DoFace->C->LB)*0.32; //Average Color.  
 	char EndAtMiddle=0;     //Flag: End drawing in the middle(ignore Y2->y3).
 	long Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
-	char CPP = BPP+1>>3;
+	char CPP = (BPP+1)>>3;
 	dword Col, C16;
 	
 	switch (BPP)
@@ -500,16 +502,16 @@ void FlatV2_Poly_8Bit(Vertex **V, dword numVerts)
   long dX12,dX13,dX23;
   long X,Y;
 
-  char *Ptr,*Line,*PtrEnd;
+  byte *Ptr,*Line,*PtrEnd;
 
   X1 = _A->PX+0.5; X2 = _B->PX+0.5; X3 = _C->PX+0.5;
   Y1 = _A->PY+0.5; Y2 = _B->PY+0.5; Y3 = _C->PY+0.5;
 
   if (Y1<Y3) {
-    dX13=(X3-X1<<16)/(Y3-Y1);
+    dX13=((X3-X1)<<16)/(Y3-Y1);
 
     if (Y1<Y2) {
-      dX12=(X2-X1<<16)/(Y2-Y1);
+      dX12=((X2-X1)<<16)/(Y2-Y1);
       Ex1=Ex2=X1<<16;
     } else {
       if (X1<=X2)
@@ -524,10 +526,10 @@ void FlatV2_Poly_8Bit(Vertex **V, dword numVerts)
         while (X--)
           *Ptr++=Col;
       }
-      dX23=(X3-X2<<16)/(Y3-Y2);
+      dX23=((X3-X2)<<16)/(Y3-Y2);
       goto middle;
     }
-    if (Y2<Y3) dX23=(X3-X2<<16)/(Y3-Y2);
+    if (Y2<Y3) dX23=((X3-X2)<<16)/(Y3-Y2);
   } else {
     if (X2<X1) {T=X1; X1=X2; X2=T;}
     if (X3<X1) {T=X1; X1=X3; X3=T;}
@@ -670,7 +672,7 @@ extern "C" void _PG_Texture_32(Bi_GTriangle * BT, char * Bitmap,unsigned int u);
 extern "C" void _PT_Texture_32(Bi_Triangle * BT, char * Bitmap,unsigned int u);
 #pragma aux _PT_Texture_32 parm [ebx] [eax] [ecx] modify exact [eax ebx ecx edx esi edi 8087];
 #endif*/
-#ifdef _C_VC6
+#ifdef WIN32
 /*
 #define CRGBGouraud RGBGouraudV
 #define CRGBGouraudMMX RGBGouraudMMXV
@@ -1359,7 +1361,7 @@ void The_BiMMXTTrue_Fogged(Vertex **V, dword numVerts)
 
 void Dark_Sprite(Vertex **V, dword numVerts)
 {
-  char *OmniTxtr = DoFace->Txtr->Txtr->Data;
+  byte *OmniTxtr = DoFace->Txtr->Txtr->Data;
   int CntX = _A->PX;
   int CntY = _A->PY;
   long Scale = 5.0*_A->RZ;
@@ -1367,8 +1369,8 @@ void Dark_Sprite(Vertex **V, dword numVerts)
   long int BX1,BY1,BX2,BY2;
   long int EDX1,EDY1,ECX1,ECY1,CY1,OX;
   long int X,Y,PO,CX,PG,Jmp;
-  char *OT2;
-	short Col;
+  byte *OT2;
+  short Col;
 
   if (BPP!=8) return;
   if (!Scale) return;
@@ -1409,7 +1411,6 @@ void Dark_Sprite(Vertex **V, dword numVerts)
 	PG+=Jmp;        // Jump to start of new line
   ECY1+=EDY1;   // Interpolate Y
   }
-  end:;
 }
 
 // Zol,this shit does *NOTHING* , just to make filler pointers shut
@@ -1452,7 +1453,7 @@ extern "C" void ZScale_thatfucksBTB(int X,int Y,int SizeX,int SizeY,char *Txtr,c
 extern "C" void Grid_Texture_Mapper_TG_(void); // this is here because it's easier this way
 
 extern "C" void Seven_UP_(void);
-void Seven_UPV(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page)
+void Seven_UPV(int X,int Y,int SizeX,int SizeY,byte *Txtr,byte *Page)
 {
 	__asm
 	{
@@ -1469,7 +1470,7 @@ void Seven_UPV(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page)
 }
 
 extern "C" void Seven_UP_64_(void);
-void Seven_UP_64V(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page)
+void Seven_UP_64V(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page)
 {
 	__asm
 	{
@@ -1486,7 +1487,7 @@ void Seven_UP_64V(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page)
 }
 
 extern "C" void Seven_UP_MMX_(void);
-void Seven_UP_MMXV(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page, dword Color, dword Z)
+void Seven_UP_MMXV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page, dword Color, dword Z)
 {
 	__asm
 	{
@@ -1507,7 +1508,7 @@ void Seven_UP_MMXV(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page, dword 
 }
 
 extern "C" void Seven_UP_MMX_32_(void);
-void Seven_UP_MMX_32V(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page, dword Color, dword Z)
+void Seven_UP_MMX_32V(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page, dword Color, dword Z)
 {
 	__asm
 	{
@@ -1528,7 +1529,7 @@ void Seven_UP_MMX_32V(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page, dwo
 }
 
 extern "C" void ZScale_thatfucksBTB_(void);
-void ZScale_thatfucksBTBV(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page)
+void ZScale_thatfucksBTBV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page)
 {
 	__asm
 	{
@@ -1562,9 +1563,9 @@ void The_Seven_UP(Vertex **V, dword numVerts)
 	}
 }
 
-void The_Seven_UP_64(long X,long Y,long SX,long SY,DWord *Bitmap,char *Page)
+void The_Seven_UP_64(long X,long Y,long SX,long SY,DWord *Bitmap, byte *Page)
 {
-	CSeven_UP_64(X,Y,SX,SY,(char *)Bitmap,VPage);
+	CSeven_UP_64(X,Y,SX,SY,(byte *)Bitmap,VPage);
 }
 
 
@@ -1872,7 +1873,7 @@ void Particle_Sprite(Vertex **V, dword numVerts)
 	long K;
 	//  if (BPP!=8) return;
 	if (Cx>=0&&Cx<=XRes-2&&Cy>=0&&Cy<=YRes-2)
-		VPage[(Cx+YOffs[Cy])*(BPP+1>>3)]=0xFF;
+		VPage[(Cx+YOffs[Cy])*((BPP+1)>>3)]=0xFF;
 }
 
 
@@ -2010,7 +2011,7 @@ void TBR_Render(Scene *Sc)
 }
 
 
-#ifdef _C_VC6
+#ifdef WIN32
 
 extern "C" 
 {
@@ -2035,9 +2036,10 @@ extern "C"
 	extern dword IX_TGZTAM_Code_Start;
 	extern dword IX_TGZTAM_Code_Size;
 }
+
 void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
 {
-	dword	OldProtection;
+	unsigned long	OldProtection;
 
 //	VirtualProtectFunc(InitFillers, 1000, Protection, &OldProtection);
 //	((char *)InitFillers)[0] = 0;
@@ -2092,27 +2094,27 @@ void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
 	//				   Protection,
 	//				   &OldProtection);
 
-	VirtualProtectFunc(Seven_UP_MMX_, 
+	VirtualProtectFunc(reinterpret_cast<void *>(Seven_UP_MMX_), 
 					   Seven_UP_MMX_Size,
 					   Protection,
 					   &OldProtection);
 
-	VirtualProtectFunc(Seven_UP_MMX_32_, 
+	VirtualProtectFunc(reinterpret_cast<void *>(Seven_UP_MMX_32_),
 					   Seven_UP_MMX_32_Size,
 					   Protection,
 					   &OldProtection);
 
-	VirtualProtectFunc((void *)IX_TGZM_Code_Start,
+	VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZM_Code_Start),
 					   IX_TGZM_Code_Size,
 					   Protection,
 					   &OldProtection);
 
-	VirtualProtectFunc((void *)IX_TGZTM_Code_Start,
+	VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZTM_Code_Start),
 					   IX_TGZTM_Code_Size,
 					   Protection,
 					   &OldProtection);
 
-	VirtualProtectFunc((void *)IX_TGZTAM_Code_Start,
+	VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZTAM_Code_Start),
 					   IX_TGZTM_Code_Size,
 					   Protection,
 					   &OldProtection);

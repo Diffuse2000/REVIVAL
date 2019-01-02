@@ -27,7 +27,7 @@ current rendering pipeline uses:
 3. Lighting pipeline is non-optimized, supports ambient and diffuse lighting.
 4. Painter's algorithm: base-256 Radix back-to-front sorting.
 5. Frustrum clipper : supported
-5.1. stage : immidiately before rasterization
+5.1. stage : immediately before rasterization
 5.2. input : a triangle
 5.3. output : a set of triangles
 6. Polygon rasterization routines:
@@ -48,18 +48,18 @@ current rendering pipeline uses:
 
 planned rendering pipeline uses:
 1. Triangle meshes : supported
-1.1. structure containins arrays of vertex components.
+1.1. structure contains arrays of vertex components.
 1.1.1. Vertex position, normal, U, V, Flags.
 1.1.2. It is yet unclear if vertices should be formed before or after clipping,
 	   such vertices should contain px,py, 1/z, [dword ARGB].
-1.2. model / instance seperation : feasable, but not supported.
+1.2. model / instance separation : feasible, but not supported.
 2. Transform pipeline with bounding boxes, spheres and backface culling, 
    floating point 4x3 and SSE 4x4 strided structure transform.
 3. Optimized lighting pipeline with ambient, diffuse and possibly specular [using MMX modulate 2x].
 4 Z-Buffering : base-256 Radix front-to-back, texture-based grouping sort.
-				all transparent/addative objects should be rendered last.
+				all transparent/additive objects should be rendered last.
 5. Frustrum clipper : supported
-5.1. stage : immidiately before rasterization OR batched during/after transform pipeline
+5.1. stage : immediately before rasterization OR batched during/after transform pipeline
 5.2. input : a triangle
 5.2. output : an ngon
 6. Polygon rasterization
@@ -75,18 +75,18 @@ planned rendering pipeline uses:
 6.3.2. Modulation with screen : not supported
 6.4. Texture mapping : supported
 6.4.1. perspective correction : piecewise linear per 16 pixels, FP or SSE.
-	   check possibility for unrolling to utilitize SSE 4 parallel division units
+	   check possibility for unrolling to utilize SSE 4 parallel division units
 6.4.2. 8bit textures onto 32bit framebuffer : supported
 6.4.3. Mipmapping : supported for both 8bit and 32bit, [max width 256 pixels]. 
 6.4.3.1. Minification Filter : point, possibily linear.
-6.4.3.2. Check if seperate palettes are required.
+6.4.3.2. Check if separate palettes are required.
 6.4.4. Tiled textures : supported, configurable tile size. 
 		Cannot cooperate with bilinear filtering
 6.4.5. Maginification Filter : point. (test speed for bilinear)
 6.4.6. Alpha Blending : configurable constant, gouraud alpha, or texture/page alpha channel
 6.4.7. Initrinsics : ngon section traversing written in C. 
 		uses SSE per 16/32 pixels and MMX within the inner loop.
-		Z-Buffer pointer omitted (use SMC and an immidiate delta from framebuffer ptr)
+		Z-Buffer pointer omitted (use SMC and an immediate delta from framebuffer ptr)
 		Texture/Mipmap palette pointer omitted (use constant delta from texture ptr)
 
 Revised Pipeline design
@@ -108,20 +108,20 @@ material global ID or ptr
 
 1.3. Trimeshes have a pointer to a model, position and rotation status.
 
-	Coding log since 11 Feb 2002 (earlier entries may be out of order of occurance or missing)
-	==========================================================================================
+	Coding log since 11 Feb 2002 (earlier entries may be out of order of occurrence or missing)
+	===========================================================================================
 
 	[late DEC 2001-early JAN 2002] 
 	REVIVAL Project reopened
 	
 	- Removed JPegLibD.lib and MIDAS.lib from the VC6 build.
-	- Added matching __asm blocks for all #pragma aux. to remove dependancy in wcc
-	- Added support for extrnal initialization of logical video unit in FDS
+	- Added matching __asm blocks for all #pragma aux. to remove dependency in wcc
+	- Added support for external initialization of logical video unit in FDS
 	- Removed unconditional usage of DPMI routines in FDS
 	- Changed MMX detection to use CPUID instead of INT 6h (invalid opcode trap)
 	- Fixed a bug in the FLD reader which caused it to incorrectly count #faces.
-	- Fixed a bug in the splines derivate calculation code which caused out of array bounds write.
-	- Changed external assembly functions naming convension to support both wcc and vc6.
+	- Fixed a bug in the splines derivative calculation code which caused out of array bounds write.
+	- Changed external assembly functions naming convention to support both wcc and vc6.
 	- Fixed bug caused by assuming char type to be unsigned.
 	- Added support for the win32 platform in the demo.
 	- Added support for GDI-based display.
@@ -139,14 +139,14 @@ material global ID or ptr
 	- Added Wobbler(Grid renderer) support in arbitrary resolution.
 	- Added automatic Mipmap generation for textures
 	- Changed sprite scaling to be proportional to the display resolution.
-	- Changed Flare generation code to be invarient of target image resolution.
+	- Changed Flare generation code to be invariant of target image resolution.
 	- Improved Flare generation parameters.
 	- Fixed Far Z frustrum clipping.
 	- Changed application of fog to the pre-filler stage.
 	- Added a fogged version for transparent textured surfaces. (two-pass prefiller)
 	- Changed automatic flare image generation to globally used single flare
 	- Changed Distortion parameters for CITY demo part.
-	- Added 32x32 MMX-based point filtering shaded-addative image scaler.
+	- Added 32x32 MMX-based point filtering shaded-additive image scaler.
 	- Added Skycube generation code to FDS.
 	- Added support for particle global and omnilight interpolated size in scaler (prefiller)
 	- Added support for particle color before calling the 32x32 shaded scaler.
@@ -171,8 +171,8 @@ material global ID or ptr
 	- Added DirectDraw 6 windowed/fullscreen support
 
 	13/02/02
-	- Fixed Framerate dependancy in GLAT demo part.
-	- Seperated initialization sequence in the GLAT demo part.
+	- Fixed Framerate dependency in GLAT demo part.
+	- Separated initialization sequence in the GLAT demo part.
 	- Fixed a bug in the page modulation routine.
 	- Adjusted outer particle generation and rendering parameters in FOUNTAIN demo part.
 	- Added Motion blur to FOUNTAIN demo part.
@@ -187,8 +187,8 @@ material global ID or ptr
 	15/02/02
 	- Added Direct3D 8 windowed/fullscreen support [inoperative]
 	- Attempted to correct DirectX memory allocation errors. Those also occur in
-	  MSR_Proj and when using DX8, and dont appear to cause anything to malfunction. 
-	  It seems to be associated with usage of two seperate threads within the program's 
+	  MSR_Proj and when using DX8, and don't appear to cause anything to malfunction.
+	  It seems to be associated with usage of two separate threads within the program's
 	  scope, or the order by which the system is shut down.
 
 	18/02/02
@@ -209,7 +209,7 @@ material global ID or ptr
 	- Fixed bounding sphere / frustrum intersection tests.
 	- Fixed Vertex visibility flag calculation across rendering pipeline
 	- Added convex polygon clipper.
-	- Added modifyable near-Z clipping plane support.
+	- Added modifiable near-Z clipping plane support.
 
 	01/04/02
 	- Fixed ZBuffer interpolation errors
@@ -262,7 +262,7 @@ material global ID or ptr
 	
 	19/04/02
 	- Added support for single (central) Z-compare for particles and flares.
-	- Changed Face structure to allow convinient storage of flare related information
+	- Changed Face structure to allow convenient storage of flare related information
 	- Fixed bug in GLATO demo part when YRes isn't a multiple of 8.
 	- Added new C functions for wobbler f/x used in GLATO demo part.
 
@@ -297,7 +297,7 @@ material global ID or ptr
 
 	04/07/02
 	- Added full texture coordinate interpolation in IXTGZM mapper.
-	- IXTGZM : Gouraud only, 20M pixels/second, 40% of the maximal temporal bus write.
+	- IXTGZM : Gouraud only, 20M pixels/second, 40% of the maximal temporal bus write. (Pentium 3 700MHZ?)
 
 	22/07/02
 	- Fixed texture coordinate interpolation bug
@@ -323,7 +323,7 @@ material global ID or ptr
 	+ SSE'ed the lighting model code
 		- flip was marked as the next target :)
 	- Added 1 bit of Zbuffer interpolation precision by rounding instead of truncation
-	- Added a convinient aligned memory allocator, aligned texture addrs to 64
+	- Added a convenient aligned memory allocator, aligned texture addrs to 64
 
 	- HUGE LAZYNESS STRIKE 
 
@@ -410,12 +410,12 @@ material global ID or ptr
 		of v.high overdraw sprite rendering. 
 
     27.07.02
-		try using a seperate doublepixel (320x240) surface to draw all flares on, and
+		try using a separate doublepixel (320x240) surface to draw all flares on, and
 		then use 'bilinear' addative x2 image enlargement to write all contents 
 		to framebuffer. this means spriters are going to support variable zBuffer ptrs.
 
 		SSE the transform pipeline.
-		seperate clipping flags calc from xforming
+		separate clipping flags calc from xforming
 
     02.08.02
 	    write nonaligned bounding boxes
@@ -460,11 +460,12 @@ material global ID or ptr
 
 ******************************************************************************/
 #define POINTER_64
-#include "Rev.H"
-#include "Fillertest.h"
+#include "REV.H"
+#include "FillerTest.h"
 #include "ImageCompression.h"
 #include "PhotonTracer.h"
 #include <float.h>
+#include <Base/TriMesh.h>
 #include "Config.h"
 //#include "FModWrapper.h"
 
@@ -600,8 +601,8 @@ void SysSleep(dword ticks)
 #endif
 
 
-#ifdef _C_VC6
-#include "GDI.h"
+#ifdef WIN32
+#include "GDI.H"
 #include "DDRAW.h"
 #include "D3D8.h"
 
@@ -610,7 +611,7 @@ DWORD Stub_Disable;
 
 static MMRESULT TimerID = 0; //MM Timer Handle
 static long Timer__NA = -1;
-static volatile long *TimerPtr = &Timer;
+static volatile int32_t *TimerPtr = &Timer;
 
 static HINSTANCE G_hInst;
 static HWND G_hWnd;
@@ -1255,7 +1256,7 @@ void Run_RainFX()
 	initrain();
 
 	// motion blur trash
-	char *BPage = new char[PageSize];
+	byte *BPage = new byte[PageSize];
 	VESA_Surface Blur;
 	memcpy(&Blur,MainSurf,sizeof(VESA_Surface));
 	Blur.Data = BPage;
@@ -1293,7 +1294,7 @@ void Run_RainFX()
 		}
 	} Timer -= PartTime;
 
-	delete BPage;
+	delete [] BPage;
 }
 
 

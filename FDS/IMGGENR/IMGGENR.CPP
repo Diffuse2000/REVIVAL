@@ -1,13 +1,14 @@
 // Image Generation Routines
 
-#include <StdIO.H>
-#include <StdLib.H>
-#include <Math.H>
-#include <String.H>
-#include <DOS.H>
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <dos.h>
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
+#include "Base/Omni.H"
 
 dword WobNumOfHorizontalBlocks;
 dword WobNumOfVerticalBlocks;
@@ -32,7 +33,7 @@ float WRFOV;
 
 void New_Image(Image *Img,long X,long Y)
 {
-	Img->x = X; Img->y = Y; Img->Data = new DWord[X*Y];
+	Img->x = X; Img->y = Y; Img->Data = (DWord *)_aligned_malloc(sizeof(DWord)*X*Y, 16);
 }
 
 // Return Pseudorandom value between -1 and 1. Requires a polynomial
@@ -307,17 +308,17 @@ void Fract_Noise(long X1,long Y1,long X2,long Y2)
 	byte C11,C12,C21,C22;
 	
 	if (X2-X1<2&&Y2-Y1<2) return;
-	X = X1+X2>>1;
-	Y = Y1+Y2>>1;
+	X = (X1+X2)>>1;
+	Y = (Y1+Y2)>>1;
 	C11 = FrcNoise[(X1+Y1*FN_X)<<2];
 	C12 = FrcNoise[(X2+Y1*FN_X)<<2];
 	C21 = FrcNoise[(X1+Y2*FN_X)<<2];
 	C22 = FrcNoise[(X2+Y2*FN_X)<<2];
-	if (!FrcNoise[(X+Y1*FN_X)<<2]) FrcNoise[(X+Y1*FN_X)<<2] = Linear_Rand(C11+C12>>1,(X2-X1)*FrcNoise_Grain);
-	if (!FrcNoise[(X2+Y*FN_X)<<2]) FrcNoise[(X2+Y*FN_X)<<2] = Linear_Rand(C12+C22>>1,(Y2-Y1)*FrcNoise_Grain);
-	if (!FrcNoise[(X+Y2*FN_X)<<2]) FrcNoise[(X+Y2*FN_X)<<2] = Linear_Rand(C22+C21>>1,(X2-X1)*FrcNoise_Grain);
-	if (!FrcNoise[(X1+Y*FN_X)<<2]) FrcNoise[(X1+Y*FN_X)<<2] = Linear_Rand(C21+C11>>1,(Y2-Y1)*FrcNoise_Grain);
-	if (!FrcNoise[(X+Y *FN_X)<<2]) FrcNoise[(X+Y*FN_X)<<2] = C11+C12+C21+C22>>2;//Linear_Rand(C11+C12+C21+C22>>2,(X2-X1)*FrcNoise_Grain*0.5);
+	if (!FrcNoise[(X+Y1*FN_X)<<2]) FrcNoise[(X+Y1*FN_X)<<2] = Linear_Rand((C11+C12)>>1,(X2-X1)*FrcNoise_Grain);
+	if (!FrcNoise[(X2+Y*FN_X)<<2]) FrcNoise[(X2+Y*FN_X)<<2] = Linear_Rand((C12+C22)>>1,(Y2-Y1)*FrcNoise_Grain);
+	if (!FrcNoise[(X+Y2*FN_X)<<2]) FrcNoise[(X+Y2*FN_X)<<2] = Linear_Rand((C22+C21)>>1,(X2-X1)*FrcNoise_Grain);
+	if (!FrcNoise[(X1+Y*FN_X)<<2]) FrcNoise[(X1+Y*FN_X)<<2] = Linear_Rand((C21+C11)>>1,(Y2-Y1)*FrcNoise_Grain);
+	if (!FrcNoise[(X+Y *FN_X)<<2]) FrcNoise[(X+Y*FN_X)<<2] = (C11+C12+C21+C22)>>2;//Linear_Rand(C11+C12+C21+C22>>2,(X2-X1)*FrcNoise_Grain*0.5);
 	
 	Fract_Noise(X1,Y1,X,Y);
 	Fract_Noise(X,Y1,X2,Y);
@@ -894,9 +895,9 @@ void Grid_Texture_Mapper_TV(char *Texture, GridPointT *Points, char *VirScr)
 			mov		  [Delta_Right_U], ecx
 			mov		  [Delta_Right_V], edx
 
-			mov[PointsList], esi
+			mov [PointsList], esi
 			mov edi, [ScanLine]
-			mov[Counter], 8
+			mov [Counter], 8
 			Inner8:
 			mov eax, [Left_U]
 			mov ebx, [Left_V]
@@ -906,15 +907,15 @@ void Grid_Texture_Mapper_TV(char *Texture, GridPointT *Points, char *VirScr)
 			sub edx, ebx
 			sar ecx, 3
 			sar edx, 3
-			mov[du], ecx
-			mov[dv], edx
+			mov [du], ecx
+			mov [dv], edx
 
 			xor edx, edx
 			mov dl, ah
 			mov dh, bh
 			pxor      mm0, mm0
 			mov esi, [Texture]
-			; inner loop(unrolled)
+			// inner loop(unrolled)
 
 			movd		mm0, [esi + edx * 4]
 			add			eax, [du]
@@ -968,8 +969,8 @@ void Grid_Texture_Mapper_TV(char *Texture, GridPointT *Points, char *VirScr)
 			movd		mm0, [esi + edx * 4]
 			movd		[edi + 28], mm0
 
-			; inner loop end(unrolled)
-			; sub		  edi, 32
+			// inner loop end(unrolled)
+			// sub		  edi, 32
 			add       edi, [MMXWobBPSL]
 			mov       eax, [Left_U]
 			mov       ebx, [Left_V]
@@ -1339,11 +1340,11 @@ void Grid_Texture_Mapper_TGV_XMM(char *Texture, GridPointTG *Points, char *VirSc
 			mov		  [Delta_Right_U], ecx
 			mov		  [Delta_Right_V], edx
 
-			; MMX stuff
-			; MM4 - Left RGBA
-			; MM5 - Delta Left RGBA
-			; MM6 - Right RGBA
-			; MM7 - Delta Right RGBA
+			//; MMX stuff
+			//; MM4 - Left RGBA
+			//; MM5 - Delta Left RGBA
+			//; MM6 - Right RGBA
+			//; MM7 - Delta Right RGBA
 			movq	mm4, [esi + RGBA_ofs]; Left RGBA
 			movq	mm5, [esi + edi + RGBA_ofs]; Bottom Left RGBA
 			psubw	mm5, mm4
@@ -1352,16 +1353,16 @@ void Grid_Texture_Mapper_TGV_XMM(char *Texture, GridPointTG *Points, char *VirSc
 			movq    mm7, [esi + edi + ElementSize + RGBA_ofs]; Bottom Right RGBA
 			psubw	mm7, mm6
 			psraw	mm7, 3
-			; movdqa[DULC], xmm5
-			; movdqa[DURC], xmm7
+			//; movdqa[DULC], xmm5
+			//; movdqa[DURC], xmm7
 
-			mov[PointsList], esi
+			mov [PointsList], esi
 			mov edi, [ScanLine]
-			mov[Counter], 8
+			mov [Counter], 8
 			Inner8:
-			; MMX stuff
-				; MM2 - Left RGBA
-				; MM3 - Delta RGBA
+			//; MMX stuff
+			//	; MM2 - Left RGBA
+			//	; MM3 - Delta RGBA
 				movq	mm2, mm4
 				movq	mm3, mm6
 				psubw   mm3, mm2
@@ -1542,7 +1543,7 @@ void Grid_Texture_Mapper_TGV_XMM(char *Texture, GridPointTG *Points, char *VirSc
 void Setup_Grid_Texture_Mapper_MMX(dword xres, dword yres)
 {
 	MMXWobNumOfHorizontalBlocks = (xres / Grid_Subsamp);
-	MMXWobNumOfVerticalBlocks = (yres / Grid_Subsamp) - 1;
+	MMXWobNumOfVerticalBlocks = (yres / Grid_Subsamp);
 	MMXWobBlockJump = 7 * CPP * xres;
 	MMXWobBPSL = xres * CPP;
 }
@@ -1962,9 +1963,9 @@ void Affine_Wobbler(GridPoint *Target_GP,float Ang,float Zoom,float XO,float YO)
 		X = -32768;
 		for(I=0;I<Grid_X;I++)
 		{
-			GP->U = (*Ptr++)*X+(*Ptr++)*Y+XO;
-			GP->V = (*Ptr++)*X+(*Ptr)*Y+YO;
-			Ptr -= 3;
+			GP->U = (*(Ptr+1))*X+(*(Ptr+2))*Y+XO;
+			GP->V = (*(Ptr+3))*X+(*Ptr)*Y+YO;
+			//Ptr -= 3;
 			X += dX;
 			GP++;
 		}

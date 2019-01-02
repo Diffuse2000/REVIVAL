@@ -3,23 +3,22 @@
 		 -------------------------------------------------
 */
 
-#include <STDIO.H>
-#include <DOS.H>
-#include <STDLIB.H>
-#include <CONIO.H>
-#include <STRING.H>
-#include <MATH.H>
+#include <stdio.h>
+#include <dos.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <string.h>
+#include <math.h>
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
-#include "LWRead.H"
-#include "FLD_Read.H"
-
+#include "LWREAD.H"
+#include "FLD_READ.H"
 //#define DebugMode
 
-void AddMaterial(FldMat *OrgMat,Scene *SceneGroup)
+void AddMaterial(FldMat *OrgMat, Scene *SceneGroup)
 {
 	Material *Temp;
 	char *Image;

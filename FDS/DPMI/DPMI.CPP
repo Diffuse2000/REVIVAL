@@ -16,7 +16,7 @@
 //                   For some reason, modular unit takes 32Kb without giving it back
 //                   in the end of the dealloc process.
 
-#include "..\FDS_Decs.H"
+#include "Base/FDS_DECS.H"
 
 
 Module_MB *DPMI_Core;
@@ -804,12 +804,11 @@ void Init_Aligned(long Amount)
 	AlignedPtr = (char *) (  ((dword)AlignedBuffer + 65535) & (~65535));
 }
 
-char * Get_Aligned_Block()
+void * Get_Aligned_Block()
 {
 	char *r = AlignedPtr;
 	AlignedPtr += 65536;
 	return r;
-	
 }
 
 #endif

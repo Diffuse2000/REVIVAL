@@ -1,16 +1,16 @@
-#include <String.H>
-#include <StdIO.H>
-#include <StdLib.H>
-#include <ConIO.H>
-#include <Math.H>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <math.h>
 
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
-#include "..\FDS_Defs.H"
+#include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
+#include "Base/FDS_DEFS.H"
 
 float _t_fxfl;
 
-DWord _t_sqrttab[] =
+DWord _t_sqrttab[4096] =
 {
    0x000000,0x000800,0x000fff,0x0017fe,0x001ffc,0x0027fa,0x002ff7,0x0037f4,
    0x003ff0,0x0047ec,0x004fe7,0x0057e2,0x005fdc,0x0067d6,0x006fcf,0x0077c8,
@@ -526,7 +526,7 @@ DWord _t_sqrttab[] =
    0x7fbff8,0x7fc7fa,0x7fcffb,0x7fd7fd,0x7fdffe,0x7fe7ff,0x7fefff,0x7ff800
 };
 
-DWord _t_rsqrttab[] =
+DWord _t_rsqrttab[4096] =
 {
    0x000000,0x7ff001,0x7fe006,0x7fd00d,0x7fc018,0x7fb025,0x7fa036,0x7f9049,
    0x7f8060,0x7f7079,0x7f6095,0x7f50b5,0x7f40d7,0x7f30fc,0x7f2124,0x7f114f,
@@ -1078,7 +1078,7 @@ DWord _t_exptab[] =
    0x5d800000,0x5e000000,0x5e000000,0x5e800000,0x5e800000,0x5f000000,0x5f000000,0x5f800000
 };
 
-DWord _t_rexptab[] =
+DWord _t_rexptab[4096] =
 {
 	 0x5f000000,0x5e800000,0x5e800000,0x5e000000,0x5e000000,0x5d800000,0x5d800000,0x5d000000,
    0x5d000000,0x5c800000,0x5c800000,0x5c000000,0x5c000000,0x5b800000,0x5b800000,0x5b000000,

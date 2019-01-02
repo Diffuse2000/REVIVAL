@@ -1,5 +1,13 @@
-#ifndef _FDS_DEFS_H_INCLUDED_
-#define _FDS_DEFS_H_INCLUDED_
+#ifndef FDS_DEFS_H_INCLUDED
+#define FDS_DEFS_H_INCLUDED
+
+// basic ANSI-C includes.
+#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
 
 // Enivronmental IDs (Not used for now,only works for dos32/watcom)
 #define _O_DOS32 //DOS PROTECTED MODE RUNTIME
@@ -7,7 +15,9 @@
 //#define _O_UNIX //UNIX TASK
 //#define _C_WATCOM //Compiles under WATCOM C
 //#define _C_GCC //Compiles under G.C.C. (or DJGPP)
-#define _C_VC6 //Compiles under Visual C
+//#define WIN32 //Compiles under Visual C 6.0
+
+#define MAX_GSTRING 128
 
 // Unit IDs
 #define _KERNEL_ID          0
@@ -53,6 +63,7 @@
 #define VSurf_Windowed    0x0008 //Surface is bounded by a window.
 #define VSurf_EffScreen   0x0010 //Surface used exclusively as a screen
 #define VSurf_Nonexist    0x0020 //Fatal: don't use the surface
+#define VSurf_Locked	  0x0040 //data pointer invalid unless surface is LOCKED or in system memory.
 
 // Video Driver ID's
 #define VGA_ID  0x0100
@@ -61,8 +72,10 @@
 
 // Mathematic Constants.
 #define PI_M2            6.28318530716
+#define TWOPI			 6.28318530716
 #define PI               3.14159265358
 #define PI_D2            1.57079632679
+#define HALFPI			 1.57079632679
 #define EX               2.71828182846
 #define EPSILON          0.000001
 
@@ -80,9 +93,22 @@
 #define Obj_Ambient      255
 
 // Scene Flags
-#define Scn_Nolighting   0x0001
-#define Scn_Stationary   0x0002
-#define Scn_Fogged       0x0004
+enum SceneFlags
+{
+	Scn_Nolighting		= 1 << 0,
+	Scn_Stationary		= 1 << 1,
+	Scn_Fogged			= 1 << 2,
+	Scn_ZBuffer			= 1 << 3,
+
+	// This flag is set the first time lighting is applied to the scene using the Lighting()
+	// function. at this point the StaticLighting() function is called to precalculate all
+	// stationary lighting onto stationary objects.
+	Scn_StaticLighting	= 1 << 4,
+
+	// enables TBR (Tile-based rendering) for sprites (particles, flares). This should be
+	// more efficient when such particles have a large overdraw factor.
+	Scn_SpriteTBR		= 1 << 5,
+};
 
 // Hide Track Enumeration.
 #define HTrack_Visible   1
@@ -96,19 +122,45 @@
 #define Mat_TwoSided     0x0010
 #define Mat_Transparent  0x0020
 
+#define DEFAULT_BLOCKSIZEX 2
+#define DEFAULT_BLOCKSIZEY 2
+enum TEXTURE_FLAGS
+{
+	Txtr_Tiled	= 1 << 0,
+	Txtr_Nomip  = 1 << 1,
+};
+
 // TriMesh Flags.
 // First Bit: Reserved for Hide Track interpolation
-#define Tri_Invisible    0x0002 //all of the trimesh is invisible to camera
-#define Tri_Processed    0x0004 //already calculated stuff for this trimesh
-#define Tri_Ahead        0x0008 //all of the trimesh is ahead of the camera
-#define Tri_Inside       0x0010 //all of the trimesh is inside the frustrum
-#define Tri_Noshading    0x0020 //no face in the trimesh requires lighting
-#define Tri_Notexture    0x0040 //no face in the trimesh has a texture
-#define Tri_Phong        0x0080 //Trimesh is rendered via blinn-phong mapping
-#define Tri_EdgeError    0x0100 //Fails to be fitted with Winged edges
-#define Tri_Closed       0x0200 //Trimesh is completely Closed(has a volume)
-#define Tri_Possessed    0x0400 //Trimesh serves a Creature(no spline anim.)
-#define Tri_Euler        0x0800 //Euler interpolation Method
+enum TrimeshFlags
+{
+	Tri_Invisible		= 1 << 1,  //all of the trimesh is invisible to camera
+	Tri_Processed		= 1 << 2,  //already calculated stuff for this trimesh
+	Tri_Ahead			= 1 << 3,  //all of the trimesh is ahead of the camera
+	Tri_Inside			= 1 << 4,  //all of the trimesh is inside the frustrum
+	Tri_Noshading		= 1 << 5,  //no face in the trimesh requires lighting
+	Tri_Notexture		= 1 << 6,  //no face in the trimesh has a texture
+	Tri_Phong			= 1 << 7,  //Trimesh is rendered via blinn-phong mapping
+	Tri_EdgeError		= 1 << 8,  //Fails to be fitted with Winged edges
+	Tri_Closed			= 1 << 9,  //Trimesh is completely Closed(has a volume)
+	Tri_Possessed		= 1 << 10, //Trimesh serves a Creature(no spline anim.)
+	Tri_Euler			= 1 << 11, //Euler interpolation Method
+	Tri_AlignToPath		= 1 << 12, //Rotation/Position Path alignment
+	Tri_Radiosity		= 1 << 13, //Trimesh is rendered using Radiosity Methods
+
+	// This flag indicates the trimesh has a fixed position throughout scene runtime.
+	// It is set by the scene loader. Manual removal of this flag should be made prior to
+	// scene Preprocess routine. 
+	Tri_Stationary		= 1 << 14,
+};
+
+enum SortPriority
+{
+	SP_Normal = 0,
+	SP_DrawFirst = 1,
+	SP_DrawLast = 2
+};
+
 
 #define Cam_Euler        0x0001
 
@@ -132,9 +184,12 @@
 #define Face_VWrap       0x0004
 #define Face_TwoSided    0x0008
 #define Face_Transparent 0x0010
+#define Face_PointZTest  0x0020
 
 // Camera Flags.
 #define Cam_Euler        0x0001
+
+#define Particle_Active  0x0001
 
 // Key Scancodes.
 #define ScESC 1
@@ -223,16 +278,14 @@
 #define ScIns 82
 #define ScDel 83
 
-//#define Play_Music
-
 #define Swap_YZ           // All Ys and Zs in 3DS reader will be swapped
 #define UV_Wrapping       // Use Mapping coordinate Wrapping
 #define UVFlip 0.8        // Flip U or V on maximum difference of..
 //#define SpanBuffer      // Use Span-Buffer
 //#define DebugMode       // Show all data when it is created/read
 //#define DebugStructs    // Display data structures, after reading meshes
-//#define RUNTIME_INFO_L1 // Runtime info level 1
-#define RUNTIME_INFO_L2 // Runtime info level 2
+#define RUNTIME_INFO_L1 // Runtime info level 1
+//#define RUNTIME_INFO_L2 // Runtime info level 2
 //#define RUNTIME_INFO_L3 // Runtime info level 3
 
 #ifdef RUNTIME_INFO_L3
@@ -242,7 +295,26 @@
 #define RUNTIME_INFO_L1
 #endif
 
-#define FDS_Version "0.76"
+
+/*
+	FDS version 0.85 (last change: Silvatar, 05.07.02)
+	
+	v0.9: 
+	- mappers with optimized MMX/SSE assembly; optimized software T&L.
+	- upgraded class scene representation, operative full scene convertion
+	- modular software renderer
+	v1.0:
+	- render using hardware APIs.
+	- 3dsmax exporter plugin
+	- full code cleanup
+*/
+#define FDS_Version "0.85" 
+
+#define Tex_Default_Size 256
+
+#define TAS_256x256 0
+#define TAS_Arbitrary 1
+#define TAS_Disable 2
 
 // Geometric code definitions
 #define Poly_CoPlanar 0x01
@@ -251,23 +323,44 @@
 #define TriMesh_Abnormal 0x01
 #define TriMesh_Convex 0x02
 
-#define Flare_LightSource 0x01
-#define Flare_Iguladim 0x02
+enum OmniFlags
+{
+	// 1<<0 used by HTrack_Visible
 
+	// if this flag is clear, the omni will be ignored by the std. rendering pipeline
+	Omni_Active		= 1<<1, 
 
+	// omnilight will be rendered as a simple lens flare
+	Omni_Flare		= 1<<2, 
 
+	// depth rejection is based only on central point
+	Omni_PointFlare	= 1<<3, 
+
+	// If this flag is set, the omnilight is used during Radiosity-based precalculations.
+	// uh-huh
+	Omni_Radiosity	= 1<<4,
+
+	// This flag indicates the light source has a fixed position throughout scene runtime.
+	// It is set by the scene loader. Manual removal of this flag should be made prior to
+	// scene Preprocess routine. 
+	Omni_Stationary = 1<<5,
+
+	Omni_Rand = 1 << 6,
+};
 
 //MACROS
 #define RGB32(R,G,B) ((R<<16)+(G<<8)+B)
 #define RGB16(R,G,B) (((R>>3)<<11)+((G>>2)<<5)+(B>>3))
 #define Sqr(X)       ((X)*(X))
 
-#ifdef _C_WATCOM
-#endif
-#ifdef _C_VC6
-#endif
-
 // Table generator flags
 #define TblMod_Made 0x0001
 
-#endif //_FDS_DEFS_H_INCLUDED_
+#ifdef WIN32
+// ignorance is bliss
+#pragma warning(disable : 4103)
+#pragma warning(disable : 4731)
+#endif
+
+
+#endif //FDS_DEFS_H_INCLUDED

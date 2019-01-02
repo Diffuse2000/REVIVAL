@@ -382,9 +382,9 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 //			_dv = (_v1 - _v0) * iWidth;
 //			_dZ = (_Z1 - _Z0) * iWidth;
 //		} else {
-		_du = _u1 - _u0 >> L2SPANSIZE;
-		_dv = _v1 - _v0 >> L2SPANSIZE;
-		_dZ = _Z1 - _Z0 >> L2SPANSIZE;
+		_du = (_u1 - _u0) >> L2SPANSIZE;
+		_dv = (_v1 - _v0) >> L2SPANSIZE;
+		_dZ = (_Z1 - _Z0) >> L2SPANSIZE;
 //		}
 		
 		while (SpanWidth--)
@@ -505,9 +505,9 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 //			_dv = (_v1 - _v0) * iWidth;
 //			_dZ = (_Z1 - _Z0) * iWidth;
 //		} else {
-		_du = _u1 - _u0 >> L2SPANSIZE;
-		_dv = _v1 - _v0 >> L2SPANSIZE;
-		_dZ = _Z1 - _Z0 >> L2SPANSIZE;
+		_du = (_u1 - _u0) >> L2SPANSIZE;
+		_dv = (_v1 - _v0) >> L2SPANSIZE;
+		_dZ = (_Z1 - _Z0) >> L2SPANSIZE;
 //		}
 		
 		while (SpanWidth--)
