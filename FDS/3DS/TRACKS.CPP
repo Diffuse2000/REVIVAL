@@ -1,8 +1,12 @@
 #include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 #include "I_defs.h"
 #include "FUtils.h"
+#include "Base/SpotLight.h"
+#include "Base/Scene.h"
 
 // Low-level Animation Tracks Reader, Format: 3DS ver 4.0
+extern FILE *IN_3DS;     // This is the File handle which will be used
 
 
 void ReadTrackHeader(Word *Keys,Word *Flags)
@@ -56,7 +60,8 @@ void ReadPositionTrack(unsigned int EndPos)
     Read(&Frame,2);
     Read(&TrackFlag,2);
     ReadSplineFlags(SplineFlags);
-    Read(&Position,sizeof(Vector));
+    //Read(&Position,sizeof(Vector));
+	Position.Read(IN_3DS);
     SwapYZ(&Position);
     Spline_SetKey_3D(&Pos,&Position,Frame,SplineFlags);
   }
@@ -96,7 +101,8 @@ void ReadScaleTrack(unsigned int EndPos)
     Read(&Frame,2);
     Read(&TrackFlag,2);
     ReadSplineFlags(SplineFlags);
-    Read(&Scale,sizeof(Vector));
+    //Read(&Scale,sizeof(Vector));
+	Scale.Read(IN_3DS);
     SwapYZ(&Scale);
     Spline_SetKey_3D(&T->Scale,&Scale,Frame,SplineFlags);
   }
@@ -318,7 +324,8 @@ void ReadPivotPoint(unsigned int EndPos)
   TriMesh *T = (TriMesh *)Cur_Key->Object->Data;
   Vertex *Vtx = T->Verts ,*VE = Vtx + T->VIndex;
 
-  Read(&Pivot,sizeof(Vector));
+  //Read(&Pivot,sizeof(Vector));
+  Pivot.Read(IN_3DS);
   SwapYZ(&Pivot);
   for (;Vtx<VE;Vtx++)
     Vector_SelfSub(&Vtx->Pos,&Pivot);

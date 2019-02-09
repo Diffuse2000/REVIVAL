@@ -1,6 +1,7 @@
 #include "I_defs.h"
 #include "FUtils.h"
 #include "Base/FDS_VARS.H"
+#include "Base/FDS_DECS.H"
 
 // Material Library Reader, Format: 3DS ver 4.0
 void ReadMaterialName(unsigned int EndPos)

@@ -1372,11 +1372,11 @@ void CodeEntry(void *var)
 	g_RevModuleHandle = sh;
 
 	Initialize_Glato(); //9.3
-	Initialize_City(); //9.3
-	Initialize_Chase();
-	Initialize_Fountain(); //8.3
-	Initialize_Crash();
-	Initialize_Greets(); //5.6
+	//Initialize_City(); //9.3
+	//Initialize_Chase();
+	//Initialize_Fountain(); //8.3
+	//Initialize_Crash();
+	//Initialize_Greets(); //5.6
 	//Initialize_Nova();
 	
 //	Initialize_Koch();
@@ -1396,22 +1396,22 @@ void CodeEntry(void *var)
 	while (Timer<4000);
 	Timer = 0;
 	if (Timer<=0) Timer = 1;
-	Run_City();
-	SavePolyStats("City.stat");
-
-	if (Timer <= 0) Timer = 1;
-	Run_Chase();
-
-	if (Timer<=0) Timer = 1;
-	Run_Fountain();
-
-//	SavePolyStats("Fountain.stat");
-	if (Timer<=0) Timer = 1;
-	Run_Greets();
-	
-	if (Timer <= 0) Timer = 1;
-	Timer = 1;
-	Run_Crash();
+	//Run_City();
+//	SavePolyStats("City.stat");
+//
+//	if (Timer <= 0) Timer = 1;
+//	Run_Chase();
+//
+//	if (Timer<=0) Timer = 1;
+//	Run_Fountain();
+//
+////	SavePolyStats("Fountain.stat");
+//	if (Timer<=0) Timer = 1;
+//	Run_Greets();
+//	
+//	if (Timer <= 0) Timer = 1;
+//	Timer = 1;
+//	Run_Crash();
 
 	//	SavePolyStats("Greets.stat");
 //	Run_RainFX();

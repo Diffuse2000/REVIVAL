@@ -1109,7 +1109,8 @@ void Grid_Texture_Mapper_TGV(char *Texture,GridPointTG *Points,char *VirScr)
 			mov	[PointsList], esi
 			mov edi, [ScanLine]
 			mov	[Counter], 8
-			Inner8:
+
+Inner8:
 			; MMX stuff
 				; MM2 - Left RGBA
 				; MM3 - Delta RGBA
@@ -1134,92 +1135,100 @@ void Grid_Texture_Mapper_TGV(char *Texture,GridPointTG *Points,char *VirScr)
 
 				mov esi, [Texture]
 				; inner loop(unrolled)
-
+				mov ecx,4
+				ALIGN 16
+		Inner:
 				punpcklbw	mm0, [esi + edx * 4]
-				psrlw		mm0, 8
-				pmulhuw		mm0, mm2
 				add			eax, [du]
 				add			ebx, [dv]
 				mov			dl, ah
 				mov			dh, bh
+				psrlw		mm0, 8
+				pmulhuw		mm0, mm2
 				paddw		mm2, mm3
 
 				punpcklbw	mm1, [esi + edx * 4]
+				add			eax, [du]
+				add			ebx, [dv]
+				mov			dl, ah
+				mov			dh, bh
 				psrlw		mm1, 8
 				pmulhuw		mm1, mm2
 				psllw		mm0, 1
 				psllw		mm1, 1
 				packuswb	mm0, mm1
 				movq		[edi], mm0
-				add			eax, [du]
-				add			ebx, [dv]
-				mov			dl, ah
-				mov			dh, bh
+
+				add edi, 8
+
 				paddw		mm2, mm3
 
-				punpcklbw	mm0, [esi + edx * 4]
-				psrlw		mm0, 8
-				pmulhuw		mm0, mm2
-				add			eax, [du]
-				add			ebx, [dv]
-				mov			dl, ah
-				mov			dh, bh
-				punpcklbw	mm1, [esi + edx * 4]
-				paddw		mm2, mm3
+				dec ecx
+				jnz Inner
 
-				psrlw		mm1, 8
-				pmulhuw		mm1, mm2
-				psllw		mm0, 1
-				psllw		mm1, 1
-				packuswb	mm0, mm1
-				movq		[edi + 8], mm0
-				add			eax, [du]
-				add			ebx, [dv]
-				mov			dl, ah
-				mov			dh, bh
-				paddw		mm2, mm3
+				//punpcklbw	mm0, [esi + edx * 4]
+				//psrlw		mm0, 8
+				//pmulhuw		mm0, mm2
+				//add			eax, [du]
+				//add			ebx, [dv]
+				//mov			dl, ah
+				//mov			dh, bh
+				//punpcklbw	mm1, [esi + edx * 4]
+				//paddw		mm2, mm3
 
-				punpcklbw	mm0, [esi + edx * 4]
-				psrlw		mm0, 8
-				pmulhuw		mm0, mm2
-				add			eax, [du]
-				add			ebx, [dv]
-				mov			dl, ah
-				mov			dh, bh
-				paddw		mm2, mm3
+				//psrlw		mm1, 8
+				//pmulhuw		mm1, mm2
+				//psllw		mm0, 1
+				//psllw		mm1, 1
+				//packuswb	mm0, mm1
+				//movq		[edi + 8], mm0
+				//add			eax, [du]
+				//add			ebx, [dv]
+				//mov			dl, ah
+				//mov			dh, bh
+				//paddw		mm2, mm3
 
-				punpcklbw	mm1, [esi + edx * 4]
-				psrlw		mm1, 8
-				pmulhuw		mm1, mm2
-				psllw		mm0, 1
-				psllw		mm1, 1
-				packuswb	mm0, mm1
-				movq		[edi + 16], mm0
-				add			eax, [du]
-				add			ebx, [dv]
-				mov			dl, ah
-				mov			dh, bh
-				paddw		mm2, mm3
+				//punpcklbw	mm0, [esi + edx * 4]
+				//psrlw		mm0, 8
+				//pmulhuw		mm0, mm2
+				//add			eax, [du]
+				//add			ebx, [dv]
+				//mov			dl, ah
+				//mov			dh, bh
+				//paddw		mm2, mm3
 
-				punpcklbw	mm0, [esi + edx * 4]
-				psrlw		mm0, 8
-				pmulhuw		mm0, mm2
-				add			eax, [du]
-				add			ebx, [dv]
-				mov			dl, ah
-				mov			dh, bh
-				paddw		mm2, mm3
+				//punpcklbw	mm1, [esi + edx * 4]
+				//psrlw		mm1, 8
+				//pmulhuw		mm1, mm2
+				//psllw		mm0, 1
+				//psllw		mm1, 1
+				//packuswb	mm0, mm1
+				//movq		[edi + 16], mm0
+				//add			eax, [du]
+				//add			ebx, [dv]
+				//mov			dl, ah
+				//mov			dh, bh
+				//paddw		mm2, mm3
 
-				punpcklbw	mm1, [esi + edx * 4]
-				psrlw		mm1, 8
-				pmulhuw		mm1, mm2
-				psllw		mm0, 1
-				psllw		mm1, 1
-				packuswb	mm0, mm1
-				movq		[edi + 24], mm0
+				//punpcklbw	mm0, [esi + edx * 4]
+				//psrlw		mm0, 8
+				//pmulhuw		mm0, mm2
+				//add			eax, [du]
+				//add			ebx, [dv]
+				//mov			dl, ah
+				//mov			dh, bh
+				//paddw		mm2, mm3
+
+				//punpcklbw	mm1, [esi + edx * 4]
+				//psrlw		mm1, 8
+				//pmulhuw		mm1, mm2
+				//psllw		mm0, 1
+				//psllw		mm1, 1
+				//packuswb	mm0, mm1
+				//movq		[edi + 24], mm0
 
 				; inner loop end(unrolled)
-				; sub		  edi, 32
+				sub		  edi, 32
 				add       edi, [MMXWobBPSL]
 				paddw	  mm4, mm5;	Left RGBA
 				paddw	  mm6, mm7;	Left RGBA

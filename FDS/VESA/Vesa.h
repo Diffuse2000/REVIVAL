@@ -810,22 +810,38 @@ inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarg
 		add esi, ecx
 		add edi, ecx
 		neg ECX
+		Align 16
 		AlphaBlendLoop :
 		punpcklbw xmm1, [esi + ecx]
-			punpcklbw xmm0, [edi + ecx]
-			punpckhbw xmm3, [esi + ecx]
-			punpckhbw xmm2, [edi + ecx]
+		punpcklbw xmm0, [edi + ecx]
+		pmulhuw xmm1, xmm7
+		punpckhbw xmm3, [esi + ecx]
+		pmulhuw xmm0, xmm6
+		pmulhuw xmm3, xmm7
+		punpckhbw xmm2, [edi + ecx]
+		paddusb  xmm1, xmm0
+		pmulhuw xmm2, xmm6
 
-			pmulhuw xmm1, xmm7
-			pmulhuw xmm0, xmm6
-			pmulhuw xmm3, xmm7
-			pmulhuw xmm2, xmm6
+		paddusb  xmm3, xmm2
+		packuswb xmm1, xmm3
+		movdqa [edi + ecx], xmm1
 
-			paddusb  xmm1, xmm0
-			paddusb  xmm3, xmm2
-			packuswb xmm1, xmm3
-			movdqa [edi + ecx], xmm1
-			add ecx, 16
+		punpcklbw xmm1, [esi + ecx + 16]
+		punpcklbw xmm0, [edi + ecx + 16]
+		pmulhuw xmm1, xmm7
+		punpckhbw xmm3, [esi + ecx + 16]
+		pmulhuw xmm0, xmm6
+		pmulhuw xmm3, xmm7
+		punpckhbw xmm2, [edi + ecx + 16]
+		paddusb  xmm1, xmm0
+		pmulhuw xmm2, xmm6
+
+		paddusb  xmm3, xmm2
+		packuswb xmm1, xmm3
+		movdqa[edi + ecx + 16], xmm1
+
+
+		add ecx, 32
 		jnz AlphaBlendLoop
 		popad
 

@@ -9,7 +9,7 @@
 #include "Base/FDS_DEFS.H"
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
-
+#include <smmintrin.h>
 //Externals
 float SinTab[1440];
 float CosTab[1440];
@@ -81,32 +81,39 @@ void Vector_SelfScale(Vector *V,float S)
 	V->z *= S;
 }
 
-// Scales Vector V by S,stores result in W. W can overlap V.
-void Vector_Scale(const Vector *V,float S,Vector *W)
-{
-	W->x = V->x * S;
-	W->y = V->y * S;
-	W->z = V->z * S;
-}
-
 // Returns Vector length of Vector V.
 float Vector_Length(Vector *V)
 {
 	return sqrt(V->x * V->x + V->y * V->y + V->z * V->z);
 }
 
-// Returns the Vector length of Vector V, squared.
-// Equivelent of Dot_Product(V,V)
-float Vector_SelfDot(Vector *V)
-{
-	return V->x * V->x + V->y * V->y + V->z * V->z;
-}
+
+//// Returns the Vector length of Vector V, squared.
+//// Equivelent of Dot_Product(V,V)
+//float Vector_SelfDot(Vector *V)
+//{
+//	return V->x * V->x + V->y * V->y + V->z * V->z;
+//}
 
 // Normalizes Vector V.
 void Vector_Norm(Vector *V)
 {
 	Vector_Scale(V,1.0/Vector_Length(V),V);
 }
+
+
+// Normalizes Vector V.
+//void Vector_Norm(XMMVector *V)
+//{
+//	__m128 v = _mm_load_ps((float *)V);
+////	v = _mm_and_ps(v, mask);
+//	__m128 inverse_norm = _mm_rsqrt_ps(_mm_dp_ps(v, v, 0x77));
+//	v = _mm_mul_ps(v, inverse_norm);
+//	V->x = v.m128_f32[0];
+//	V->y = v.m128_f32[1];
+//	V->z = v.m128_f32[2];
+//	//	Vector_Scale(V,1.0/Vector_Length(V),V);
+//}
 
 // Adds Vectors U+V into W.
 /*void Vector_Add(Vector *U,Vector *V,Vector *W)
@@ -116,12 +123,19 @@ W->y = U->y + V->y;
 W->z = U->z + V->z;
 } */
 
-void Vector_SelfAdd(Vector *U,Vector *V)
-{
-	U->x += V->x;
-	U->y += V->y;
-	U->z += V->z;
-}
+//void Vector_SelfAdd(Vector *U,Vector *V)
+//{
+//	U->x += V->x;
+//	U->y += V->y;
+//	U->z += V->z;
+//}
+//
+//void Vector_SelfAdd(UAVector *U, UAVector *V)
+//{
+//	U->x += V->x;
+//	U->y += V->y;
+//	U->z += V->z;
+//}
 
 // Subtracts Vectors U-V into W.
 /*void Vector_Sub(Vector *U,Vector *V,Vector *W)
@@ -159,11 +173,11 @@ void Vector_LERP(Vector *U,Vector *V,float T,Vector *W)
 	Vector_LComb(U,V,1-T,T,W);
 }
 
-// Returns Dot Product of U and V.
-float Dot_Product(Vector *U,Vector *V)
-{
-	return U->x * V->x + U->y * V->y + U->z * V->z;
-}
+//// Returns Dot Product of U and V.
+//float Dot_Product(Vector *U,Vector *V)
+//{
+//	return U->x * V->x + U->y * V->y + U->z * V->z;
+//}
 
 // Computes Cross product of UxV into W.
 void Cross_Product(Vector *U,Vector *V,Vector *W)

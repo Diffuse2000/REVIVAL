@@ -11,9 +11,9 @@ void Cross_Fade(byte *U1,byte *U2,byte *Target,long Perc)
 
 
 	// tables, generated and used as an optimization.
-#define TRIG_ACC 512 //trigonometric table accuracy. must be a power of 2.
+#define TRIG_ACC 4096 //trigonometric table accuracy. must be a power of 2.
 #define TRIG_MASK (TRIG_ACC-1)
-#define TRIG_FACTOR (512.0/PI_M2)
+#define TRIG_FACTOR (float(TRIG_ACC)/PI_M2)
 
 #ifdef _C_WATCOM
 #define VSurface Screen
@@ -197,20 +197,20 @@ void Run_Glato(void)
 //	Setup_Grid_Texture_Mapper_XXX(XRes, YRes);
 	Setup_Grid_Texture_Mapper_MMX(XRes, YRes);
 
-	Vector CameraPos(0,0,0);
-	Matrix CamMat;
+	XMMVector CameraPos(0,0,0);
+	XMMMatrix CamMat;
 	float Radius;
 	static int x,y,i,j;
 	static float a,bb,c,d,Delta,X1,X2,X3,z,Rx,Ry,Rz;
 	static float u,v,u1,v1,u2,v2,r,g,b;
 	static float Code_R1,Code_RS,Code_R2,CCosR1,CSinR1,CCosR2,CSinR2;
 	static float Gfx_R1,Gfx_R2,GCosR1,GSinR1,GCosR2,GSinR2,Gfx_RS;
-	static Vector Intersection1,Origin1,Direction1,U;
+	static XMMVector Intersection1,Origin1,Direction1,U;
 	
 	int X,Y;
 	float R1,R3,R4;
 
-	Matrix_Identity(CamMat);
+	Matrix_Identity(CamMat.XMMMatrix);
 	Radius = 1;
 
 
@@ -264,28 +264,36 @@ void Run_Glato(void)
 			ST = ((Timer-2300)*2500)/(1000+(Timer-2300));//  sqrt(Timer*1600);
 		}
 //		ST = (Timer*2000)/(1000+Timer);//  sqrt(Timer*1600);
-		Euler_Angles(CamMat,Rx,Ry,Rz);
+		Euler_Angles(CamMat.XMMMatrix,Rx,Ry,Rz);
 		i=0;
 		j=0;
 		//code
 		Code_R1 = ST * 0.0005;
 		// back
-		CSinR1 = sin(Code_R1*0.1);
-		CCosR1 = cos(Code_R1*0.1);
+		TrigOffset = Code_R1 * 0.1 * TRIG_FACTOR;
+		TrigOffset &= TRIG_MASK;
+		CSinR1 = SinTable[TrigOffset];
+		CCosR1 = CosTable[TrigOffset];
 	if (ST < 700)
 		Code_RS = Code_R1 * 0.5;
 
 		Gfx_R1 = - (ST) * 0.000001;
-		GSinR1 = sin(Gfx_R1*0.05);
-		GCosR1 = cos(Gfx_R1*0.05);
+
+		TrigOffset = Gfx_R1 * 0.05 * TRIG_FACTOR;
+		TrigOffset &= TRIG_MASK;
+		GCosR1 = CosTable[TrigOffset];
+		GSinR1 = SinTable[TrigOffset];
+		//GSinR1 = sin(Gfx_R1*0.05);
+		//GCosR1 = cos(Gfx_R1*0.05);
 		if (ST < 400)
 			Gfx_RS = (ST) * 0.00001;
 
 
-		Origin1.x=CameraPos.x;
-		Origin1.y=CameraPos.y;
-		Origin1.z=CameraPos.z;
+		//Origin1.x=CameraPos.x;
+		//Origin1.y=CameraPos.y;
+		//Origin1.z=CameraPos.z;
 		
+		Origin1 = CameraPos;
 		// Clear page isn't required as wobbler overwrites entire screen / frame
 //		memset(VPage, 0, PageSize);
 		for (y=0;y<=YRes;y+=8)
@@ -294,29 +302,43 @@ void Run_Glato(void)
 				Direction1.x=x-(XRes >> 1);
 				Direction1.y=y-(YRes >> 1);
 				Direction1.z=256.0*XResFactor;
-				MatrixXVector(CamMat,&Direction1,&U);
+				Direction1.w = .0f;
+				MatrixXVector(CamMat.XMMMatrix,&Direction1,&U);
 				Direction1=U;
-				Vector_Norm(&Direction1);
+				Direction1.Normalize();
+				Radius = sin(Direction1.x) * cos(Direction1.z);
 				a=Radius-Origin1.y;
 				c=-Radius-Origin1.y;
 				d=Direction1.y;
 				
 				if (d<=0)
 				{
-					if (d==0)
+					if (d == 0) {
 						X2 = 0;
-					else
-						X2=c/d;
-					Intersection1.x = Origin1.x + Direction1.x * X2;
-					Intersection1.y = Origin1.y + Direction1.y * X2;
-					Intersection1.z = Origin1.z + Direction1.z * X2;
+					} else {
+						X2 = c / d;
+					}
+					Intersection1 = Origin1 + Direction1 * X2;
+					//Intersection1.x = Origin1.x + Direction1.x * X2;
+					//Intersection1.y = Origin1.y + Direction1.y * X2;
+					//Intersection1.z = Origin1.z + Direction1.z * X2;
 
-					u=(Intersection1.x+cos(Intersection1.z+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
-					v=(Intersection1.z+sin(Intersection1.x+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
-					Intersection1.x-=Origin1.x;
-					Intersection1.y-=Origin1.y;
-					Intersection1.z-=Origin1.z;
-					r=(sqrt(Intersection1.x*Intersection1.x+Intersection1.y*Intersection1.y+Intersection1.z*Intersection1.z)*32);
+					TrigOffset = (Intersection1.x + (float)(ST*0.1f) / 28.65f) * TRIG_FACTOR;
+					TrigOffset &= TRIG_MASK;
+					u = (Intersection1.x + CosTable[TrigOffset] * 0.5f)*0.5f;
+					TrigOffset = (Intersection1.z + (float)(ST*0.1f) / 28.65f) * TRIG_FACTOR;
+					TrigOffset &= TRIG_MASK;
+					v = (Intersection1.z + SinTable[TrigOffset] * 0.5f)*0.5f;
+
+
+					//u=(Intersection1.x+cos(Intersection1.z+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
+					//v=(Intersection1.z+sin(Intersection1.x+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
+					//Intersection1.x-=Origin1.x;
+					//Intersection1.y-=Origin1.y;
+					//Intersection1.z-=Origin1.z;
+					Intersection1 -= Origin1;
+					//r=(sqrt(Intersection1.x*Intersection1.x+Intersection1.y*Intersection1.y+Intersection1.z*Intersection1.z)*32);
+					r = Intersection1.Length() * 32.f;
 					//r*= 1.8;//1.3;
 					if (r>253.0f) r=253.0f;
 					r=255.0f-r;
@@ -340,17 +362,25 @@ void Run_Glato(void)
 				else
 				{
 					X1=a/d;
-					Intersection1.x = Origin1.x + Direction1.x * X1;
-					Intersection1.y = Origin1.y + Direction1.y * X1;
-					Intersection1.z = Origin1.z + Direction1.z * X1;
+					//Intersection1.x = Origin1.x + Direction1.x * X1;
+					//Intersection1.y = Origin1.y + Direction1.y * X1;
+					//Intersection1.z = Origin1.z + Direction1.z * X1;
+					Intersection1 = Origin1 + Direction1 * X1;
 
-					u=(Intersection1.x+cos(Intersection1.z+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
-					v=(Intersection1.z+sin(Intersection1.x+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
-					Intersection1.x-=Origin1.x;
-					Intersection1.y-=Origin1.y;
-					Intersection1.z-=Origin1.z;
-
-					r=(sqrt(Intersection1.x*Intersection1.x+Intersection1.y*Intersection1.y+Intersection1.z*Intersection1.z) * 32);
+					TrigOffset = (Intersection1.x + (float)(ST*0.1f) / 28.65f) * TRIG_FACTOR;
+					TrigOffset &= TRIG_MASK;
+					u = (Intersection1.x + CosTable[TrigOffset] * 0.5f)*0.5f;
+					TrigOffset = (Intersection1.z + (float)(ST*0.1f) / 28.65f) * TRIG_FACTOR;
+					TrigOffset &= TRIG_MASK;
+					v = (Intersection1.z + SinTable[TrigOffset] * 0.5f)*0.5f;
+					//u=(Intersection1.x+cos(Intersection1.z+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
+					//v=(Intersection1.z+sin(Intersection1.x+(float)(ST*0.1f)/28.65f)*0.5f)*0.5f;
+					//Intersection1.x-=Origin1.x;
+					//Intersection1.y-=Origin1.y;
+					//Intersection1.z-=Origin1.z;
+					Intersection1 -= Origin1;
+					r = Intersection1.Length() * 32.f;
+					//r=(sqrt(Intersection1.x*Intersection1.x+Intersection1.y*Intersection1.y+Intersection1.z*Intersection1.z) * 32);
 //					if (r < 0.0f)
 //						r = 0;
 //					else

@@ -13,19 +13,52 @@ void		Vector_Form(Vector *V,float X,float Y,float Z);
 Vector		Vector_Make(float X,float Y,float Z);
 void		Vector_Zero(Vector *U);
 void		Vector_Copy(Vector *U,Vector *V);
-void		Vector_Scale(const Vector *V,float S,Vector *W);
+//void		Vector_Scale(const Vector *V,float S,Vector *W);
+
+// Scales Vector V by S,stores result in W. W can overlap V.
+template <typename V1, typename V2>
+void Vector_Scale(const V1 *V, float S, V2 *W)
+{
+	W->x = V->x * S;
+	W->y = V->y * S;
+	W->z = V->z * S;
+}
+
 void		Vector_SelfScale(Vector *V,float S);
 float	Vector_Length(Vector *V);
-float	Vector_SelfDot(Vector *V);
+//float	Vector_SelfDot(Vector *V);
+// Returns the Vector length of Vector V, squared.
+// Equivelent of Dot_Product(V,V)
+template <typename V1>
+float Vector_SelfDot(V1 *V)
+{
+	return V->x * V->x + V->y * V->y + V->z * V->z;
+}
+
 void		Vector_Norm(Vector *V);
 //void  Vector_Add(Vector *U,Vector *V,Vector *W);
-void		Vector_SelfAdd(Vector *U,Vector *V);
+//void		Vector_SelfAdd(Vector *U,Vector *V);
+template <typename V1, typename V2>
+void Vector_SelfAdd(V1 *U, V2 *V)
+{
+	U->x += V->x;
+	U->y += V->y;
+	U->z += V->z;
+}
+
 //void  Vector_Sub(Vector *U,Vector *V,Vector *W);
 void		Vector_SelfSub(Vector *U,Vector *V);
 void		Vector_SAdd(Vector *U,float S,Vector *V);
 void		Vector_LComb(Vector *U,Vector *V,float A,float B,Vector *W);
 void		Vector_LERP(Vector *U,Vector *V,float T,Vector *W);
-float	Dot_Product(Vector *U,Vector *V);
+//float	Dot_Product(Vector *U,Vector *V);
+// Returns Dot Product of U and V.
+template <typename V1, typename V2>
+float Dot_Product(V1 *U, V2 *V)
+{
+	return U->x * V->x + U->y * V->y + U->z * V->z;
+}
+
 void		Cross_Product(Vector *U,Vector *V,Vector *W);
 float	Vector_CosAngle(Vector *U,Vector *V);
 float	Vector_Angle(Vector *U,Vector *V);

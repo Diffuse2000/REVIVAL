@@ -128,10 +128,14 @@ void ReadMaterial(FldMat *Mat)
 	ReadString(&Mat->BumpTexture);
 	ReadString(&Mat->TextureImage);
 	fread(&Mat->TextureFlags,1,2,FLD);
-	fread(&Mat->TextureSize,1,sizeof(Vector),FLD);
-	fread(&Mat->TextureCenter,1,sizeof(Vector),FLD);
-	fread(&Mat->TextureFallOff,1,sizeof(Vector),FLD);
-	fread(&Mat->TextureVelocity,1,sizeof(Vector),FLD);
+	Mat->TextureSize.Read(FLD);
+	Mat->TextureCenter.Read(FLD);
+	Mat->TextureFallOff.Read(FLD);
+	Mat->TextureVelocity.Read(FLD);
+	//fread(&Mat->TextureSize,1,sizeof(Vector),FLD);
+	//fread(&Mat->TextureCenter,1,sizeof(Vector),FLD);
+	//fread(&Mat->TextureFallOff,1,sizeof(Vector),FLD);
+	//fread(&Mat->TextureVelocity,1,sizeof(Vector),FLD);
 	ReadString(&Mat->TextureAlpha);
 	fread(&Mat->NoiseFrequencies,1,2,FLD);
 	fread(&Mat->TextureWrapX,1,2,FLD);
@@ -180,10 +184,11 @@ void ReadObject(FldObject *Obj)
 	printf("---|Loading modeller info(faces/vertices)...\n");
 #endif
 	fread(&Obj->NumOfVerts,1,4,FLD);
-	if (Obj->NumOfVerts) Obj->Verts=new Vector[Obj->NumOfVerts];
+	if (Obj->NumOfVerts) { Obj->Verts = (Vector *)_aligned_malloc(sizeof(Vector) * Obj->NumOfVerts, 16); }
 	for (i=0;i<Obj->NumOfVerts;i++)
 	{
-		fread(&Obj->Verts[i],1,sizeof(Vector),FLD);
+		//fread(&Obj->Verts[i],1,sizeof(Vector),FLD);
+		Obj->Verts[i].Read(FLD);
 	}
 	fread(&Obj->NumOfFaces,1,4,FLD);
 	if (Obj->NumOfFaces) Obj->Faces=new FldFace[Obj->NumOfFaces];
@@ -203,9 +208,9 @@ void ReadObject(FldObject *Obj)
 #ifdef DebugMode
 	printf("-----|Loading %ul keys...\n",Obj->Keys);
 #endif
-	for (i=0;i<Obj->Keys;i++) fread(&Obj->KF[i],1,sizeof(FldKeyFrame),FLD);
+	for (i = 0; i < Obj->Keys; i++) { Obj->KF[i].Read(FLD); }//fread(&Obj->KF[i],1,sizeof(FldKeyFrame),FLD);
 	if (Obj->Flags&1) fread(&Obj->Parent,1,4,FLD);
-	if (Obj->Flags&2) fread(&Obj->Pivot,1,sizeof(Vector),FLD);
+	if (Obj->Flags & 2) Obj->Pivot.Read(FLD);//fread(&Obj->Pivot,1,sizeof(Vector),FLD);
 	if (Obj->Flags&4) Obj->PolygonSize=ReadEnvelope();
 }
 
@@ -229,8 +234,10 @@ void ReadLight(FldLight *Light)
 #endif
 	fread(&Light->Keys,1,4,FLD);
 	Light->KF=new FldKeyFrame[Light->Keys];
-	for (i=0;i<Light->Keys;i++) 
-		fread(&Light->KF[i],1,sizeof(FldKeyFrame),FLD);
+	for (i = 0; i < Light->Keys; i++) {
+		Light->KF[i].Read(FLD);
+		//fread(&Light->KF[i], 1, sizeof(FldKeyFrame), FLD);
+	}
 	//	Light->Color=ReadEnvelope(); Beep
 	fread(&Light->Color,1,sizeof(FldColor),FLD);
 	Light->Intensity=ReadEnvelope();
@@ -254,7 +261,7 @@ void ReadCamera(FldCamera *Cam)
 #endif
 	fread(&Cam->Keys,1,4,FLD);
 	Cam->KF=new FldKeyFrame[Cam->Keys];
-	for (i=0;i<Cam->Keys;i++) fread(&Cam->KF[i],1,sizeof(FldKeyFrame),FLD);
+	for (i = 0; i < Cam->Keys; i++) { Cam->KF[i].Read(FLD); }//fread(&Cam->KF[i],1,sizeof(FldKeyFrame),FLD);
 	Cam->zoomFactor=ReadEnvelope();
 	if (Cam->Flags&1) fread(&Cam->Parent,1,4,FLD);
 	if (Cam->Flags&2) fread(&Cam->TargetObject,1,4,FLD);

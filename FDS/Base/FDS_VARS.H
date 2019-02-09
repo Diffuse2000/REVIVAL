@@ -697,7 +697,8 @@ modify [eax ecx edx];
 #endif
 
 #ifdef WIN32
-inline void MatrixXVector(Matrix M,Vector *U,Vector *V)
+template <typename MATRIX, typename VECTOR>
+inline void MatrixXVector(MATRIX M, VECTOR *U, VECTOR *V)
 {
 
 	V->x = M[0][0] * U->x + M[0][1] * U->y + M[0][2] * U->z;
@@ -802,7 +803,7 @@ inline void FPU_LPrecision()
 		STMXCSR	 [OldMXCSR];      RCMSKBIT EXPBIT
 		mov eax, [OldMXCSR];  8765432109876543210
 		and eax, 11111111111111110000000001000000b
-		or  eax, 00000000000000000101111110000000b
+		or  eax, 00000000000000001101111111000000b
 		mov [CurMXCSR], eax
 		LDMXCSR  [CurMXCSR]
 	}

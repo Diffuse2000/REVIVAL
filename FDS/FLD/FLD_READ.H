@@ -61,6 +61,18 @@ typedef struct
   float         Tension;
   float         Continuity;
   float         Bias;
+
+  void Read(FILE * f) {
+	  Position.Read(f);
+	  Rotation.Read(f);
+	  Scale.Read(f);
+	  fread(&LinearValue, 1, sizeof(float), f);
+	  fread(&FrameNumber, 1, sizeof(float), f);
+	  fread(&Tension, 1, sizeof(float), f);
+	  fread(&Continuity, 1, sizeof(float), f);
+	  fread(&Bias, 1, sizeof(float), f);
+  }
+
 } FldKeyFrame;
 
 typedef struct

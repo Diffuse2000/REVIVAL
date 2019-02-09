@@ -2,7 +2,8 @@
 #include "FUtils.h"
 #include "Base/FDS_VARS.H"
 #include "Base/Scene.h"
-
+#include "Base/FDS_DECS.H"
+extern FILE * IN_3DS;
 // Static World/Scene Reader, Format: 3DS ver 4.0
 void New_Object(void)
 {
@@ -78,7 +79,8 @@ void ReadVertList(unsigned int EndPos)
   VE = Vtx+Verts;
   for (;Vtx<VE;Vtx++)
   {
-    Read(&Pos,sizeof(Vector));
+//    Read(&Pos,sizeof(Vector));
+	Pos.Read(IN_3DS);
     SwapYZ(&Pos);
     Vector_Copy(&Vtx->Pos,&Pos);
   }
@@ -179,7 +181,8 @@ void ReadTranslation(unsigned int EndPos)
   Vertex *Vtx = Cur_Tri->Verts,*VE = Vtx + Cur_Tri->VIndex;
 
   Read(TransMatrix,sizeof(Matrix));
-  Read(&TransPivot,sizeof(Vector));
+  //Read(&TransPivot,sizeof(Vector));
+  TransPivot.Read(IN_3DS);
   SwapYZ(&TransPivot);
   SwapYZ(TransMatrix);
   Matrix_InvScale(TransMatrix);
@@ -213,8 +216,10 @@ void ReadCamera(unsigned int EndPos)
   else Cur_Cam = Host->CameraHead = Cm;
 
   // static information that is meaningless in an animated scene
-  Read(&Cm->ISource,sizeof(Vector));
-  Read(&Cm->ITarget,sizeof(Vector));
+  //Read(&Cm->ISource,sizeof(Vector));
+  //Read(&Cm->ITarget,sizeof(Vector));
+  Cm->ISource.Read(IN_3DS);
+  Cm->ITarget.Read(IN_3DS);
   SwapYZ(&Cm->ISource);
   SwapYZ(&Cm->ITarget);
   Read(&Cm->IRoll,4);
@@ -249,7 +254,8 @@ void ReadLight(unsigned int EndPos)
   else Cur_Omni = Host->OmniHead=O;
 
   Cur_Obj->Pos=&O->IPos;
-  Read(&O->IPos,sizeof(Vector));
+  //Read(&O->IPos,sizeof(Vector));
+  O->IPos.Read(IN_3DS);
   SwapYZ(&O->IPos);
   // Temporary assumptions
   O->Flags=0;//Flare_LightSource;
@@ -285,7 +291,8 @@ void ReadLight(unsigned int EndPos)
     SpotLightHead=(SpotLightType *)Object->Data;
     SpotLight=SpotLightHead;
   }
-  Read(&Pos,sizeof(Vector));
+//  Read(&Pos,sizeof(Vector));
+  Pos.Read(IN_3DS);
   Read(&FallOff,4);
   Read(&HotSpot,4);
   SwapYZ(&Pos);

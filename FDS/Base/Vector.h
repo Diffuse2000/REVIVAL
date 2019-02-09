@@ -3,16 +3,112 @@
 #define REVIVAL_VECTOR_H
 
 #include <stdio.h>
+#include <smmintrin.h>
 
 #pragma pack(push, 1)
+
+struct alignas(16) XMMVector
+{
+
+	using this_type = XMMVector;
+
+	inline XMMVector() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+	//inline XMMVector(const __m128 &other) : v(other) {}
+	inline XMMVector(float _x, float _y, float _z) : x(_x), y(_y), z(_z), w(0.0f) {}
+
+	union // blah
+	{
+		__m128 v;
+		struct {
+			float x, y, z, w;
+		};
+	};
+
+	// Returns Vector length of Vector V.
+	inline __m128 InverseNorm()
+	{
+		return _mm_rsqrt_ps(_mm_dp_ps(v, v, 0x77));
+	}
+
+	inline float Length()
+	{
+		// (v dot v) * 1/sqrt(v dot v)
+		auto dp = _mm_dp_ps(v, v, 0x71);
+		return _mm_cvtss_f32(_mm_mul_ss(dp , _mm_rsqrt_ss(dp)));
+	}
+
+	inline void Normalize()
+	{
+		v = _mm_mul_ps(v, InverseNorm());
+	}
+
+	//this_type(this_type &&) = default;
+
+	inline this_type& operator+=(const this_type& rhs)
+	{
+		v = _mm_add_ps(v, rhs.v);
+		return *this;
+	}
+
+	inline friend this_type operator+(this_type lhs, const this_type& rhs)
+	{
+		lhs += rhs;
+		return lhs;
+	}
+
+	inline this_type& operator-=(const this_type& rhs)
+	{
+		v = _mm_sub_ps(v, rhs.v);
+		return *this;
+	}
+
+	inline friend this_type operator-(this_type lhs, const this_type& rhs)
+	{
+		lhs -= rhs;
+		return lhs;
+	}
+
+	inline this_type& operator*=(float rhs)
+	{
+		const __m128 scalar = _mm_set1_ps(rhs);
+		v = _mm_mul_ps(v, scalar);
+		return *this;		
+	}
+
+	inline friend this_type operator*(this_type lhs, float rhs)
+	{
+		lhs *= rhs;
+		return lhs;
+	}
+
+	inline this_type& operator*=(const this_type& rhs)
+	{
+		v = _mm_mul_ps(v, rhs.v);
+		return *this;
+	}
+
+	inline friend this_type operator*(this_type lhs, const this_type& rhs)
+	{
+		lhs *= rhs;
+		return lhs;
+	}
+
+};
 
 // [12 Bytes]
 struct Vector
 {
 	float x, y, z;
 
+	void Read(FILE * f) {
+		fread(&x, 1, sizeof(float), f);
+		fread(&y, 1, sizeof(float), f);
+		fread(&z, 1, sizeof(float), f);
+	}
+
+
 	Vector() {}
-	Vector(float _x, float _y, float _z): x(_x), y(_y), z(_z) {}
+	Vector(float _x, float _y, float _z): x(_x), y(_y), z(_z){}
 	~Vector() {}
 
 	void print() {

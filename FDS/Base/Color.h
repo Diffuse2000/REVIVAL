@@ -5,7 +5,7 @@
 
 #pragma pack(push, 1)
 
-// [12 Bytes]
+// [16 Bytes]
 struct Color
 {
 	float B, G, R, A;
