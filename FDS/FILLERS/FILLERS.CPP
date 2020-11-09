@@ -338,159 +338,159 @@ void Flat_Poly_8Bit(Vertex **V, dword numVerts)
 }
 
 
-void Flat_Poly_ManyBits(Vertex **V, dword numVerts)
-{	
-#ifdef ENABLE_PIXELCOUNT
-	FillerPixelcount += 0.5*fabs((_A->PX - _C->PX)*(_B->PY - _C->PY) - (_A->PY - _C->PY)*(_B->PX - _C->PX));
-#endif
-
-	long X1,Y1,X2,Y2,X3,Y3; //Pixelled projected vertex position
-	long dX12,dX13,dX23;    //Fixed point Slopes. (16:16)
-	long dx12,dx13,dx23;    //X-deltas.
-	long dy12,dy13,dy23;    //Y-deltas.
-	long X,Y;               //Loop and generic variables.
-	long x1,x2;
-	long EX1,EX2;           //Edge interpolation rate.
-	long dX1,dX2;           //Edge interpolation differencial.
-	byte *Pen;              //Viewport Scanning Pointer
-	dword 
-		r=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32, //Average Color.
-		g=(DoFace->A->LG+DoFace->B->LG+DoFace->C->LG)*0.32, //Average Color.
-		b=(DoFace->A->LB+DoFace->B->LB+DoFace->C->LB)*0.32; //Average Color.  
-	char EndAtMiddle=0;     //Flag: End drawing in the middle(ignore Y2->y3).
-	long Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
-	char CPP = (BPP+1)>>3;
-	dword Col, C16;
-	
-	switch (BPP)
-	{
-	case 8:
-		Col = (r<<24)+(r<<16)+(r<<8)+r;
-		break;
-	case 15:
-		C16 = ((r>>3)<<10)+((g>>3)<<5)+(b>>3);
-		Col = (C16<<16)+C16;
-		break;
-	case 16:
-		C16 = ((r>>3)<<11)+((g>>2)<<5)+(b>>3);
-		Col = (C16<<16)+C16;
-		break;
-	case 24:
-	case 32:
-		Col = (r<<16)+(g<<8)+b;
-	}
-	
-	
-	X1 = _A->PX+0.5; Y1 = _A->PY+0.5;
-	X2 = _B->PX+0.5; Y2 = _B->PY+0.5;
-	X3 = _C->PX+0.5; Y3 = _C->PY+0.5;
-	
-	dx12 = X2-X1; dy12=Y2-Y1;
-	dx13 = X3-X1; dy13=Y3-Y1;
-	dx23 = X3-X2; dy23=Y3-Y2;
-	
-	if (Y1==Y3)
-	{
-		if (X1<=X2)
-		{
-			Pen = VPage+(YOffs[Y1]+X1)*CPP;
-			//      memset(Pen,Col,CPP*(dx12+1));
-			//      if (X3<X1) memset(Pen+dx13*CPP,Col,CPP*(1-dx13)); else if (X2<X3) memset(Pen+dx12*CPP,Col,CPP*(dx23+1));
-		} else {
-			Pen = VPage+(YOffs[Y1]+X2)*CPP;
-			//    memset(Pen,Col,CPP*(1-dx12));
-			Pen-=dx12;
-			//      if (X3<X2) memset(Pen+dx13*CPP,Col,CPP*(1-dx13)); else if (X1<X3) memset(Pen-dx12*CPP,Col,CPP*(dx13+1));
-		}
-		goto END_POLY;
-	}
-	dX13 = (dx13<<16)/dy13;
-	if (Y1==Y2)
-	{
-		if (X1<=X2)
-		{
-			Pen = VPage+(YOffs[Y1]+X1)*CPP;
-			X = dx12+1;
-			//      memset(Pen,Col,CPP*X);
-			
-			EX1 = X1<<16;
-			EX2 = X2<<16;
-			Pen+=(XRes-X1)*CPP;
-			goto MIDDLE_POLY;
-		} else {
-			Pen = VPage+(YOffs[Y1]+X2)*CPP;
-			X = 1-dx12;
-			//      memset(Pen,Col,CPP*X);
-			
-			EX1 = X2<<16;
-			EX2 = X1<<16;
-			Pen+=(XRes-X2)*CPP;
-			goto MIDDLE_POLY;
-		}
-	}
-	dX12 = (dx12<<16)/dy12;
-	if (Y2==Y3) EndAtMiddle=1;
-	// Scan conv Poly BEGINS.
-	// Initialization...
-	EX1 = EX2 = X1<<16;
-	//EX2 += 65536;
-	
-	if (dX12<=dX13)
-	{
-		dX1 = dX12;
-		dX2 = dX13;
-	} else {
-		dX1 = dX13;
-		dX2 = dX12;
-	}
-	
-	Y = dy12;
-	Pen = VPage+YOffs[Y1]*CPP;
-	EX1-=dX1;
-	EX2-=dX2;
-	do
-	{
-		EX1+=dX1;
-		EX2+=dX2;
-		x1=EX1>>16;
-		x2=EX2>>16;
-		/*    if (x2==XRes_1)
-		{
-		Pen=NULL;
-		return;
-    }*/
-		if (x2>=x1) 
-			//			memset(Pen+CPP*x1,Col,CPP*(x2-x1));
-			FastWrite(Pen+CPP*x1,Col,x2-x1);
-		Pen+=CPP*XRes;
-	} while (Y--);
-	MIDDLE_POLY: 
-	
-	if (EndAtMiddle) goto END_POLY;
-	dX23 = (dx23<<16)/dy23;
-	if (dX13<=dX23)
-	{
-		dX1 = dX23;
-		dX2 = dX13;
-	} else {
-		dX1 = dX13;
-		dX2 = dX23;
-	}
-	Y = dy23-1;
-	do
-	{
-		EX1+=dX1;
-		EX2+=dX2;
-		x1 = EX1>>16;
-		x2 = EX2>>16;
-		if (x2>=x1) 
-			FastWrite(Pen+CPP*x1,Col,x2-x1);
-		Pen+=CPP*XRes;
-	} 
-	while (Y--);
-
-END_POLY:;
-}
+//void Flat_Poly_ManyBits(Vertex **V, dword numVerts)
+//{	
+//#ifdef ENABLE_PIXELCOUNT
+//	FillerPixelcount += 0.5*fabs((_A->PX - _C->PX)*(_B->PY - _C->PY) - (_A->PY - _C->PY)*(_B->PX - _C->PX));
+//#endif
+//
+//	long X1,Y1,X2,Y2,X3,Y3; //Pixelled projected vertex position
+//	long dX12,dX13,dX23;    //Fixed point Slopes. (16:16)
+//	long dx12,dx13,dx23;    //X-deltas.
+//	long dy12,dy13,dy23;    //Y-deltas.
+//	long X,Y;               //Loop and generic variables.
+//	long x1,x2;
+//	long EX1,EX2;           //Edge interpolation rate.
+//	long dX1,dX2;           //Edge interpolation differencial.
+//	byte *Pen;              //Viewport Scanning Pointer
+//	dword 
+//		r=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32, //Average Color.
+//		g=(DoFace->A->LG+DoFace->B->LG+DoFace->C->LG)*0.32, //Average Color.
+//		b=(DoFace->A->LB+DoFace->B->LB+DoFace->C->LB)*0.32; //Average Color.  
+//	char EndAtMiddle=0;     //Flag: End drawing in the middle(ignore Y2->y3).
+//	long Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
+//	char CPP = (BPP+1)>>3;
+//	dword Col, C16;
+//	
+//	switch (BPP)
+//	{
+//	case 8:
+//		Col = (r<<24)+(r<<16)+(r<<8)+r;
+//		break;
+//	case 15:
+//		C16 = ((r>>3)<<10)+((g>>3)<<5)+(b>>3);
+//		Col = (C16<<16)+C16;
+//		break;
+//	case 16:
+//		C16 = ((r>>3)<<11)+((g>>2)<<5)+(b>>3);
+//		Col = (C16<<16)+C16;
+//		break;
+//	case 24:
+//	case 32:
+//		Col = (r<<16)+(g<<8)+b;
+//	}
+//	
+//	
+//	X1 = _A->PX+0.5; Y1 = _A->PY+0.5;
+//	X2 = _B->PX+0.5; Y2 = _B->PY+0.5;
+//	X3 = _C->PX+0.5; Y3 = _C->PY+0.5;
+//	
+//	dx12 = X2-X1; dy12=Y2-Y1;
+//	dx13 = X3-X1; dy13=Y3-Y1;
+//	dx23 = X3-X2; dy23=Y3-Y2;
+//	
+//	if (Y1==Y3)
+//	{
+//		if (X1<=X2)
+//		{
+//			Pen = VPage+(YOffs[Y1]+X1)*CPP;
+//			//      memset(Pen,Col,CPP*(dx12+1));
+//			//      if (X3<X1) memset(Pen+dx13*CPP,Col,CPP*(1-dx13)); else if (X2<X3) memset(Pen+dx12*CPP,Col,CPP*(dx23+1));
+//		} else {
+//			Pen = VPage+(YOffs[Y1]+X2)*CPP;
+//			//    memset(Pen,Col,CPP*(1-dx12));
+//			Pen-=dx12;
+//			//      if (X3<X2) memset(Pen+dx13*CPP,Col,CPP*(1-dx13)); else if (X1<X3) memset(Pen-dx12*CPP,Col,CPP*(dx13+1));
+//		}
+//		goto END_POLY;
+//	}
+//	dX13 = (dx13<<16)/dy13;
+//	if (Y1==Y2)
+//	{
+//		if (X1<=X2)
+//		{
+//			Pen = VPage+(YOffs[Y1]+X1)*CPP;
+//			X = dx12+1;
+//			//      memset(Pen,Col,CPP*X);
+//			
+//			EX1 = X1<<16;
+//			EX2 = X2<<16;
+//			Pen+=(XRes-X1)*CPP;
+//			goto MIDDLE_POLY;
+//		} else {
+//			Pen = VPage+(YOffs[Y1]+X2)*CPP;
+//			X = 1-dx12;
+//			//      memset(Pen,Col,CPP*X);
+//			
+//			EX1 = X2<<16;
+//			EX2 = X1<<16;
+//			Pen+=(XRes-X2)*CPP;
+//			goto MIDDLE_POLY;
+//		}
+//	}
+//	dX12 = (dx12<<16)/dy12;
+//	if (Y2==Y3) EndAtMiddle=1;
+//	// Scan conv Poly BEGINS.
+//	// Initialization...
+//	EX1 = EX2 = X1<<16;
+//	//EX2 += 65536;
+//	
+//	if (dX12<=dX13)
+//	{
+//		dX1 = dX12;
+//		dX2 = dX13;
+//	} else {
+//		dX1 = dX13;
+//		dX2 = dX12;
+//	}
+//	
+//	Y = dy12;
+//	Pen = VPage+YOffs[Y1]*CPP;
+//	EX1-=dX1;
+//	EX2-=dX2;
+//	do
+//	{
+//		EX1+=dX1;
+//		EX2+=dX2;
+//		x1=EX1>>16;
+//		x2=EX2>>16;
+//		/*    if (x2==XRes_1)
+//		{
+//		Pen=NULL;
+//		return;
+//    }*/
+//		if (x2>=x1) 
+//			//			memset(Pen+CPP*x1,Col,CPP*(x2-x1));
+//			FastWrite(Pen+CPP*x1,Col,x2-x1);
+//		Pen+=CPP*XRes;
+//	} while (Y--);
+//	MIDDLE_POLY: 
+//	
+//	if (EndAtMiddle) goto END_POLY;
+//	dX23 = (dx23<<16)/dy23;
+//	if (dX13<=dX23)
+//	{
+//		dX1 = dX23;
+//		dX2 = dX13;
+//	} else {
+//		dX1 = dX13;
+//		dX2 = dX23;
+//	}
+//	Y = dy23-1;
+//	do
+//	{
+//		EX1+=dX1;
+//		EX2+=dX2;
+//		x1 = EX1>>16;
+//		x2 = EX2>>16;
+//		if (x2>=x1) 
+//			FastWrite(Pen+CPP*x1,Col,x2-x1);
+//		Pen+=CPP*XRes;
+//	} 
+//	while (Y--);
+//
+//END_POLY:;
+//}
 
 
 void FlatV2_Poly_8Bit(Vertex **V, dword numVerts)
@@ -1628,6 +1628,8 @@ void The_MMX_Scalar(Vertex **V, dword numVerts)
 
 }
 
+
+#define PIG_VOMIT
 //void The_MMX_Spriter_32(Vertex **V, dword numVerts)
 float spriteClipY1;
 float spriteClipY2; 
@@ -1684,22 +1686,30 @@ void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage,
 	iv = Fist(v0 * 65536.0);
 	idu = Fist(du * 65536.0);
 	idv = Fist(dv * 65536.0);
-
+	
 	dword *tex = (dword *)txtr;
 	dword v = iv;
 
 	if (Height <= 0 || LineWidth <= 0) return;
 	FillerPixelcount += Height * LineWidth;
+#if defined(PORTABLE_CODE) && defined(PIG_VOMIT)
+	__m64 mm4 { Color };
+	__m64 mm1 = {};
+	mm4 = _m_punpcklbw(mm4, mm1);
+#else
 	__asm
 	{
 		movd mm4, [Color]
 		pxor mm1,mm1
 		punpcklbw mm4,mm1
 	}
+#endif
 	
 	for(int i=0; i<Height; i++)
 	{
+
 		dword u = iu;
+#ifndef PORTABLE_CODE
 		dword *texScanLine = &tex[((v>>11)&0x3E0)];
 		__asm
 		{
@@ -1797,12 +1807,40 @@ EndScanline:
 			pop ebp
 		}
 
-		/*for(int j = 0;j<LineWidth; j++)
+#else
+		dword ofs = ((v >> 11) & 0x3E0);
+		//__m64 x = { 0 };
+		for(int j = 0;j<LineWidth; j++)
 		{
-			mword t = tex[(u>>16) + ((v>>11)&0x3E0)];
-			mword x = ((dword *)ScanLine)[j];
+#ifdef PIG_VOMIT
+
+
+			//dword t = tex[(u >> 16) + ofs];
+
+////			tmm.m64_u32[0] = t;
+//			*(dword *)&tmm = t;
+
+			//mm0 = _m_pxor(mm0, mm0);
+//			mm0 = _m_punpcklbw(mm0, *(__m64*)&tex[(u >> 16) + ((v >> 11) & 0x3E0)]);
+			__m64 mm0 = { 0 };
+			mm0 = _m_punpcklbw(mm0, _mm_set_pi32(0, tex[(u >> 16) + ofs]));
+			mm0 = _m_psrlwi(mm0, 8);
+			mm0 = _m_pmullw(mm0, mm4);
+			mm0 = _m_psrlwi(mm0, 8);
+			mm0 = _m_packuswb(mm0, mm0);
+			mm0 = _m_paddusb(mm0, _mm_set_pi32(0, ((dword*)ScanLine)[j]));
+			//*x = mm0.m64_u32[0];
+#ifdef __clang__
+			((dword*)ScanLine)[j] = (dword)mm0[0];
+#else
+			((dword*)ScanLine)[j] = mm0.m64_u32[0];
+#endif
+#else
+			dword t = tex[(u >> 16) + ofs];
+			dword x = ((dword*)ScanLine)[j] ;
 			__asm
 			{
+				pxor mm0, mm0
 				punpcklbw mm0, [t]
 				psrlw mm0, 8
 				pmullw mm0, mm4
@@ -1813,15 +1851,22 @@ EndScanline:
 				movd [x], mm0
 			}
 			((dword *)ScanLine)[j] = x;
+#endif // PIG_VOMIT
+
 			u += idu;
-		}*/
+		}
+#endif
 		ScanLine += VESA_BPSL;
 		v += idv;
 	}
+#ifdef PORTABLE_CODE
+	_mm_empty();
+#else
 	__asm
 	{
 		emms
 	}
+#endif
 }
 
 

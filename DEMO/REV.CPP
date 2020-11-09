@@ -771,12 +771,16 @@ static float dTime;
 
 inline void fist(long &r, float x)
 {
-	__asm 
+#ifdef PORTABLE_CODE
+	r = static_cast<long>(x);
+#else
+	__asm
 	{
 		FLD dword ptr [x]
 		mov edi, dword ptr [r]
 		FISTP dword ptr [edi]
 	}
+#endif
 }
 
 static void rainmapper(float x1, float y1, float x2, float y2)
@@ -1372,11 +1376,11 @@ void CodeEntry(void *var)
 	g_RevModuleHandle = sh;
 
 	Initialize_Glato(); //9.3
-	//Initialize_City(); //9.3
-	//Initialize_Chase();
-	//Initialize_Fountain(); //8.3
-	//Initialize_Crash();
-	//Initialize_Greets(); //5.6
+	Initialize_City(); //9.3
+	Initialize_Chase();
+	Initialize_Fountain(); //8.3
+	Initialize_Crash();
+	Initialize_Greets(); //5.6
 	//Initialize_Nova();
 	
 //	Initialize_Koch();
@@ -1396,22 +1400,23 @@ void CodeEntry(void *var)
 	while (Timer<4000);
 	Timer = 0;
 	if (Timer<=0) Timer = 1;
-	//Run_City();
+	Run_City();
 //	SavePolyStats("City.stat");
 //
-//	if (Timer <= 0) Timer = 1;
-//	Run_Chase();
+	if (Timer <= 0) Timer = 1;
+	Run_Chase();
 //
-//	if (Timer<=0) Timer = 1;
-//	Run_Fountain();
-//
+	if (Timer<=0) Timer = 1;
+	Run_Fountain();
+	
+	if (Timer <= 0) Timer = 1;
+	Timer = 1;
+	Run_Crash();
+	//
 ////	SavePolyStats("Fountain.stat");
-//	if (Timer<=0) Timer = 1;
-//	Run_Greets();
+	if (Timer<=0) Timer = 1;
+	Run_Greets();
 //	
-//	if (Timer <= 0) Timer = 1;
-//	Timer = 1;
-//	Run_Crash();
 
 	//	SavePolyStats("Greets.stat");
 //	Run_RainFX();

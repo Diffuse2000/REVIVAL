@@ -1003,8 +1003,8 @@ void Assign_Fillers(Scene *Sc)
 				IX_Prefiller_FZ, // Flat (impl. gouraud)
 				IX_Prefiller_TZ, // Texture
 				IX_Prefiller_GZ, // Gouraud
-				IX_Prefiller_TGZM, // Txtr/Gouraud
-//				IX_Prefiller_TGZ, // Txtr/Gouraud
+				//IX_Prefiller_TGZM, // Txtr/Gouraud
+				IX_Prefiller_TGZ, // Txtr/Gouraud
 				IX_Prefiller_FAcZ, // transparent Flat
 				IX_Prefiller_TAcZ, // transparent Texture
 				IX_Prefiller_GAcZ, // transparent Gouraud

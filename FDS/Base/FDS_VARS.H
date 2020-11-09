@@ -861,7 +861,9 @@ inline float SQRT(float Value)
 
 inline float RSQRT(float Value)
 {
-//	return 1.0f / sqrt(Value);
+#ifdef PORTABLE_CODE
+	return 1.0f / sqrt(Value);
+#else
 	float &val = Value;
 	float retval;
 	__asm
@@ -871,6 +873,7 @@ inline float RSQRT(float Value)
 		movss [retval], xmm0
 	}
 	return retval;
+#endif
 
 //	__asm {
 //		mov eax, dword ptr [Value]
@@ -896,51 +899,72 @@ inline float RSQRT(float Value)
 }
 
 inline void Fist(word &r, float x)
-{	
-	__asm 
+{
+#ifdef PORTABLE_CODE
+	r = static_cast<word>(x);
+#else
+	__asm
 	{
 		mov edi, [r]
 		FLD dword ptr x
 		FISTP word ptr [edi]
 	}
+#endif
 }
 
 inline void Fist(sword &r, float x)
-{	
-	__asm 
+{
+#ifdef PORTABLE_CODE
+	r = static_cast<sword>(x);
+#else
+	__asm
 	{
 		mov edi, [r]
 		FLD dword ptr x
 		FISTP word ptr [edi]
 	}
+#endif
 }
 
 inline void Fist(dword &r, float x)
-{	
-	__asm 
+{
+#ifdef PORTABLE_CODE
+	r = static_cast<dword>(x);
+#else
+	__asm
 	{
 		mov edi, [r]
 		FLD dword ptr x
 		FISTP dword ptr [edi]
 	}
+#endif
 }
 
 inline dword Fist(float x)
 {
+#ifdef PORTABLE_CODE
+	//x += 0.99999;
+	return (dword)_mm_cvtt_ss2si(_mm_load_ss(&x));
+	//return static_cast<dword>(ceilf(x));
+#else
 	static dword ceiled;
-	__asm 
+	__asm
 	{
-		FLD   dword ptr [x]		
+		FLD   dword ptr [x]
 		FISTP dword ptr [ceiled]
 		;mov eax, [ceiled]
 	}
 	return ceiled;
+#endif
 }
 
 // stores 'data' n times starting from address p
 // (p[0...n-1] = data)
 inline void FastWrite(void *p, dword data, dword n)
 {
+#ifdef PORTABLE_CODE
+	memset(p, data, n*4);
+#else
 	__asm
 	{
 		mov edi, [p]
@@ -972,7 +996,7 @@ afterprior:
 
 		sar ecx, 1 ; # qwords
 		and edx, 1 ; remainder dwords
-		
+
 quads:
 		;movntq [edi+ecx*8], MM0
 		__asm _emit 0x0F
@@ -989,16 +1013,23 @@ afterpost:
 		emms
 afterfill:
 	}
+#endif
 }
 
 inline void rcpss(float *s)
 {
+#ifdef PORTABLE_CODE
+	*s = _mm_cvtss_f32(_mm_rcp_ss(_mm_load_ss(s)));
+
+	//*s = 1.0 / *s;
+#else
 	__asm
 	{
 		mov edi, [s]
 		rcpss xmm0, [edi]
 		movss [edi], xmm0
 	}
+#endif
 }
 
 

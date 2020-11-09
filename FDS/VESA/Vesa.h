@@ -810,7 +810,9 @@ inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarg
 		add esi, ecx
 		add edi, ecx
 		neg ECX
+#ifndef __clang__
 		Align 16
+#endif
 		AlphaBlendLoop :
 		punpcklbw xmm1, [esi + ecx]
 		punpcklbw xmm0, [edi + ecx]

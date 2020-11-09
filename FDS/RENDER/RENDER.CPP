@@ -54,7 +54,9 @@ float Specular_Factor;
 float Range_Factor;
 
 long Frames;
+#ifndef __clang__
 float dTime;
+#endif
 
 Texture Phong_Mapping;
 Font *Font1;
@@ -981,7 +983,7 @@ void StaticLighting(Scene *Sc)
 
 
 
-#ifdef __clang__
+#if defined(__clang__) || defined(PORTABLE_CODE)
 
 void Lighting(Scene *Sc)
 {

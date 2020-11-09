@@ -2,6 +2,8 @@
 #include "IMGGENR/IMGGENR.H"
 #include "VESA/VESA.H"
 
+#include <algorithm>
+
 void Cross_Fade(byte *U1,byte *U2,byte *Target,long Perc)
 {
 	long I;
@@ -192,6 +194,11 @@ void Initialize_Glato()
 	}
 }
 
+static inline float max_magnitude(float a, float b)
+{
+	if (fabs(a) > fabs(b)) return a; else return b;
+}
+
 void Run_Glato(void)
 {
 //	Setup_Grid_Texture_Mapper_XXX(XRes, YRes);
@@ -240,14 +247,17 @@ void Run_Glato(void)
 
 	while (Timer<3500)
 	{
+		bool skip = false;
 		// fast forward/rewind
 		dTime = Timer-TTrd;		
 		if (Keyboard[ScF2])
 		{
+			skip = true;
 			Timer += dTime * 8;
 		}
 		if (Keyboard[ScF1])
 		{
+			skip = true;
 			if (dTime * 8 > Timer)
 				Timer = 0;
 			else
@@ -292,7 +302,8 @@ void Run_Glato(void)
 		//Origin1.x=CameraPos.x;
 		//Origin1.y=CameraPos.y;
 		//Origin1.z=CameraPos.z;
-		
+	
+		Radius = 1;
 		Origin1 = CameraPos;
 		// Clear page isn't required as wobbler overwrites entire screen / frame
 //		memset(VPage, 0, PageSize);
@@ -306,7 +317,7 @@ void Run_Glato(void)
 				MatrixXVector(CamMat.XMMMatrix,&Direction1,&U);
 				Direction1=U;
 				Direction1.Normalize();
-				Radius = sin(Direction1.x) * cos(Direction1.z);
+//				Radius = std::max(std::max(fabs(Direction1.y), fabs(Direction1.x)), fabs(Direction1.z));//1.0;//sin(Direction1.x) * cos(Direction1.z);
 				a=Radius-Origin1.y;
 				c=-Radius-Origin1.y;
 				d=Direction1.y;
@@ -593,14 +604,23 @@ void Run_Glato(void)
 		// FPS printer
 		if (g_profilerActive)
 		{
-			timerStack[timerIndex++] = Timer;
-			if (timerIndex==20) 
+			dword tm = Timer;
+			timerStack[timerIndex++] = tm;
 			{
-				timerIndex = 0;
-				sprintf(MSGStr,"%f FPS", 2000.0/(float)(timerStack[19]-timerStack[timerIndex]) );
-			} else {
-				sprintf(MSGStr,"%f FPS", 2000.0/(float)(timerStack[timerIndex-1]-timerStack[timerIndex]) );
+				if (timerIndex == 20)
+				{
+					timerIndex = 0;
+					sprintf(MSGStr, "%f FPS", 2000.0 / (float)(timerStack[19] - timerStack[timerIndex]));
+				}
+				else {
+					sprintf(MSGStr, "%f FPS", 2000.0 / (float)(timerStack[timerIndex - 1] - timerStack[timerIndex]));
+				}
 			}
+
+			if (skip) {
+				sprintf(MSGStr, "%f FPS", (float)(tm - TTrd));
+			}
+
 			OutTextXY(VPage,0,0,MSGStr,255);
 		}
 		Flip(VSurface);

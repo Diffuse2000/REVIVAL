@@ -273,33 +273,33 @@ void Initialize_Greets()
 
 }
 
-void MMXClear(void *Page, dword Len)
-{
-	dword Addr = (dword)Page;
-	__asm 
-	{
-		mov ecx, dword ptr [Len]
-		mov edi, dword ptr [Addr]
-		pxor MM0, MM0
-		xor eax, eax
-
-;		shr ecx, 2
-;		rep stosd
-		add edi, ecx
-		neg ecx
-		Inner:
-			movq [edi+ecx], MM0
-;			movq MM0, [edi+ecx]
-			add ecx, 8
-
-;			mov [edi+ecx], eax
-;			mov eax, [edi+ecx]
-;			add ecx, 4
-		jnz Inner
-		
-		emms
-	}
-}
+//void MMXClear(void *Page, dword Len)
+//{
+//	dword Addr = (dword)Page;
+//	__asm 
+//	{
+//		mov ecx, dword ptr [Len]
+//		mov edi, dword ptr [Addr]
+//		pxor MM0, MM0
+//		xor eax, eax
+//
+//;		shr ecx, 2
+//;		rep stosd
+//		add edi, ecx
+//		neg ecx
+//		Inner:
+//			movq [edi+ecx], MM0
+//;			movq MM0, [edi+ecx]
+//			add ecx, 8
+//
+//;			mov [edi+ecx], eax
+//;			mov eax, [edi+ecx]
+//;			add ecx, 4
+//		jnz Inner
+//		
+//		emms
+//	}
+//}
 
 void Run_Greets()
 {

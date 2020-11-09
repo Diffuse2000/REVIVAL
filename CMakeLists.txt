@@ -48,9 +48,9 @@ add_executable(REVIVAL
         DEMO/dxutil.cpp
         DEMO/dxutil.h
         DEMO/END.CPP
-        DEMO/FDS_DECS.H
-        DEMO/FDS_DEFS.H
-        DEMO/FDS_VARS.H
+        FDS/Base/FDS_DECS.H
+        FDS/Base/FDS_DEFS.H
+        FDS/Base/FDS_VARS.H
         DEMO/FillerTest.cpp
         DEMO/FillerTest.h
         DEMO/FOUNT.CPP
@@ -134,7 +134,7 @@ add_executable(REVIVAL
         FDS/V3D/OBJECTS.H
         FDS/V3D/V3D_READ.CPP
         FDS/VESA/FONTS.CPP
-        FDS/VESA/TABLES.CPP
+        FDS/VESA/VESA_TABLES.CPP
         FDS/VESA/VESA.CPP
         FDS/VESA/Vesa.h
         FDS/Base/FDS_DECS.H

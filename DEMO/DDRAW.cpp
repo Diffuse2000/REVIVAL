@@ -26,6 +26,7 @@ static DWORD RA_Flag = 0;
 
 void mem3(void *dst, void *src, int nbytes)
 {
+#ifndef PORTABLE_CODE
 	_asm { 
         mov esi, src 
         mov edi, dst 
@@ -61,86 +62,89 @@ loop1:
 
 ;		emms 
 	} 
+#else
+	memcpy(dst, src, nbytes);
+#endif
 }
 
 
-// n - number of qwords to copy
-static void FastMemcopy(void *dst, void *src, dword n)
-{
-	__asm
-	{
-		mov edi, dst
-		mov esi, src
-		mov ecx, n
-
-		lea edi, [edi+ecx*8]
-		lea esi, [esi+ecx*8]
-		neg ecx
-Inner:
-		movq MM0, [esi+ecx*8]
-		movq [edi+ecx*8], MM0
-
-/*		movq MM0, [esi+ecx*8]
-		movq MM1, [esi+ecx*8 + 8]
-		movq MM2, [esi+ecx*8 + 16]
-		movq MM3, [esi+ecx*8 + 24]
-		movq MM4, [esi+ecx*8 + 32]
-		movq MM5, [esi+ecx*8 + 40]
-		movq MM6, [esi+ecx*8 + 48]
-		movq MM7, [esi+ecx*8 + 56]
-		;movntq [edi+ecx*8], MM0
-		_emit 0x0F
-		_emit 0xE7
-		_emit 0x04
-		_emit 0xCF
-		;movntq [edi+ecx*8 + 8], MM1
-		_emit 0x0F
-		_emit 0xE7
-		_emit 0x4C
-		_emit 0xCF
-		_emit 0x8
-		;movntq [edi+ecx*8 + 16], MM2
-		_emit 0x0F
-		_emit 0xE7
-		_emit 0x54
-		_emit 0xCF
-		_emit 0x10
-		;movntq [edi+ecx*8 + 24], MM3
-		_emit 0x0F
-		_emit 0xE7
-		_emit 0x5C
-		_emit 0xCF
-		_emit 0x18
-		;movntq [edi+ecx*8 + 32], MM4
-		_emit 0x0F
-		_emit 0xE7
-		_emit 0x64
-		_emit 0xCF
-		_emit 0x20
-		;movntq [edi+ecx*8 + 40], MM5
-		_emit 0x0F
-		_emit 0xE7
-		_emit 0x6C
-		_emit 0xCF
-		_emit 0x28
-		;movntq [edi+ecx*8 + 48], MM6
-		_emit 0x0F
-		_emit 0xE7
-		_emit 0x74
-		_emit 0xCF
-		_emit 0x30
-		;movntq [edi+ecx*8 + 56], MM7
-		_emit 0x0F
-		_emit 0xE7
-		_emit 0x7C
-		_emit 0xCF
-		_emit 0x38*/
-
-		inc ecx
-		jnz Inner
-		emms
-	}
-}
+//// n - number of qwords to copy
+//static void FastMemcopy(void *dst, void *src, dword n)
+//{
+//	__asm
+//	{
+//		mov edi, dst
+//		mov esi, src
+//		mov ecx, n
+//
+//		lea edi, [edi+ecx*8]
+//		lea esi, [esi+ecx*8]
+//		neg ecx
+//Inner:
+//		movq MM0, [esi+ecx*8]
+//		movq [edi+ecx*8], MM0
+//
+///*		movq MM0, [esi+ecx*8]
+//		movq MM1, [esi+ecx*8 + 8]
+//		movq MM2, [esi+ecx*8 + 16]
+//		movq MM3, [esi+ecx*8 + 24]
+//		movq MM4, [esi+ecx*8 + 32]
+//		movq MM5, [esi+ecx*8 + 40]
+//		movq MM6, [esi+ecx*8 + 48]
+//		movq MM7, [esi+ecx*8 + 56]
+//		;movntq [edi+ecx*8], MM0
+//		_emit 0x0F
+//		_emit 0xE7
+//		_emit 0x04
+//		_emit 0xCF
+//		;movntq [edi+ecx*8 + 8], MM1
+//		_emit 0x0F
+//		_emit 0xE7
+//		_emit 0x4C
+//		_emit 0xCF
+//		_emit 0x8
+//		;movntq [edi+ecx*8 + 16], MM2
+//		_emit 0x0F
+//		_emit 0xE7
+//		_emit 0x54
+//		_emit 0xCF
+//		_emit 0x10
+//		;movntq [edi+ecx*8 + 24], MM3
+//		_emit 0x0F
+//		_emit 0xE7
+//		_emit 0x5C
+//		_emit 0xCF
+//		_emit 0x18
+//		;movntq [edi+ecx*8 + 32], MM4
+//		_emit 0x0F
+//		_emit 0xE7
+//		_emit 0x64
+//		_emit 0xCF
+//		_emit 0x20
+//		;movntq [edi+ecx*8 + 40], MM5
+//		_emit 0x0F
+//		_emit 0xE7
+//		_emit 0x6C
+//		_emit 0xCF
+//		_emit 0x28
+//		;movntq [edi+ecx*8 + 48], MM6
+//		_emit 0x0F
+//		_emit 0xE7
+//		_emit 0x74
+//		_emit 0xCF
+//		_emit 0x30
+//		;movntq [edi+ecx*8 + 56], MM7
+//		_emit 0x0F
+//		_emit 0xE7
+//		_emit 0x7C
+//		_emit 0xCF
+//		_emit 0x38*/
+//
+//		inc ecx
+//		jnz Inner
+//		emms
+//	}
+//}
 
 HRESULT Restore_All()
 {
@@ -270,7 +274,7 @@ static void V_Flip(VESA_Surface *VS)
 		dst += Secondary.BPSL;
 		src += VS->BPSL;
 	}
-	__asm emms
+	//__asm emms
 
 	if (V_Unlock(&Secondary))
 	{
