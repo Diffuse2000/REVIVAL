@@ -1,7 +1,0 @@
-ZCLR 1.0ms (2.7%)
-ANIM 0.0ms (0.0%)
-XFRM 0.1ms (0.3%)
-LGHT 0.3ms (0.8%)
-SORT 0.1ms (0.3%)
-RNDR 23.0ms (61.5%)
-FLIP 12.9ms (34.5%)

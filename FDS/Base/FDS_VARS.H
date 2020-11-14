@@ -72,6 +72,7 @@ public:
 #include "Face.h"
 #include "Camera.h"
 #include "Edge.h"
+#include <float.h>
 
 #pragma pack(push, 1)
 // Math variables and structures
@@ -206,8 +207,6 @@ struct MusicModuleInfo
 	dword Row;
 };
 
-extern "C" int MMXState;
-
 extern char G_String[256]; //General string.
 
 // illumination
@@ -228,7 +227,12 @@ extern Camera             FC;             // Free Camera..(Future Crew rulez)
 extern Material           Default_Mat;    // Default Material...
 extern Material         * MatLib;         // yosi
 
-extern unsigned short int OldFPUCW,FPUCW;
+#ifdef PORTABLE_CODE
+extern unsigned int OldFPUCW, FPUCW;
+#else
+extern unsigned short int OldFPUCW, FPUCW;
+#endif
+
 extern dword OldMXCSR, CurMXCSR;
 extern long Timer_Freq;
 
@@ -789,14 +793,22 @@ inline void Vector_Sub(Vector *U,Vector *V,Vector *W)
 
 inline void FPU_LPrecision()
 {
+#ifdef PORTABLE_CODE
+	__control87_2(_RC_UP | _PC_24, _MCW_RC | _MCW_PC, &OldFPUCW, nullptr);
+	CurMXCSR = OldMXCSR = _mm_getcsr();
+	CurMXCSR &= 0b11111111111111110000000001000000;
+	CurMXCSR |= 0b00000000000000001101111111000000;
+	_mm_setcsr(CurMXCSR);
+
+#else
 	__asm {
-		// FPU control word
+		// FPU control word - round up, 24 bit precision
 		FNStCW  [OldFPUCW]
 		Mov     ax,[OldFPUCW]
 		And     eax,1111101111111111b
 		Or      eax,0000100000000000b
-		And     eax,1111110011111111b            
-		Mov     [FPUCW],ax        
+		And     eax,1111110011111111b
+		Mov     [FPUCW],ax
 		FLdCW   [FPUCW]
 
 		// SSE control word
@@ -807,14 +819,19 @@ inline void FPU_LPrecision()
 		mov [CurMXCSR], eax
 		LDMXCSR  [CurMXCSR]
 	}
+#endif
 }
 
 
 inline void FPU_NormalState()
 {
+#ifdef PORTABLE_CODE
+	__control87_2(OldFPUCW, _MCW_RC | _MCW_PC, &OldFPUCW, nullptr);
+#else
 	__asm {
 		FLdCW   [OldFPUCW]
 	}
+#endif
 }
 
 inline void RoundToInt(long *dest, float val)
@@ -862,7 +879,8 @@ inline float SQRT(float Value)
 inline float RSQRT(float Value)
 {
 #ifdef PORTABLE_CODE
-	return 1.0f / sqrt(Value);
+	return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_load_ss(&Value)));
+	//	return 1.0f / sqrt(Value);
 #else
 	float &val = Value;
 	float retval;

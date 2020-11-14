@@ -61,7 +61,7 @@ Font * LoadAFT(const char *FileName)
 		fread(&Bfr, 1, 1, F);
 		FFI->Len[I] = Bfr[0];
 	}
-	FFI->Len[32]--;
+	FFI->Len[32] = 0;
 	fclose(F);
 	return FFI;
 }
@@ -76,7 +76,9 @@ long OutTextXY(byte *Where, long X, long Y, const char *S, char C, int xres/* = 
 	char CPP = (BPP + 1) >> 3;
 	byte *Ptr, *Pen;
 	Font *F = Active_Font;
-	if (Y >= yres - F->Y) return Y;
+	if (Y >= yres - F->Y) {
+		return Y;
+	}
 
 
 	if (BPP == 8) { TC[0] = 0; TC[1] = C; }
@@ -85,6 +87,7 @@ long OutTextXY(byte *Where, long X, long Y, const char *S, char C, int xres/* = 
 		TC[1] = 192;
 	}
 
+	long width = 0;
 	DX = X;
 	PgOffset = Y * xres;//YOffs[Y];
 
@@ -93,7 +96,13 @@ long OutTextXY(byte *Where, long X, long Y, const char *S, char C, int xres/* = 
 	while ((Ch = *S++))
 	{
 		FEnd = F->Len[Ch];
-		if (Ch == 13 || Ch == 10 || DX + FEnd + 2 >= xres) { Y += F->Y + 2; PgOffset = Y * xres; DX = Basic_FOffs; if (Y >= yres - F->Y) return Y; }
+		if (Ch == 13 || Ch == 10 || DX + FEnd + 2 >= xres) { 
+			Y += F->Y + 2;
+			PgOffset = Y * xres; 
+			DX = X; 
+			if (Y >= yres - F->Y) return Y;
+			continue;
+		}
 
 		POfs = (PgOffset + DX)*CPP;
 		FOfs = Ch * F->XY;
@@ -113,9 +122,65 @@ long OutTextXY(byte *Where, long X, long Y, const char *S, char C, int xres/* = 
 			POfs += xres * CPP;
 		}
 		DX += FEnd + 2;
+		if (width < DX - X) {
+			width = DX - X;
+		}
 	}
 	return Y;
 }
+
+void OutTextXYExtents(long X, long Y, const char* S, int xres, int yres,long &out_width, long &out_height)
+{
+	int DX;
+	int II, IJ, IK;
+	byte CP = 0, Ch;
+	long int PgOffset, POfs, FOfs, FEnd, Hisx;
+	byte TC[2];
+	char CPP = (BPP + 1) >> 3;
+	byte* Ptr, * Pen;
+	Font* F = Active_Font;
+	if (Y >= yres - F->Y) {
+		out_width = 0;
+		out_height = 0;
+		return;
+	}
+
+	long width = 0;
+	DX = X;
+	PgOffset = Y * xres;//YOffs[Y];
+
+	Hisx = F->X;
+
+	while ((Ch = *S++))
+	{
+		FEnd = F->Len[Ch];
+		if (Ch == 13 || Ch == 10 || DX + FEnd + 2 >= xres) { 
+			Y += F->Y + 2; 
+			PgOffset = Y * xres; 
+			DX = Basic_FOffs; 
+			if (Y >= yres - F->Y) { 
+				out_width = width;
+				out_height = Y;  
+				return; 
+			}; 
+		}
+
+		POfs = (PgOffset + DX) * CPP;
+		FOfs = Ch * F->XY;
+		for (IJ = 0; IJ < F->Y; IJ++)
+		{
+			FOfs += Hisx;
+			POfs += xres * CPP;
+		}
+		DX += FEnd + 2;
+		if (width < DX - X) {
+			width = DX - X;
+		}
+	}
+	out_width = width;
+	out_height = Y + F->Y;
+}
+
 
 // Writes string S on [X,Y] using the color C, transparently.
 long Write_String_T32(long X, long Y, byte *S, DWord C)

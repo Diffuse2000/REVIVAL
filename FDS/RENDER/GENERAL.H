@@ -216,10 +216,11 @@ char FDS_Init(unsigned short x,unsigned short y,unsigned char bpp)
 
 	setbuf(stdout,NULL);
 	FDS_Title();
-	Detect_MMX();
 
-	if (MMXState) printf("] Using MMX(TM) for Rasterization.\n");
-	else printf("] MMX(TM) not available.\n");
+	// Let me guess... you have an MMX enabled processor. Also SSE4.1. If not, tough luck...
+	//Detect_MMX();
+	//if (MMXState) printf("] Using MMX(TM) for Rasterization.\n");
+	//else printf("] MMX(TM) not available.\n");
 
   // Initialize Internal Variables.
 	printf("] Hacking Random-seed.\n");
@@ -536,19 +537,19 @@ DWord Find_RetraceRate()
 	return 0;
 }
 
-void Detect_MMX()
-{
-	// Assume MMX is avilable
-	MMXState = 1;
-	// use cpuid.
-	__asm {
-		mov eax, 1
-		cpuid
-		shr edx, 23
-		and edx, 1
-		mov [MMXState], edx
-	}
-}
+//void Detect_MMX()
+//{
+//	// Assume MMX is avilable
+//	MMXState = 1;
+//	// use cpuid.
+//	__asm {
+//		mov eax, 1
+//		cpuid
+//		shr edx, 23
+//		and edx, 1
+//		mov [MMXState], edx
+//	}
+//}
 
 
 #endif

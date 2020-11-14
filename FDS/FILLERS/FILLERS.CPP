@@ -1443,9 +1443,8 @@ extern "C" void ZScale_thatfucksBTB(int X,int Y,int SizeX,int SizeY,char *Txtr,c
 #pragma aux ZScale_thatfucksBTB parm [eax] [ebx] [ecx] [edx] [esi] [edi] modify exact [eax ebx ecx edx esi edi]
 
 #else 
-
+#if 0
 #define CSeven_UP Seven_UPV
-#define CSeven_UP_64 Seven_UP_64V
 #define CSeven_UP_MMX Seven_UP_MMXV
 #define CSeven_UP_MMX_32 Seven_UP_MMX_32V
 #define CZScale_thatfucksBTB ZScale_thatfucksBTBV
@@ -1465,23 +1464,6 @@ void Seven_UPV(int X,int Y,int SizeX,int SizeY,byte *Txtr,byte *Page)
 		mov esi, [Txtr]
 		mov edi, [Page]
 		call Seven_UP_
-		popad
-	}
-}
-
-extern "C" void Seven_UP_64_(void);
-void Seven_UP_64V(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page)
-{
-	__asm
-	{
-		pushad
-		mov eax, [X]
-		mov ebx, [Y]
-		mov ecx, [SizeX]
-		mov edx, [SizeY]
-		mov esi, [Txtr]
-		mov edi, [Page]
-		call Seven_UP_64_
 		popad
 	}
 }
@@ -1544,9 +1526,10 @@ void ZScale_thatfucksBTBV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Pag
 		popad
 	}
 }
-
+#endif
 #endif
 
+#if 0
 void The_Seven_UP(Vertex **V, dword numVerts)
 {
 	long Size = ImageSize*_A->RZ;
@@ -1563,17 +1546,60 @@ void The_Seven_UP(Vertex **V, dword numVerts)
 	}
 }
 
-void The_Seven_UP_64(long X,long Y,long SX,long SY,DWord *Bitmap, byte *Page)
-{
-	CSeven_UP_64(X,Y,SX,SY,(byte *)Bitmap,VPage);
-}
-
-
 void The_Seven_UP_HALFSIZE(Vertex **V, dword numVerts)
 {
 	long Size = 2;
 	CSeven_UP(_A->PX,_A->PY,Size<<1,Size<<1,DoFace->Txtr->Txtr->Data,VPage);
 }
+#endif
+
+
+#define CSeven_UP_64 Seven_UP_64V
+extern "C" void Seven_UP_64_(void);
+void Seven_UP_64V(int X, int Y, int SizeX, int SizeY, byte* Txtr, byte* Page)
+{
+	__asm
+	{
+		pushad
+		mov eax, [X]
+		mov ebx, [Y]
+		mov ecx, [SizeX]
+		mov edx, [SizeY]
+		mov esi, [Txtr]
+		mov edi, [Page]
+		call Seven_UP_64_
+		popad
+	}
+}
+
+void The_Seven_UP_64(long X, long Y, long SX, long SY, DWord* Bitmap, byte* Page)
+{
+	CSeven_UP_64(X, Y, SX, SY, (byte*)Bitmap, VPage);
+}
+
+#define CSeven_UP_MMX Seven_UP_MMXV
+
+extern "C" void Seven_UP_MMX_(void);
+void Seven_UP_MMXV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page, dword Color, dword Z)
+{
+	__asm
+	{
+	mov eax, [X]
+	mov ebx, [Y]
+	mov ecx, [SizeX]
+	mov edx, [SizeY]
+	mov esi, [Txtr]
+	mov edi, [Page]
+	pushad
+	push Z
+	push Color
+	call Seven_UP_MMX_
+	pop eax
+	pop eax
+	popad
+	}
+}
+
 
 void The_MMX_Scalar(Vertex **V, dword numVerts)
 {
@@ -1869,7 +1895,7 @@ EndScanline:
 #endif
 }
 
-
+#if 0
 void The_MMX_Scalar_32(Vertex **V, dword numVerts)
 {
 	float Size = ImageSize*_A->RZ*View->PerspX;
@@ -1909,6 +1935,8 @@ void The_ZScale_Shit(Vertex **V, dword numVerts)
   long Size = ImageSize*_A->RZ;
   CZScale_thatfucksBTB(_A->PX,_A->PY,Size<<1,Size<<1,DoFace->Txtr->Txtr->Data,VPage);
 }
+#endif
+
 
 void Particle_Sprite(Vertex **V, dword numVerts)
 {
@@ -1925,8 +1953,8 @@ void Particle_Sprite(Vertex **V, dword numVerts)
 ////////////////////////////////////////
 // Tile-based rendering
 #define TILELOG 3
-#define TILESIZE 8
-#define rTILESIZE 0.125
+#define TILESIZE (1 << (TILELOG))
+#define rTILESIZE 1.0/(float(TILESIZE))
 
 void TBR_Init(Scene *Sc, mword size)
 {
@@ -1957,7 +1985,7 @@ void InsertSpriteToTBR(Face *F, float y, float Height)
 	int y1, y2;
 	static long numTiles = CurScene->NumTiles;
 
-	y1 = Fist(((y - Height) * rTILESIZE) - 0.9999);
+	y1 = Fist(((y - Height) * rTILESIZE) - 0.999999);
 	y2 = Fist((y + Height) * rTILESIZE);
 
 	if (y1 >= numTiles || y2 < 0)
@@ -2144,10 +2172,12 @@ void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
 					   Protection,
 					   &OldProtection);
 
+#if 0
 	VirtualProtectFunc(reinterpret_cast<void *>(Seven_UP_MMX_32_),
 					   Seven_UP_MMX_32_Size,
 					   Protection,
 					   &OldProtection);
+#endif
 
 	VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZM_Code_Start),
 					   IX_TGZM_Code_Size,

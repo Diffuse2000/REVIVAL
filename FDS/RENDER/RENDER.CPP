@@ -33,7 +33,12 @@ long CPolys,COmnies,CPcls,CAll,Polys;
 char *TxtrBuf,*TxtrAlign;
 float Exec_FPS;
 Material Default_Mat;
+#ifdef PORTABLE_CODE
+unsigned int OldFPUCW, FPUCW;
+#else
 unsigned short int OldFPUCW,FPUCW;
+#endif
+
 dword OldMXCSR, CurMXCSR;
 char **MsgStr;
 long *MsgClock;

@@ -4,6 +4,7 @@
 #include "FillerTest.h"
 #include "MISC/PREPROC.H"
 #include "Base/FDS_DECS.H"
+#include <vector>
 
 static Scene *GreetSc;
 
@@ -15,12 +16,12 @@ static void SceneCorrections()
 	// a crazy hack used to adjust omnilights in code.
 	float OmniRangeMult[] = 
 	//	ent1  ent2  ctr1  ctr2  crd1  hal1  hal2  rbtl  rbtr  rbth
-		{1.0,  1.0,  1.0,  1.0,  1.0,  1.7,  1.7,  2.0,  2.0,  2.0};
+		{2.0,  2.0,  2.0, 2.0,  2.0,  1.7,  1.7,  2.0,  2.0,  2.0};
 //		{0.9,  0.9,  0.3,  0.3,  0.4,  2.0,  2.0,  0.5,  0.5,  0.5};
 //		{0.01,  0.01,  0.01,  0.01,  0.01,  1.0,  1.0,  0.01,  0.01,  0.01};
 	float OmniSizeMult[] =
 	//	ent1  ent2  ctr1  ctr2  crd1  hal1  hal2  rbtl  rbtr  rbth
-		{1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.5,  0.75,  1.0};
+		{1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.5,  1.5,  1.5};
 	int OmniDisable[] = 
 		{  0,    0,    0,    0,    0,    0,    0,    0,    0,    0};
 
@@ -47,7 +48,7 @@ static void SceneCorrections()
 		// adjust size / disable flares
 		if (OmniSizeMult[index] == 0)
 			O->Flags &=~Omni_Flare;
-//		Spline_Scale(&O->Size, OmniSizeMult[index]);
+		Spline_Scale(&O->Size, OmniSizeMult[index]);
 
 		// adjust range
 		Spline_Scale(&O->Range, OmniRangeMult[index]);
@@ -77,7 +78,7 @@ static void SceneCorrections()
 #define TRIG_ACC 512 //trigonometric table accuracy. must be a power of 2.
 #define TRIG_MASK (TRIG_ACC-1)
 #define TRIG_FACTOR (512.0/PI_M2)
-
+#define ARRAYSIZE(a) (sizeof((a))/sizeof((*a)))
 
 struct GreetsGenerator
 {
@@ -93,6 +94,44 @@ struct GreetsGenerator
 	float CosTable[TRIG_ACC];
 	DWord *TmpBuf;
 	DWord *OutBuf;
+
+	static constexpr const char* greetingsRound1[] = {
+		" imr",
+		" Cycat",
+		" coolphat",
+		" borzom",
+		" civax",
+		" yoe",
+	};
+
+	static constexpr const char* greetingsRound2[] = {
+		" esteem",
+		" adept",
+		" kombat",
+		" rage",
+		" magic intros",
+	};
+
+	static constexpr const char* greetingsRound3[] = {
+		" Revival\nBy  Flood"
+	};
+
+
+	struct GreetsEntry {
+		GreetsEntry(const char* text): text(text) {
+			OutTextXYExtents(12, 0, text, 256, 256, x, y);
+			y -= 2;
+		}
+
+		const char* text;
+		long x, y;
+	};
+
+	GreetsEntry ge0 { " Flood\nGreets" };
+	std::vector<GreetsEntry> ge1{ std::begin(greetingsRound1) , std::end(greetingsRound1) };
+	std::vector<GreetsEntry> ge2{ std::begin(greetingsRound2) , std::end(greetingsRound2) };
+	std::vector<GreetsEntry> ge3{ std::begin(greetingsRound3) , std::end(greetingsRound3) };
+	//GreetsEntry ge_empty { "" };
 
 
 	void AttachMatToScene()
@@ -114,7 +153,6 @@ struct GreetsGenerator
 
 	void Init()
 	{
-
 		OutBuf = new DWord[256 * 256];
 		TmpBuf = new DWord[256 * 256];
 
@@ -127,6 +165,10 @@ struct GreetsGenerator
 		}
 		Load_Texture(&CodeTexture);
 		Convert_Texture2Image(&CodeTexture, &CodeImage);
+		memset(CodeImage.Data, 0, sizeof(uint32_t) * CodeImage.x * CodeImage.y);
+
+		memset(OutBuf, 0, 256 * 256 * 4);
+
 		Code_GP = new GridPointT[numGridPoints];
 
 		for (int i = 0; i < TRIG_ACC; i++)
@@ -158,6 +200,36 @@ struct GreetsGenerator
 		static float u, v, u1, v1, u2, v2, r, g, b;
 		//float ST = (Timer * 2500) / (1000 + Timer);//  sqrt(Timer*1600);
 
+		double greetTime = 0;
+		GreetsEntry* greet;
+		const int GREET1_START_FRAME = 350;
+		const int GREET1_END_FRAME = 730;
+		const int GREET2_START_FRAME = 900;
+		const int GREET2_END_FRAME = 1200;
+		const int GREET3_START_FRAME = 2000;
+		const int GREET3_END_FRAME = 2500;
+		if (CurFrame < GREET1_START_FRAME) {
+			greet = &ge0;
+		} else if (CurFrame < GREET1_END_FRAME) {
+			greetTime = double(CurFrame - GREET1_START_FRAME) / (GREET1_END_FRAME - GREET1_START_FRAME);
+			greet = &ge1[size_t(greetTime * 0.9999 * ge1.size())];
+		} else if (CurFrame < GREET2_START_FRAME) {
+			greet = &ge0;
+		} else if (CurFrame < GREET2_END_FRAME) {
+			greetTime = double(CurFrame - GREET2_START_FRAME) / (GREET2_END_FRAME - GREET2_START_FRAME);
+			greet = &ge2[size_t(greetTime * 0.9999 * ge2.size())];
+		} else if (CurFrame < GREET3_START_FRAME) {
+			greet = &ge0;
+		} else if (CurFrame < GREET3_END_FRAME) {
+			greetTime = double(CurFrame - GREET3_START_FRAME) / (GREET3_END_FRAME - GREET3_START_FRAME);
+			greet = &ge3[size_t(greetTime * 0.9999 * ge3.size())];
+		} else {
+			greet = &ge0;
+		}
+
+		memset(CodeImage.Data, 0, sizeof(uint32_t) * CodeImage.x * CodeImage.y);
+		OutTextXY((byte*)(CodeImage.Data), (CodeImage.x - greet->x) / 2, (CodeImage.y - greet->y) / 2, greet->text, 255, CodeImage.x, CodeImage.y);
+
 		int X, Y;
 		int j = 0;
 		ST = (Timer * 2500) / (1000 + Timer);//  sqrt(Timer*1600);
@@ -172,11 +244,6 @@ struct GreetsGenerator
 		for (int y = 0; y <= TEXRES; y += 8) {
 			for (int x = 0; x <= TEXRES; x += 8)
 			{
-
-
-				X = x; //-TEXRES * 0.5;
-				Y = y; //-TEXRES * 0.5;
-
 				Code_R2 = LenTable[j] / 200.0f + ST / 100.0f;
 				long TrigOffset = Code_R2 * TRIG_FACTOR;
 				TrigOffset &= TRIG_MASK;
@@ -184,8 +251,8 @@ struct GreetsGenerator
 				CSinR2 = SinTable[TrigOffset];
 
 
-				u = X / 1024.0f;
-				v = Y / 1024.0f;
+				u = (x / 256.0f - 0.5) * 0.35 + 0.5;
+				v = (y / 256.0f - 0.5) * 0.35 + 0.5;
 
 				Code_GP[j].u = u * 65536.0;
 				Code_GP[j].v = v * 65536.0;
@@ -197,8 +264,6 @@ struct GreetsGenerator
 				j++;
 			}
 		}
-
-		OutTextXY((byte *)CodeImage.Data, 12, 24, "Moshe", 255, 256, 256);
 
 		GridRendererT(Code_GP, &CodeImage, TmpBuf, TEXRES, TEXRES);
 
@@ -231,7 +296,7 @@ struct GreetsGenerator
 
 };
 
-GreetsGenerator gg;
+GreetsGenerator *gg;
 
 void Initialize_Greets()
 {	
@@ -239,6 +304,8 @@ void Initialize_Greets()
 	memset(GreetSc,0,sizeof(Scene));
 	
 	LoadFLD(GreetSc,"Scenes\\Greets.FLD");
+
+	gg = new GreetsGenerator;
 
 	SceneCorrections();
 
@@ -269,7 +336,7 @@ void Initialize_Greets()
 
 	GreetSc->PathingMinVelocity = 0.01;
 
-	gg.Init();
+	gg->Init();
 
 }
 
@@ -307,15 +374,6 @@ void Run_Greets()
 	long Polys = 0, TTrd;
 	TriMesh *T;
 	Omni *O;
-	const char *greetings[] = {
-		"imr",
-		"Cycat",
-		"coolphat",
-		"borzom",
-		"civax",
-		"yoe",
-	};
-
 
 	long i, timerStack[20], timerIndex = 0;
 	for(i=0; i<20; i++)
@@ -453,7 +511,7 @@ void Run_Greets()
 		Profiler[PROF_RNDR] -= Timer;
 
 
-        gg.Render();
+        gg->Render();
 		// reset per-frame zbuffer statistics
 		zPass = zReject = 0;
 		Render();

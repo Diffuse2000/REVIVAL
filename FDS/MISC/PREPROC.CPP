@@ -13,6 +13,9 @@
 #include "Base/Omni.h"
 #include "Base/Scene.h"
 
+FILE *LogFile;
+
+#if 0
 #ifdef _C_WATCOM
 #pragma aux REPSTDW=\
 	"Rep StoSD",\
@@ -31,7 +34,6 @@ void REPSTDW(void *buf, DWord val, DWord count)
 }
 #endif
 
-FILE *LogFile;
 
 // Computes Re-sorted Indexing that will hopefully produce less CACHE misses.
 // ok, maybe not. I'm just keeping this proc for fun. now, all we need is
@@ -70,6 +72,7 @@ void Compute_Optimized_Indices(TriMesh *T)
 	delete [] Buffer;
 	delete [] Conversion;
 }
+#endif
 
 // Computes Face/Triangle Plane Normals for Trimesh T.
 void Compute_Face_Normals(TriMesh *T)
@@ -1003,8 +1006,8 @@ void Assign_Fillers(Scene *Sc)
 				IX_Prefiller_FZ, // Flat (impl. gouraud)
 				IX_Prefiller_TZ, // Texture
 				IX_Prefiller_GZ, // Gouraud
-				//IX_Prefiller_TGZM, // Txtr/Gouraud
-				IX_Prefiller_TGZ, // Txtr/Gouraud
+				IX_Prefiller_TGZM, // Txtr/Gouraud
+//				IX_Prefiller_TGZ, // Txtr/Gouraud
 				IX_Prefiller_FAcZ, // transparent Flat
 				IX_Prefiller_TAcZ, // transparent Texture
 				IX_Prefiller_GAcZ, // transparent Gouraud
@@ -1043,13 +1046,7 @@ void Assign_Fillers(Scene *Sc)
 			switch (BPP)
 			{
 			case 32: 
-				if (MMXState) 
-				{
-					O->F.Filler = &The_MMX_Scalar; 
-				} else {
-					//O->F.Filler = Spirit_16;
-					O->F.Filler = &The_Seven_UP; 
-				}
+				O->F.Filler = &The_MMX_Scalar;
 				break;
 			}
 		}

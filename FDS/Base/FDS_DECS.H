@@ -224,6 +224,7 @@ void End_Graphics();
 
 Font * LoadAFT(const char *FileName);
 long OutTextXY(byte *Where,long X,long Y, const char *S,char C, int xres = XRes, int yres = YRes);
+void OutTextXYExtents(long X, long Y, const char* S, int xres, int yres, long& out_height, long& out_width);
 long Write_String_T32(long X,long Y,char *S,dword C);
 void Set_RGB(char Reg,char R,char G,char B);
 void Set_Palette(VPalette Pal);
