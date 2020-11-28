@@ -177,6 +177,10 @@
     <ClCompile Include="VESA\VESA_TABLES.CPP">
       <Filter>VESA</Filter>
     </ClCompile>
+    <ClCompile Include="Gradient.cpp">
+      <Filter>IMGGENR</Filter>
+    </ClCompile>
+    <ClCompile Include="Clipper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3ds\I_defs.h">
@@ -305,10 +309,18 @@
     <ClInclude Include="Fillers\FILLERS.H">
       <Filter>Fillers</Filter>
     </ClInclude>
+    <ClInclude Include="Gradient.h" />
+    <ClInclude Include="FRUSTRUM.H">
+      <Filter>FRUSTRUM</Filter>
+    </ClInclude>
+    <ClInclude Include="Clipper.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MISC\mmreg.inl">
       <Filter>MISC</Filter>
+    </None>
+    <None Include="IXTGZSAM.asm">
+      <Filter>Fillers</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

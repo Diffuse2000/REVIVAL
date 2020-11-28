@@ -1,5 +1,8 @@
 #pragma comment(lib, "delayimp")  
+#ifndef _DEBUG
 #pragma comment(lib, "Modplayer")  
+#endif // !DEBUG
+
 #pragma comment(lib, "WS2_32")
 #pragma comment(lib, "userenv.lib")
 #pragma comment(lib, "Version.lib") 
@@ -1405,8 +1408,8 @@ void CodeEntry(void *var)
 		//module.Start();
 	}
 	Timer = 0;
-//	FillerTest();
-//	return;
+	//FillerTest();
+	//return;
 
 	Run_Glato();
 	while (Timer<4000);

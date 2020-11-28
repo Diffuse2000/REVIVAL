@@ -7,6 +7,8 @@
 
 #include <Base/Scene.h>
 
+#include "FRUSTRUM.H"
+
 #define ClipAccurate
 #define COUNT_POLYS
 //#define NO_MIPMAPS
@@ -37,12 +39,6 @@ dword g_renderedPolys;
 
 #define ENABLE_PIXELCOUNT
 
-struct Viewport
-{
-	float ClipX1, ClipX2, ClipY1, ClipY2;
-	float NearZ, FarZ;
-	float iNearZ, iFarZ;
-};
 
 #define CLIPPER_MAXVERTS 48
 
@@ -148,32 +144,45 @@ void InitFrustrumClipper()
 	}
 }
 
-void InitClipperViewport(Scene *Sc)
-{
-	C_VP.NearZ = Sc->NZP;
-	C_VP.FarZ = Sc->FZP;
-	C_VP.iNearZ = 1.0 / Sc->NZP;
-	C_VP.iFarZ = 1.0 / Sc->FZP;
+void viewportInit(Viewport& vp, const Scene* Sc) {
+	vp.NearZ = Sc->NZP;
+	vp.FarZ = Sc->FZP;
+	vp.iNearZ = 1.0 / Sc->NZP;
+	vp.iFarZ = 1.0 / Sc->FZP;
 
 	// scene should have a flag for modifyable clipping bounds.
-	C_VP.ClipX1 = 0.0;
-	C_VP.ClipX2 = XRes;
-	C_VP.ClipY1 = 0.0;
-	C_VP.ClipY2 = YRes-1;
+	vp.ClipX1 = 0.0;
+	vp.ClipX2 = XRes;
+	vp.ClipY1 = 0.0;
+	vp.ClipY2 = YRes - 1;
 }
-static inline void Calc_Flags(Vertex *V)
+
+void viewportCalcFlags(const Viewport& vp, Vertex* v) {
+	if (v->PX < vp.ClipX1) v->Flags = Vtx_VisLeft; else v->Flags = 0;
+	if (v->PX > vp.ClipX2) v->Flags |= Vtx_VisRight;
+	if (v->PY < vp.ClipY1) v->Flags |= Vtx_VisUp;
+	if (v->PY > vp.ClipY2) v->Flags |= Vtx_VisDown;
+}
+
+void viewportCalcYFlags(const Viewport& vp, Vertex* v) {
+	if (v->PY < vp.ClipY1) v->Flags = Vtx_VisUp; else v->Flags = 0;
+	if (v->PY > vp.ClipY2) v->Flags |= Vtx_VisDown;
+}
+
+void InitClipperViewport(Scene *Sc)
 {
-	if (V->PX<C_VP.ClipX1) V->Flags = Vtx_VisLeft; else V->Flags = 0;
-	if (V->PX>C_VP.ClipX2) V->Flags |= Vtx_VisRight;
-	if (V->PY<C_VP.ClipY1) V->Flags |= Vtx_VisUp;
-	if (V->PY>C_VP.ClipY2) V->Flags |= Vtx_VisDown;
+	viewportInit(C_VP, Sc);
+}
+
+void Calc_Flags(Vertex *V)
+{
+	viewportCalcFlags(C_VP, V);
 	C_Flags |= V->Flags;
 }
 
-static inline void Calc_YFlags(Vertex *V)
+void Calc_YFlags(Vertex *V)
 {
-	if (V->PY<C_VP.ClipY1) V->Flags = Vtx_VisUp; else V->Flags = 0;
-	if (V->PY>C_VP.ClipY2) V->Flags |= Vtx_VisDown;
+	viewportCalcYFlags(C_VP, V);
 	C_Flags |= V->Flags;
 }
 

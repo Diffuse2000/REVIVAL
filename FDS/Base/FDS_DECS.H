@@ -415,6 +415,7 @@ void IX_Prefiller_TGAcZ(Vertex **V, dword numVerts);
 void IX_Prefiller_TGZM(Vertex **V, dword numVerts);
 void IX_Prefiller_TGZTM(Vertex **V, dword numVerts);
 void IX_Prefiller_TGZTAM(Vertex **V, dword numVerts);
+void IX_Prefiller_TGZSAM(Vertex** V, dword numVerts);
 
 
 // Tile based rendering
@@ -492,6 +493,8 @@ extern dword New_SCache(dword Size);
 // Skycube generation routine
 Scene * CreateSkyCube(dword skyType);
 void RenderSkyCube(Scene *Sc, Camera *Cm);
+
+void Sachletz(dword* data, dword xres, dword yres);
 
 
 #endif //FDS_DECS_H_INCLUDED

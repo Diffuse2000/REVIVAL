@@ -7,6 +7,13 @@
 
 #pragma pack(push, 1)
 
+struct Viewport
+{
+	float ClipX1, ClipX2, ClipY1, ClipY2;
+	float NearZ, FarZ;
+	float iNearZ, iFarZ;
+};
+
 // 72 bytes mod 16 = 8
 // 4+20+12+12+12+8+4
 struct  Vertex

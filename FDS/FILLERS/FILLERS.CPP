@@ -2108,6 +2108,8 @@ extern "C"
 	extern dword IX_TGZTM_Code_Size;
 	extern dword IX_TGZTAM_Code_Start;
 	extern dword IX_TGZTAM_Code_Size;
+	extern dword IX_TGZSAM_Code_Start;
+	extern dword IX_TGZSAM_Code_Size;
 }
 
 void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
@@ -2190,8 +2192,13 @@ void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
 					   &OldProtection);
 
 	VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZTAM_Code_Start),
-					   IX_TGZTM_Code_Size,
+					   IX_TGZTAM_Code_Size,
 					   Protection,
 					   &OldProtection);
+
+	VirtualProtectFunc(reinterpret_cast<void*>(IX_TGZSAM_Code_Start),
+		IX_TGZSAM_Code_Size,
+		Protection,
+		&OldProtection);
 }
 #endif

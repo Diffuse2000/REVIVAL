@@ -2,6 +2,7 @@
 #define FDS_VARS_H_INCLUDED
 #include "FDS_DEFS.H"
 #include "BaseDefs.h"
+#include <stdexcept>
 
 // _data must be allocated
 class mmreg
@@ -1056,5 +1057,20 @@ inline void rcpss(float *s)
 #pragma pack (pop)
 #pragma pack (pop)
 #pragma pack (pop)
+
+inline void range_check_01(float f) {
+	if (f < 0 || f > 1) {
+		throw std::runtime_error("bug");
+	}
+}
+
+inline DWord ToQColor(Color c) {
+	DWord a = Fist(c.A * 254.9) << 24;
+	DWord r = Fist(c.R * 254.9) << 16;
+	DWord g = Fist(c.G * 254.9) << 8;
+	DWord b = Fist(c.B * 254.9) << 0;
+	return a | r | g | b;
+}
+
 
 #endif //FDS_VARS_H_INCLUDED

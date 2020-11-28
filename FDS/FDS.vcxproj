@@ -185,7 +185,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>PORTABLE_CODE;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <PrecompiledHeaderOutputFile>.\Debug/FDS.pch</PrecompiledHeaderOutputFile>
@@ -262,6 +262,7 @@
     </ClCompile>
     <ClCompile Include="Base\Texture.cpp" />
     <ClCompile Include="CAMERAS\CAMERAS.CPP" />
+    <ClCompile Include="Clipper.cpp" />
     <ClCompile Include="FILLERS\F4Vec.cpp" />
     <ClCompile Include="FILLERS\FILLERS.CPP" />
     <ClCompile Include="FILLERS\IX.cpp" />
@@ -273,6 +274,7 @@
     <ClCompile Include="FLD\FLD_MAT.CPP" />
     <ClCompile Include="FLD\FLD_READ.CPP" />
     <ClCompile Include="FRUSTRUM\FRUSTRUM.CPP" />
+    <ClCompile Include="Gradient.cpp" />
     <ClCompile Include="IMGCODE\IMGCODE.CPP" />
     <ClCompile Include="IMGGENR\IMGGENR.CPP" />
     <ClCompile Include="IMGPROC\IMGPROC.CPP" />
@@ -321,11 +323,14 @@
     <ClInclude Include="Base\TriMesh.h" />
     <ClInclude Include="Base\Vector.h" />
     <ClInclude Include="Base\Vertex.h" />
+    <ClInclude Include="Clipper.h" />
     <ClInclude Include="FILLERS\F4Vec.h" />
     <ClInclude Include="Fillers\FILLERS.H" />
     <ClInclude Include="FILLERS\IX.h" />
     <ClInclude Include="FLD\FLD_READ.H" />
     <ClInclude Include="FLD\LWREAD.H" />
+    <ClInclude Include="FRUSTRUM.H" />
+    <ClInclude Include="Gradient.h" />
     <ClInclude Include="IMGCODE\QUANTUM.H" />
     <ClInclude Include="IMGGENR\PREPROC.H" />
     <ClInclude Include="IMGGENR\IMGGENR.H" />
@@ -702,6 +707,13 @@
 </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).obj;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="IXTGZSAM.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).obj;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).obj;%(Outputs)</Outputs>
     </CustomBuild>
     <None Include="MISC\mmreg.inl" />
     <CustomBuild Include="RENDER\PackedVars.ASM">

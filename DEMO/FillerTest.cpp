@@ -1,6 +1,12 @@
 #include "FillerTest.h"
 #define MEASURE_ZSTATS
 #include "Base/Scene.h"
+#include "Gradient.h"
+#include "FRUSTRUM.H"
+#include "Clipper.h"
+
+#include <VESA/VESA.H>
+
 
 struct IXVertex
 {
@@ -1010,22 +1016,22 @@ extern "C"
 	void IXAsmFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page, dword logWidth, dword logHeight);
 }
 
-static void drawPoly()
+static void drawPoly(float DT)
 {
 	Vertex V[4];
 	Face F;
 	dword i;
 	static float T = 0;
 
-	float a = T * 0.003;
+	float a = (T + DT) * 0.003;
 	float c = cos(a);
 	float s = sin(a);
 
-//	T += 0.5;
+	T += 0.5;
 
 	i=0;
-	V[i].PX = 300.1 - 80 * c - 50 * s;
-	V[i].PY = 200.1 + 80 * s - 50 * c;
+	V[i].PX = 900.1 - 280 * c - 250 * s;
+	V[i].PY = 400.1 + 280 * s - 250 * c;
 //	V[i].PX = 200.0;
 //	V[i].PY = 100.0;
 	V[i].TPos.z = 1.0;
@@ -1036,8 +1042,8 @@ static void drawPoly()
 	V[i].LB = 253.0;
 
 	i=1;
-	V[i].PX = 300.1 + 80 * c - 50 * s;
-	V[i].PY = 200.1 - 80 * s - 50 * c;
+	V[i].PX = 900.1 + 280 * c - 250 * s;
+	V[i].PY = 400.1 - 280 * s - 250 * c;
 //	V[i].PX = 130.0;
 //	V[i].PY = 200.0;
 	V[i].TPos.z = 1.0;
@@ -1048,8 +1054,8 @@ static void drawPoly()
 	V[i].LB = 127.0;
 
 	i=2;
-	V[i].PX = 300.1 + 80 * c + 50 * s;
-	V[i].PY = 200.1 - 80 * s + 50 * c;
+	V[i].PX = 900.1 + 280 * c + 250 * s;
+	V[i].PY = 400.1 - 280 * s + 250 * c;
 //	V[i].PX = 100.0;
 //	V[i].PY = 100.0;
 	V[i].TPos.z = 1.0;
@@ -1060,14 +1066,18 @@ static void drawPoly()
 	V[i].LB = 2.0;
 
 	i=3;
-	V[i].PX = 300.1 - 80 * c + 50 * s;
-	V[i].PY = 200.1 + 80 * s + 50 * c;
+	V[i].PX = 900.1 - 280 * c + 250 * s;
+	V[i].PY = 400.1 + 280 * s + 250 * c;
 	V[i].TPos.z = 1.0;
 	V[i].U = 0;
 	V[i].V = 0.999;
 	V[i].LR = 253.0;
 	V[i].LG = 2.0;
 	V[i].LB = 127.0;
+
+	for (i = 0; i != 4; ++i) {
+		V[i].LR = V[i].LG = V[i].LB = 255.0;
+	}
 
 	DoFace = &F;
 	F.Txtr = &DummyMat;
@@ -1076,13 +1086,32 @@ static void drawPoly()
 	DummyTex.Mipmap[0] = DummyTex.Data;
 	DoFace->Txtr->Txtr->LSizeX = 8;
 	DoFace->Txtr->Txtr->LSizeY = 8;
+
+	Viewport vp;
+	vp.ClipX1 = 0;
+	vp.ClipX2 = XRes;
+	vp.ClipY1 = 0;
+	vp.ClipY2 = YRes_1;
 			
 	for(i=0; i<4; i++)
 	{
 		V[i].RZ = 1.0 / V[i].TPos.z;
 		V[i].UZ = V[i].U * V[i].RZ;
 		V[i].VZ = V[i].V * V[i].RZ;		
+		viewportCalcFlags(vp, &V[i]);
 	}
+	F.A = &V[0];
+	F.B = &V[1];
+	F.C = &V[2];
+	F.Filler = IX_Prefiller_TGZSAM;
+ 	_2DClipper::getInstance()->clip(vp, F);
+
+	F.A = &V[0];
+	F.B = &V[2];
+	F.C = &V[3];
+	_2DClipper::getInstance()->clip(vp, F);
+
+	/*
 
 	long my=0;
 	float minY = V[0].PY;
@@ -1124,24 +1153,6 @@ static void drawPoly()
 		VP[3] = &V[0];
 		break;
 	}
-/*	switch (my)
-	{
-	case 0:
-		VP[0] = &V[0];
-		VP[1] = &V[2];
-		VP[2] = &V[1];
-		break;
-	case 1:
-		VP[0] = &V[1];
-		VP[1] = &V[0];
-		VP[2] = &V[2];
-		break;
-	case 2:
-		VP[0] = &V[2];
-		VP[1] = &V[1];
-		VP[2] = &V[0];
-		break;
-	}*/
 	float fl = 5.3;
 	long ifl;
 	__asm
@@ -1149,20 +1160,22 @@ static void drawPoly()
 		fld dword ptr [fl]
 		fistp dword ptr [ifl]
 	}
-	IX_Prefiller_TGZM(VP, 4);
+	IX_Prefiller_TGZSAM(VP, 4);
 //	VPage -= 800;
 //	IX_Prefiller_TGZ(VP, 4);
-//	VPage += 800;
-	while (!Keyboard[ScSpace])
+//	VPage += 800;*/
+
+/*	while (!Keyboard[ScSpace])
 	{
 		continue;
-	}
+	}*/
 }
 
 void FillerTest()
 {
 	Scene Sc;
 	CurScene = &Sc;
+	Sc.Flags = 0;
 	Sc.NZP = 1.0;
 	Sc.FZP = 1000.0;
 	g_MipLevel = 0;
@@ -1170,33 +1183,69 @@ void FillerTest()
 	// prepare texture
 	l_TestTexture = new dword [1<<(2*8)];
 
+	std::vector<GradientEndpoint> endpoints;
+/*	endpoints.emplace_back(0.0, Color{ 0.0, 0.0, 0.0, 0.0 });
+	endpoints.emplace_back(0.1, Color{ 1.0, 0.0, 0.1 });
+	endpoints.emplace_back(0.35, Color{ 1.0, 0.4, 0.8 });
+	endpoints.emplace_back(0.5, Color{ 1.0, 1.0, 1.0 });
+	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0 });
+	//	endpoints.emplace_back(0.4, Color{ 1.0, 0.2, 0.6 });
+//	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0 });
+	auto M = Generate_Gradient(endpoints, 256, 0.2);*/
+
+	endpoints.emplace_back(0, Color{ 0.0, 0.0, 0.0, 0.0 });
+	endpoints.emplace_back(0.5, Color{ 0.3, 0.0, 0.1, 0.0 });
+	endpoints.emplace_back(0.6, Color{ 1.0, 0.0, 0.1, 0.0 });
+	endpoints.emplace_back(0.75, Color{ 1.0, 0.4, 0.8, 0.0 });
+	endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.0 });
+	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.0 });
+	auto M = Generate_Gradient(endpoints, 256, 0.1);
+
 	dword i,j;
 	for(j=0; j<256; j++)
 	{
 		for(i=0; i<256; i++)		
 		{
-			l_TestTexture[i+(j<<8)] = 
+			l_TestTexture[i + (j << 8)] =
 				//0xFFFFFF;				
 				//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
-				//(i<<16)+(j<<8)+(i^j);
-				((i>>2)&1)*0xFFFFFF;
+				//(i<<16)+(j<<8)+(i^j) * 0x010101;
+				(i ^ j) * 0x010101;
+				//((i>>2)&1)*0xFFFFFF;
 				
 		}
 	}
+//	Sachletz(l_TestTexture, 256, 256);
+
+	l_TestTexture = (DWord *)M->Txtr->Data;
 
 	const long PartTime = 10000;
 
 	float TT = Timer;
+	byte* TempBuf = new byte[XRes*YRes*4];
+	memset(TempBuf, 0, XRes * YRes * 4);
 	while (Timer < PartTime)
 	{
 		dTime = (Timer - TT) / 100.0;
 		TT = Timer;
 
 		//memset(VPage, 0, PageSize);
+		/*for (int y = 0; y != YRes; ++y) {
+			for (int x = 0; x != XRes; ++x) {
+				((dword*)VPage)[y * XRes + x] = (x % 64 < 32) ? 0x3f3f3f : 0;
+			}
+		}*/
 		memset(VPage,0,PageSize + XRes*YRes*sizeof(word));
 		
-		drawPoly();
-		
+		drawPoly(0);
+		drawPoly(500);
+
+		DWord pSrc = 0x10101010;
+		DWord pDst = 0xFCFCFCFC;
+
+		//AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
+		//memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
+
 		Flip(MainSurf);
 
 		if (Keyboard[ScESC])

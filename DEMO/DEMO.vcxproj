@@ -229,7 +229,7 @@ copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>PORTABLE_CODE;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <PrecompiledHeader>
       </PrecompiledHeader>
@@ -333,7 +333,7 @@ copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
     <ClCompile Include="dxutil.cpp" />
     <ClCompile Include="END.CPP" />
     <ClCompile Include="FillerTest.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="FOUNTAIN.CPP" />
     <ClCompile Include="GDI.CPP" />

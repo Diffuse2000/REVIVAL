@@ -21,6 +21,12 @@
 #define FntLightningTime4 2700
 #define FntLightningTime5 3200
 #define FntLightningTime6 3500
+//#define FntLightningTime1 500
+//#define FntLightningTime2 1500
+//#define FntLightningTime3 2200
+//#define FntLightningTime4 2700
+//#define FntLightningTime5 3200
+//#define FntLightningTime6 3500
 
 #define FntLightningPcls  int(400 * FntFactor)
 

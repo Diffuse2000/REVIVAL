@@ -2,6 +2,9 @@
 
 #include "FOUNTAIN.H"
 #include "VESA/VESA.H"
+#include "Gradient.h"
+#include "FRUSTRUM.H"
+#include "Clipper.h"
 
 static Scene *FntSc;
 static Vector FntHead(-0.053f,43.381f, 0.251f);
@@ -45,6 +48,8 @@ static Particle *LBoltPcls;
 static Image PhotonPlasma;
 
 static dword g_numPcls;
+
+static Material* g_LnMat;
 
 void Particle_Rast(Vertex *A,Vertex *B,Vertex *C)
 {
@@ -728,6 +733,16 @@ void Initialize_Fountain()
 
 	LBoltPcls = new Particle[FntLightningPcls];
 
+	std::vector<GradientEndpoint> endpoints;
+	endpoints.emplace_back(0, Color{ 0.0, 0.0, 0.0, 0.0 });
+	endpoints.emplace_back(0.1, Color{ 0.2, 0.0, 0.0, 0.0 });
+	endpoints.emplace_back(0.7, Color{ 0.4, 0.0, 0.1, 0.0 });
+	endpoints.emplace_back(0.75, Color{ 1.0, 0.0, 0.1, 0.0 });
+	endpoints.emplace_back(0.8, Color{ 1.0, 0.4, 0.8, 0.0 });
+	endpoints.emplace_back(0.85, Color{ 1.0, 1.0, 1.0, 0.0 });
+	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.0 });
+
+	g_LnMat = Generate_Gradient(endpoints, 256, 0.01);
 
 //	Noise_Sample();
 
@@ -1119,7 +1134,7 @@ void Spark_Line(Vertex *V1,Vertex *V2)
 }
 
 
-void Lightning_Bolt_Frag(Vector *Src,Vector *Targ,long POW)
+void Lightning_Bolt_Frag(Vector *Src,Vector *Targ,long POW, Material* LnMat)
 {
 //	memset(VPage,255,PageSize);
 	if (POW<1) POW=1;
@@ -1142,13 +1157,75 @@ void Lightning_Bolt_Frag(Vector *Src,Vector *Targ,long POW)
 	B.PX = B.TPos.x * B.RZ;
 	B.PY = B.TPos.y * B.RZ;
 
-	A.LR = B.LR = POW;
+	if (A.TPos.z < C_NZP || B.TPos.z < C_NZP) {
+		return;
+	}
 
-	if (POW>1)
+	float dx = B.PX - A.PX;
+	float dy = B.PY - A.PY;
+	float rlen = 1.0f / sqrt(dx * dx + dy * dy);
+	dx *= rlen;
+	dy *= rlen;
+	float nx = -dy;
+	float ny = dx;
+	Vertex quad[4];
+	float lenA = POW * 2.0 * A.RZ;
+	float lenB = POW * 2.0 * B.RZ;
+	quad[0].PX = A.PX - lenA * FOVX * nx;
+	quad[0].PY = A.PY - lenA * (-FOVY) * ny;
+	quad[0].UZ = 0;
+	quad[0].VZ = 0;
+	quad[0].RZ = A.RZ;
+
+	quad[1].PX = A.PX + lenA * FOVX * nx;
+	quad[1].PY = A.PY + lenA * (-FOVY) * ny;
+	quad[1].UZ = A.RZ;
+	quad[1].VZ = 0;
+	quad[1].RZ = A.RZ;
+
+	quad[2].PX = B.PX + lenB * FOVX * nx;
+	quad[2].PY = B.PY + lenB * (-FOVY) * ny;
+	quad[2].UZ = B.RZ;
+	quad[2].VZ = B.RZ;
+	quad[2].RZ = B.RZ;
+
+	quad[3].PX = B.PX - lenB * FOVX * nx;
+	quad[3].PY = B.PY - lenB * (-FOVY) * ny;
+	quad[3].UZ = 0;
+	quad[3].VZ = B.RZ;
+	quad[3].RZ = B.RZ;
+
+	Viewport vp;
+	viewportInit(vp, FntSc);
+
+	for (int i = 0; i != 4; ++i) {
+		Vertex& v = quad[i];
+		v.LA = v.LR = v.LG = v.LB = 255.0;
+		viewportCalcFlags(vp, &v);
+	}
+
+	Face f[2];
+	f[0].A = &quad[0];
+	f[0].B = &quad[1];
+	f[0].C = &quad[2];
+	f[0].Filler = IX_Prefiller_TGZSAM;
+	f[0].Txtr = LnMat;
+
+	f[1].A = &quad[0];
+	f[1].B = &quad[2];
+	f[1].C = &quad[3];
+	f[1].Filler = IX_Prefiller_TGZSAM;
+	f[1].Txtr = LnMat;
+
+	_2DClipper::getInstance()->clip(vp, f[0]);
+	_2DClipper::getInstance()->clip(vp, f[1]);
+
+/*	if (POW>1)
 		Bivex_Frustrum_Perspective(&A,&B,Lightning_Line);
 	else
-		Bivex_Frustrum_Perspective(&A,&B,Spark_Line);
+		Bivex_Frustrum_Perspective(&A,&B,Spark_Line);*/
 }
+
 
 void Generate_Lightning_Particles(Vector *Src,float Num)
 {
@@ -1205,7 +1282,7 @@ void Lightning_Particles()
 
 }
 
-void Lightning_Bolt(Vector *Src,Vector *Targ,long BasePow)
+void Lightning_Bolt(Vector *Src,Vector *Targ,long BasePow, Material* LnMat)
 {
 	//ok, now we need to run from Src to Targ...
 	float Distance,Seg;
@@ -1223,7 +1300,7 @@ void Lightning_Bolt(Vector *Src,Vector *Targ,long BasePow)
 		Seg=30.0f+rand()*30.0f/32768.0f;
 		Vector_SelfScale(&V,Seg);
 		Vector_Add(&Pos,&V,&NPos);
-		Lightning_Bolt_Frag(&Pos,&NPos,BasePow>>4);
+		Lightning_Bolt_Frag(&Pos,&NPos,BasePow>>4, LnMat);
 		Vector_Copy(&Pos,&NPos);
 		Vector_Sub(Targ,&Pos,&V);
 		Distance = Vector_Length(&V);
@@ -1232,7 +1309,7 @@ void Lightning_Bolt(Vector *Src,Vector *Targ,long BasePow)
 			Yosi.y = 0;
 			Yosi.x = Pos.x;
 			Yosi.z = Pos.z;
-			Lightning_Bolt(&Pos,&Yosi,BasePow>>1);
+			Lightning_Bolt(&Pos,&Yosi,BasePow>>1, LnMat);
 		}
 	} while (Distance>60.0f);
 	// attach pos with target
@@ -1240,7 +1317,7 @@ void Lightning_Bolt(Vector *Src,Vector *Targ,long BasePow)
 //	Generate_Lightning_Particles(&Pos,50);
 }
 
-void Spark(Vector *Src,Vector *Targ)
+void Spark(Vector *Src,Vector *Targ, Material* LnMat)
 {
 	//ok, now we need to run from Src to Targ...
 	float Distance,Seg;
@@ -1258,13 +1335,13 @@ void Spark(Vector *Src,Vector *Targ)
 		Seg=15.0f+rand()*15.0f/32768.0f;
 		Vector_SelfScale(&V,Seg);
 		Vector_Add(&Pos,&V,&NPos);
-		Lightning_Bolt_Frag(&Pos,&NPos,1);
+		Lightning_Bolt_Frag(&Pos,&NPos,1, LnMat);
 		Vector_Copy(&Pos,&NPos);
 		Vector_Sub(Targ,&Pos,&V);
 		Distance = Vector_Length(&V);
 	} while (Distance>30.0f);
 	// attach pos with target
-	Lightning_Bolt_Frag(&Pos,Targ,1);
+	Lightning_Bolt_Frag(&Pos,Targ,1, LnMat);
 
 	Generate_Lightning_Particles(Targ,10);
 }
@@ -1301,7 +1378,7 @@ void Handle_Lightning()
 				Downwards.x = Pylon->x;
 				Downwards.y = 0.0f;
 				Downwards.z = Pylon->z;
-				Reserve_Lightning_Bolt(&Upwards,&Downwards,45);
+				Reserve_Lightning_Bolt(&Upwards,&Downwards,80);
 				Ambient_Factor = 255.0f;
 			}
 		break;
@@ -1315,7 +1392,7 @@ void Handle_Lightning()
 				Downwards.x = Pylon[1].x;
 				Downwards.y = 0.0f;
 				Downwards.z = Pylon[1].z;
-				Reserve_Lightning_Bolt(&Upwards,&Downwards,50);
+				Reserve_Lightning_Bolt(&Upwards,&Downwards,80);
 				Ambient_Factor = 255.0f;
 			}
 		break;
@@ -1329,7 +1406,7 @@ void Handle_Lightning()
 				Downwards.x = Pylon[2].x;
 				Downwards.y = 0.0f;
 				Downwards.z = Pylon[2].z;
-				Reserve_Lightning_Bolt(&Upwards,&Downwards,55);
+				Reserve_Lightning_Bolt(&Upwards,&Downwards,80);
 				Ambient_Factor = 255.0f;
 			}
 		break;
@@ -1343,7 +1420,7 @@ void Handle_Lightning()
 				Downwards.x = Pylon[3].x;
 				Downwards.y = 0.0f;
 				Downwards.z = Pylon[3].z;
-				Reserve_Lightning_Bolt(&Upwards,&Downwards,60);
+				Reserve_Lightning_Bolt(&Upwards,&Downwards,80);
 				Ambient_Factor = 255.0f;
 			}
 		break;
@@ -1357,7 +1434,7 @@ void Handle_Lightning()
 				Downwards.x = Pylon[4].x;
 				Downwards.y = 0.0f;
 				Downwards.z = Pylon[4].z;
-				Reserve_Lightning_Bolt(&Upwards,&Downwards,65);
+				Reserve_Lightning_Bolt(&Upwards,&Downwards,80);
 				Ambient_Factor = 255.0f;
 			}
 		break;
@@ -1371,7 +1448,7 @@ void Handle_Lightning()
 				Downwards.x = Pylon[5].x;
 				Downwards.y = 0.0f;
 				Downwards.z = Pylon[5].z;
-				Reserve_Lightning_Bolt(&Upwards,&Downwards,70);
+				Reserve_Lightning_Bolt(&Upwards,&Downwards,80);
 				Ambient_Factor = 255.0f;
 			}
 		break;
@@ -1889,7 +1966,7 @@ void Run_Fountain()
 		{
 			if (Rsv_LPow>-1)
 			{
-				Lightning_Bolt(&Rsv_LSrc,&Rsv_LTarg,Rsv_LPow);
+				Lightning_Bolt(&Rsv_LSrc,&Rsv_LTarg,Rsv_LPow, g_LnMat);
 				Rsv_LState = 0;
 			} else {
 //				Spark(Pylon  ,Pylon+1);

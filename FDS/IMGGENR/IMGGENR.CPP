@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <dos.h>
 #include "Base/FDS_DEFS.H"
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
@@ -2205,5 +2204,22 @@ void Hidden_Flare(Image *Src,Vector L,Image *Trg)
 	
 }
 
+void Sachletz(dword *data, dword xres, dword yres) {
+	thread_local dword backbuffer[256 * 256];
+	// right now, there is no support for non-blocked textures,
+	// so we need to rearrange TempBuf by 4x4 blocks
+	//memcpy(VorSurf, TempBuf, 65536 * 4);
+	memcpy(backbuffer, data, xres * yres * 4);
+	dword* writePtr = data;
+	for (int X = 0; X < xres / 4; X++)
+		for (int Y = 0; Y < yres / 4;  Y++)
+		{
+			dword* blockPtr = backbuffer + ((X + (Y * xres)) << 2);
+			for (int y = 0; y < 4; y++)
+				for (int x = 0; x < 4; x++) {
+					*writePtr++ = blockPtr[x + (y * xres)];
+				}
+		}
+}
 
 
