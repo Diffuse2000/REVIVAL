@@ -116,7 +116,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <PreprocessorDefinitions>PORTABLE_COD=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
@@ -395,11 +395,11 @@ copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
       <Project>{d1ed1229-db09-58ab-3236-da76c00c4763}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\fmod\FMod.vcxproj">
-      <Project>{aa8348a9-b816-0319-2aff-38b85bc354c4}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\IJLD\IJLD.vcxproj">
       <Project>{8b62af28-c242-9b32-27df-492a187c8d42}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modplayer\Modplayer.vcxproj">
+      <Project>{65292fb5-9235-4bf6-9b45-0ffc88978d96}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

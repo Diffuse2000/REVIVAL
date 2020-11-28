@@ -488,7 +488,7 @@ static void SceneCorrections()
 	Scene *Sc = ChaseSc;
 	Omni *O;
 	long index;
-	float redRangeMult = 1000.0;
+	float redRangeMult = 100000.0;
 	for (O = Sc->OmniHead, index = 0; O; O = O->Next)
 	{
 		//if (index == NumOmnis) break;
@@ -500,7 +500,11 @@ static void SceneCorrections()
 //		if (OmniSizeMult[index] == 0)
 //			O->Flags &=~(Omni_Flare | Omni_PointFlare);
 		Spline_Scale(&O->Size, OmniSizeMult[index]);
-		O->ISize *= 5.0;
+		O->IRange = 1000.0;
+		O->rRange = 1000.0;
+		//O->ISize *= 50.0;
+		//O->IRange *= 50.0;
+		O->FallOff = 5000.0;
 
 		// adjust range
 //		Spline_Scale(&O->Range, OmniRangeMult[index]);
@@ -508,7 +512,7 @@ static void SceneCorrections()
 		Spline_Scale(&O->Range, redRangeMult);
 		//Spline_Scale(&O->R, redRangeMult);
 
-		O->Flags |= Omni_Rand;
+		//O->Flags |= Omni_Rand;
 		index++;
 	}
 }
@@ -702,8 +706,8 @@ void Initialize_Chase()
 	ChaseSc->NZP = 2.0f;
 	ChaseSc->Flags |= Scn_Fogged | Scn_ZBuffer;
 
-	ChaseSc->Ambient.R = 64 * 2;
-	ChaseSc->Ambient.G = 64 * 2;
+	ChaseSc->Ambient.R = 4 * 2;
+	ChaseSc->Ambient.G = 4 * 2;
 	ChaseSc->Ambient.B = 64 * 2;
 
 	// also make the appropriate Layer 2 fillers.

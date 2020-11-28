@@ -1,5 +1,12 @@
 #pragma comment(lib, "delayimp")  
-#pragma comment(lib, "fmod")  
+#pragma comment(lib, "Modplayer")  
+#pragma comment(lib, "WS2_32")
+#pragma comment(lib, "userenv.lib")
+#pragma comment(lib, "Version.lib") 
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "imm32.lib")
+#pragma comment(lib, "Setupapi.lib")
+
 
 /******************************************************************************
 	Source code for REVIVAL / FLOOD.
@@ -468,6 +475,7 @@ material global ID or ptr
 #include <Base/TriMesh.h>
 #include "Config.h"
 //#include "FModWrapper.h"
+#include "../Modplayer/Modplayer.h"
 
 // global configuration db
 static ConfigurationDB *g_cfg;
@@ -482,7 +490,8 @@ long g_displayType;
 
 
 char *ModuleBuf;
-dword g_RevModuleHandle;
+//dword g_RevModuleHandle;
+ModplayerHandle g_RevModuleHandle;
 //FModWrapper	module;
 VESA_Surface *g_FlipRequestPage;
 
@@ -1340,8 +1349,8 @@ void CodeEntry(void *var)
 	}
 	Generate_RGBFlares(); // should be in fds_init
 	
-	if (g_playMusic)
-		FModInit();
+	//if (g_playMusic)
+	//	FModInit();
 	InitFillers (VirtualProtect, PAGE_EXECUTE_READWRITE);
 
 	// device init parameters
@@ -1367,11 +1376,13 @@ void CodeEntry(void *var)
 //	InitDisplayDevice(cfg);
 	InitPolyStats(200);
 
-	dword sh = 0;
+	//dword sh = 0;
+	ModplayerHandle sh = 0;
 	if (g_playMusic)
 	{
-		sh = FModLoadModule("Revival.XM");
+		//sh = FModLoadModule("Revival.XM");
 		//module.Load("Revival.xM");
+		sh = Modplayer_Create("Revival.xM");
 	}
 	g_RevModuleHandle = sh;
 
@@ -1389,7 +1400,8 @@ void CodeEntry(void *var)
 
 	if (g_playMusic)
 	{
-		if (sh) FModPlayModule(sh);
+		//if (sh) FModPlayModule(sh);
+		if (sh) Modplayer_Start(sh);
 		//module.Start();
 	}
 	Timer = 0;
@@ -1405,14 +1417,14 @@ void CodeEntry(void *var)
 //
 	if (Timer <= 0) Timer = 1;
 	Run_Chase();
-//
+
 	if (Timer<=0) Timer = 1;
 	Run_Fountain();
 	
 	if (Timer <= 0) Timer = 1;
 	Timer = 1;
 	Run_Crash();
-	
+//	
 //	SavePolyStats("Fountain.stat");
 	if (Timer<=0) Timer = 1;
 	Run_Greets();
@@ -1425,9 +1437,10 @@ void CodeEntry(void *var)
 
 	if (g_playMusic)
 	{
-		if (sh) FModFreeModule(sh);
-		FModClose();
+		//if (sh) FModFreeModule(sh);
+		//FModClose();
 		//module.Stop();
+		if (sh) Modplayer_Stop(sh);
 	}
 }
 

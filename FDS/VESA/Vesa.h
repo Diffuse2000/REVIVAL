@@ -799,8 +799,10 @@ inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarg
 		pushad
 		mov edi, Target
 		mov esi, Source
-		mov ebx, perSrcRef
-		mov ecx, perDstRef
+		mov eax, perSrcRef
+		mov edx, perDstRef
+		mov ebx, eax
+		mov ecx, edx
 #endif
 		punpcklbw xmm7, [ebx]
 		punpcklbw xmm6, [ecx]
@@ -919,6 +921,14 @@ inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarg
 	//	Target += MainSurf->BPSL;
 	//}
 }
+
+inline void AlphaBlend(byte* Source, byte* Target, DWord& PerSource, DWord& PerTarget, DWord Size) {
+	auto tmp = PageSize;
+	PageSize = Size;
+	AlphaBlend(Source, Target, PerSource, PerTarget);
+	PageSize = tmp;
+}
+
 
 inline void Transparence_16(byte *Source,byte *Target)
 {

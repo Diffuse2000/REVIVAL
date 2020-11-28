@@ -1387,6 +1387,9 @@ void Handle_Lightning()
 			}
 		break;
 	}
+	FntSc->Ambient.R = Ambient_Factor;
+	FntSc->Ambient.G = Ambient_Factor;
+	FntSc->Ambient.B = Ambient_Factor;
 }
 
 
@@ -1947,9 +1950,9 @@ void Run_Fountain()
 		Profiler[PROF_FLIP] -= Timer;		
 //		Lightning_Particles();
 
-//		Flip(VSurface);
-		Modulate(VSurface,&Blur,0x808080,0x808080);
-		Flip(&Blur);
+		Flip(VSurface);
+		//Modulate(VSurface,&Blur,0x808080,0x808080);
+		//Flip(&Blur);
 		Profiler[PROF_FLIP] += Timer;		
 
 

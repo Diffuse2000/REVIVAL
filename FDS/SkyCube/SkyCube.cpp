@@ -149,42 +149,44 @@ Scene * CreateSkyCube(dword skyType)
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 0.5f;//256.0f;
-		SV->V = 0.5f;//256.0f;
+		SV->U = 0.5f/256.0f;
+		SV->V = 0.5f/256.0f;
 		SV++;
 		o = *O++;
 		SV->LR = SV->LG = SV->LB = 127.0;
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 255.5f;//256.0f;
-		SV->V = 0.5f;//256.0f;
+		SV->U = 255.5f/256.0f;
+		SV->V = 0.5f/256.0f;
 		SV++;
 		o = *O++;
 		SV->LR = SV->LG = SV->LB = 127.0;
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 255.5f;//256.0f;
-		SV->V = 255.5f*ratio;//256.0f;
+		SV->U = 255.5f/256.0f;
+		SV->V = 255.5f*ratio/256.0f;
 		SV++;
 		o = *O++;
 		SV->LR = SV->LG = SV->LB = 127.0;
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 0.5f;//256.0f;
-		SV->V = 255.5f*ratio;//256.0f;
+		SV->U = 0.5f/256.0f;
+		SV->V = 255.5f*ratio / 256.0f;
 		SV++;
 	}
 
 	Material *M[6];
 	Texture *Tx[6];
+	DWord* TempBuf = new DWord[65536];
 	for(i=0; i<6; i++)
 	{
 		M[i] = (Material *)getAlignedBlock(sizeof(Material), 16);
 		memset(M[i], 0, sizeof(Material));
 		Tx[i] = new Texture;
+
 		memset(Tx[i], 0, sizeof(Texture));
 		M[i]->Flags = Mat_TwoSided;
 		M[i]->Txtr = Tx[i];	
@@ -193,14 +195,30 @@ Scene * CreateSkyCube(dword skyType)
 		dword *data = new dword [256*256];
 		Tx[i]->Data = (byte *)data;
 		memset(Tx[i]->Data, 0, 256*256*4);
+		Tx[i]->Flags |= Txtr_Nomip | Txtr_Tiled;
+		Tx[i]->Mipmap[0] = (byte *)data;
+		Tx[i]->numMipmaps = 0;
+
+
 		GenerateSkyTexture(Tx[i], 200);
-		
+
+		memcpy(TempBuf, Tx[i]->Data, 65536 * 4);
+		dword* writePtr = (dword *)Tx[i]->Data;
+		for (dword X = 0; X < 64; X++)
+			for (dword Y = 0; Y < 64; Y++)
+			{
+				dword* blockPtr = TempBuf + ((X + (Y << 8)) << 2);
+				for (dword y = 0; y < 4; y++)
+					for (dword x = 0; x < 4; x++)
+						*writePtr++ = blockPtr[x + (y << 8)];
+			}
+
 		Tx[i]->OptClass = 0;
 		Tx[i]->SizeX = 256;
 		Tx[i]->SizeY = 256;
 	}
 
-	
+	delete[]TempBuf;
 	T->FIndex = 12;
 	Face *F = T->Faces;
 	for(i=0; i<6; i++)
@@ -256,7 +274,7 @@ Scene * CreateSkyCube(dword skyType)
 
 	//Preprocess_Scene(Sc);
 	T->Flags = HTrack_Visible;
-
+	Assign_Fillers(Sc);
 	return Sc;
 }
 
@@ -267,8 +285,8 @@ void RenderSkyCube(Scene *Sc, Camera *Cm)
 	View = Cm;
 	CurScene = Sc;
 
-	C_FZP = CurScene->FZP;
-	C_rFZP = 1.0f/C_FZP;
+	C_FZP = 65530.0;
+	C_rFZP = 1.0 /65530.0;
 
 	Animate_Objects(Sc);
 
@@ -280,6 +298,7 @@ void RenderSkyCube(Scene *Sc, Camera *Cm)
 	{
 		Radix_SortingASM(FList,SList,CAll);
 		Render();
+		FastWrite(VPage + PageSize, 0, (XRes * YRes * sizeof(word)) >> 2);
 	}
 	View->ISource = PrevViewPos;
 

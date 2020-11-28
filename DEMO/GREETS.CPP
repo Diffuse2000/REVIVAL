@@ -5,6 +5,12 @@
 #include "MISC/PREPROC.H"
 #include "Base/FDS_DECS.H"
 #include <vector>
+#include <VESA/VESA.H>
+
+static float frand() {
+	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+}
+
 
 static Scene *GreetSc;
 
@@ -88,12 +94,18 @@ struct GreetsGenerator
 
 	Texture CodeTexture;
 	Image CodeImage;
+	Image OldImage;
 	GridPointT *Code_GP;
+	GridPointT* Smear_GP;
 	float LenTable[numGridPoints];
 	float SinTable[TRIG_ACC];
 	float CosTable[TRIG_ACC];
-	DWord *TmpBuf;
+	DWord* ScaledBuf;
+	DWord *CodeBuf;
+	DWord* OldBuf;
 	DWord *OutBuf;
+	float scalex = 1.0;
+	float scaley = 1.0;
 
 	static constexpr const char* greetingsRound1[] = {
 		" imr",
@@ -153,8 +165,11 @@ struct GreetsGenerator
 
 	void Init()
 	{
-		OutBuf = new DWord[256 * 256];
-		TmpBuf = new DWord[256 * 256];
+		OutBuf = (DWord*)_aligned_malloc(256 * 256 * 4, 16);
+		CodeBuf = (DWord *)_aligned_malloc(256 * 256 * 4, 16);
+		OldBuf = (DWord*)_aligned_malloc(256 * 256 * 4, 16);
+		ScaledBuf = (DWord*)_aligned_malloc(256 * 256 * 4, 16);
+
 
 		CodeTexture.FileName = strdup("Textures//Code.JPG");
 		Identify_Texture(&CodeTexture);
@@ -166,30 +181,14 @@ struct GreetsGenerator
 		Load_Texture(&CodeTexture);
 		Convert_Texture2Image(&CodeTexture, &CodeImage);
 		memset(CodeImage.Data, 0, sizeof(uint32_t) * CodeImage.x * CodeImage.y);
+		OldImage.Data = OldBuf;
+		OldImage.x = 256;
+		OldImage.y = 256;
 
 		memset(OutBuf, 0, 256 * 256 * 4);
 
 		Code_GP = new GridPointT[numGridPoints];
-
-		for (int i = 0; i < TRIG_ACC; i++)
-		{
-			SinTable[i] = sin(i*PI_M2 / TRIG_ACC);
-			CosTable[i] = cos(i*PI_M2 / TRIG_ACC);
-		}
-
-		int X, Y;
-		int j = 0;
-		for (int y = 0; y <= TEXRES; y += 8)
-		{
-			for (int x = 0; x <= TEXRES; x += 8)
-			{
-				X = x - XRes * 0.5;
-				Y = y - YRes * 0.5;
-
-				LenTable[j] = sqrt((float)(X*X + Y * Y)) / (256.0f / 320.0);
-				j++;
-			}
-		}
+		Smear_GP = new GridPointT[numGridPoints];
 
 		AttachMatToScene();
 		ST = 0.0;
@@ -208,22 +207,33 @@ struct GreetsGenerator
 		const int GREET2_END_FRAME = 1200;
 		const int GREET3_START_FRAME = 2000;
 		const int GREET3_END_FRAME = 2500;
+		scalex = fabs(sin(Timer / 60.0)) * 0.2;
+		scaley = fabs(cos(Timer / 47.0)) * 0.2;
 		if (CurFrame < GREET1_START_FRAME) {
 			greet = &ge0;
-		} else if (CurFrame < GREET1_END_FRAME) {
+		}
+		else if (CurFrame < GREET1_END_FRAME) {
 			greetTime = double(CurFrame - GREET1_START_FRAME) / (GREET1_END_FRAME - GREET1_START_FRAME);
 			greet = &ge1[size_t(greetTime * 0.9999 * ge1.size())];
-		} else if (CurFrame < GREET2_START_FRAME) {
+		}
+		else if (CurFrame < GREET2_START_FRAME) {
 			greet = &ge0;
-		} else if (CurFrame < GREET2_END_FRAME) {
+		}
+		else if (CurFrame < GREET2_END_FRAME) {
 			greetTime = double(CurFrame - GREET2_START_FRAME) / (GREET2_END_FRAME - GREET2_START_FRAME);
 			greet = &ge2[size_t(greetTime * 0.9999 * ge2.size())];
-		} else if (CurFrame < GREET3_START_FRAME) {
+		}
+		else if (CurFrame < GREET3_START_FRAME) {
 			greet = &ge0;
-		} else if (CurFrame < GREET3_END_FRAME) {
+		}
+		else if (CurFrame < GREET3_END_FRAME) {
 			greetTime = double(CurFrame - GREET3_START_FRAME) / (GREET3_END_FRAME - GREET3_START_FRAME);
 			greet = &ge3[size_t(greetTime * 0.9999 * ge3.size())];
-		} else {
+			scalex = 0.0;
+			scaley = 0.0;
+
+		}
+		else {
 			greet = &ge0;
 		}
 
@@ -234,25 +244,11 @@ struct GreetsGenerator
 		int j = 0;
 		ST = (Timer * 2500) / (1000 + Timer);//  sqrt(Timer*1600);
 
-		Code_R1 = ST;// *0.0005;
-		CSinR1 = sin(Code_R1*0.1);
-		CCosR1 = cos(Code_R1*0.1);
-		Code_RS = Code_R1 * 0.5;
-
-
-
 		for (int y = 0; y <= TEXRES; y += 8) {
 			for (int x = 0; x <= TEXRES; x += 8)
 			{
-				Code_R2 = LenTable[j] / 200.0f + ST / 100.0f;
-				long TrigOffset = Code_R2 * TRIG_FACTOR;
-				TrigOffset &= TRIG_MASK;
-				CCosR2 = CosTable[TrigOffset];
-				CSinR2 = SinTable[TrigOffset];
-
-
-				u = (x / 256.0f - 0.5) * 0.35 + 0.5;
-				v = (y / 256.0f - 0.5) * 0.35 + 0.5;
+				u = (x / 256.0f - 0.5) * (0.25 +scalex) + 0.5;
+				v = (y / 256.0f - 0.5) * (0.25 +scaley) + 0.5;
 
 				Code_GP[j].u = u * 65536.0;
 				Code_GP[j].v = v * 65536.0;
@@ -265,7 +261,44 @@ struct GreetsGenerator
 			}
 		}
 
-		GridRendererT(Code_GP, &CodeImage, TmpBuf, TEXRES, TEXRES);
+		GridRendererT(Code_GP, &CodeImage, CodeBuf, TEXRES, TEXRES);
+
+		j = 0;
+		for (int y = 0; y <= TEXRES; y += 8) {
+			for (int x = 0; x <= TEXRES; x += 8)
+			{
+				u = (x / 256.0f - 0.5) * 0.98 + 0.5;
+				v = (y / 256.0f - 0.5) * 0.95 + 0.5;
+
+				Smear_GP[j].u = u * 65536.0;
+				Smear_GP[j].v = v * 65536.0;
+				if (Smear_GP[j].u > 65535) Smear_GP[j].u = 65535;
+				if (Smear_GP[j].v > 65535) Smear_GP[j].v = 65535;
+				if (Smear_GP[j].u < 0) Smear_GP[j].u = 0;
+				if (Smear_GP[j].v < 0) Smear_GP[j].v = 0;
+
+				j++;
+			}
+		}
+
+		GridRendererT(Smear_GP, &OldImage, ScaledBuf, TEXRES, TEXRES);
+
+		auto cola1 = uint32_t(frand() * 100) + 150;
+		auto colb1 = uint32_t(frand() * 100) + 150;
+		auto colc1 = uint32_t(frand() * 100) + 150;
+		auto cold1 = uint32_t(frand() * 100) + 150;
+
+		auto cola2 = uint32_t(frand() * 100) + 150;
+		auto colb2 = uint32_t(frand() * 100) + 150;
+		auto colc2 = uint32_t(frand() * 100) + 150;
+		auto cold2 = uint32_t(frand() * 100) + 150;
+
+
+		DWord pSrc = (cola1 << 24) + (colb1 << 16) + (colc1 << 8) + cold1;
+		DWord pDst = (cola2 << 24) + (colb2 << 16) + (colc2 << 8) + cold2;
+		AlphaBlend((byte*)CodeBuf, (byte *)ScaledBuf, pSrc, pDst, 256 * 256 * 4);
+		//AlphaBlend((byte*)ScaledBuf, (byte*)OldBuf, pSrc, pDst, 256 * 256 * 4);
+		memcpy(OldBuf, ScaledBuf, 256 * 256 * 4);
 
 		TexutreRemap();
 	}
@@ -279,7 +312,7 @@ struct GreetsGenerator
 		for (X = 0; X < 64; X++)
 			for (Y = 0; Y < 64; Y++)
 			{
-				dword *blockPtr = TmpBuf + ((X + (Y << 8)) << 2);
+				dword *blockPtr = OldBuf + ((X + (Y << 8)) << 2);
 				int x, y;
 				for (y = 0; y < 4; y++)
 					for (x = 0; x < 4; x++)

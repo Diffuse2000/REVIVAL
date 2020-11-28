@@ -92,7 +92,7 @@ void Animate_Objects(Scene *Sc)
 	Omni *Om;
 	Object *Obj;
 	Vector U,*W,Z;
-	Matrix M, PathMat;
+	Matrix M, PathMat, tmp;
 	FILE *F;
     Vector ZeroVector(0.0f, 0.0f, 0.0f);
 
@@ -134,8 +134,13 @@ void Animate_Objects(Scene *Sc)
 			
 			Kick_Camera(&ZeroVector, &T->Heading, 0.0, PathMat);
 			Matrix_Transpose(PathMat);
-			Matrix_Copy(T->RotMat,PathMat);
-			
+
+			Spline_Calc_3D(&T->Rotate, CurFrame, &U);
+			Euler_Angles(T->RotMat, 0, 0, U.z);
+
+
+			MatrixXMatrix(PathMat, T->RotMat, tmp);
+			Matrix_Copy(T->RotMat,tmp);
 		}
 		
 		W = (Vector *)T->RotMat;
@@ -1168,11 +1173,11 @@ void Lighting(Scene *Sc)
 	static CurLight *LA = (CurLight *)getAlignedBlock(sizeof(CurLight) * 128, 16);
 	static CurLight *L, *LE;
 
-	if (!(Sc->Flags & Scn_StaticLighting))
-	{
-		Sc->Flags |= Scn_StaticLighting;
+	//if (!(Sc->Flags & Scn_StaticLighting))
+	//{
+	//	Sc->Flags |= Scn_StaticLighting;
 		StaticLighting(Sc);
-	}
+	//}
 
 	for(T=Sc->TriMeshHead;T;T=T->Next)
 	{

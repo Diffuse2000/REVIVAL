@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2041
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DEMO", "DEMO\DEMO.vcxproj", "{B1AD0193-422D-9C62-DC27-DA50B9122A44}"
 EndProject
@@ -9,6 +9,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IJLD", "IJLD\IJLD.vcxproj", "{8B62AF28-C242-9B32-27DF-492A187C8D42}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FMod", "fmod\FMod.vcxproj", "{AA8348A9-B816-0319-2AFF-38B85BC354C4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Modplayer", "Modplayer\Modplayer.vcxproj", "{65292FB5-9235-4BF6-9B45-0FFC88978D96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +52,14 @@ Global
 		{AA8348A9-B816-0319-2AFF-38B85BC354C4}.Release|Win32.Build.0 = Release|Win32
 		{AA8348A9-B816-0319-2AFF-38B85BC354C4}.Release|x64.ActiveCfg = Release|x64
 		{AA8348A9-B816-0319-2AFF-38B85BC354C4}.Release|x64.Build.0 = Release|x64
+		{65292FB5-9235-4BF6-9B45-0FFC88978D96}.Debug|Win32.ActiveCfg = Debug|Win32
+		{65292FB5-9235-4BF6-9B45-0FFC88978D96}.Debug|Win32.Build.0 = Debug|Win32
+		{65292FB5-9235-4BF6-9B45-0FFC88978D96}.Debug|x64.ActiveCfg = Debug|x64
+		{65292FB5-9235-4BF6-9B45-0FFC88978D96}.Debug|x64.Build.0 = Debug|x64
+		{65292FB5-9235-4BF6-9B45-0FFC88978D96}.Release|Win32.ActiveCfg = Release|Win32
+		{65292FB5-9235-4BF6-9B45-0FFC88978D96}.Release|Win32.Build.0 = Release|Win32
+		{65292FB5-9235-4BF6-9B45-0FFC88978D96}.Release|x64.ActiveCfg = Release|x64
+		{65292FB5-9235-4BF6-9B45-0FFC88978D96}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

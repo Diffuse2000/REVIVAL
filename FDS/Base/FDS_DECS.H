@@ -475,19 +475,19 @@ extern dword New_SCache(dword Size);
 // C++ linkage
 
 // v0.8: FMod module player interface; no library-specific structures are interfaced
-#ifndef FMod_Included
-#define FMod_Included
-dword FModInit();
-dword FModLoadModule(const char *ModuleFilename);
-//dword FModLoadModule(void *moduleBuffer, dword moduleLength);
-void FModPlayModule(dword handle);
-void FModFreeModule(dword handle);
-void FModClose();
-
-// FMod: Advanced features
-void FModGetModuleInfo(MusicModuleInfo &mmi);
-void FModSetModuleInfo(MusicModuleInfo &mmi);
-#endif
+//#ifndef FMod_Included
+//#define FMod_Included
+//dword FModInit();
+//dword FModLoadModule(const char *ModuleFilename);
+////dword FModLoadModule(void *moduleBuffer, dword moduleLength);
+//void FModPlayModule(dword handle);
+//void FModFreeModule(dword handle);
+//void FModClose();
+//
+//// FMod: Advanced features
+//void FModGetModuleInfo(MusicModuleInfo &mmi);
+//void FModSetModuleInfo(MusicModuleInfo &mmi);
+//#endif
 
 // Skycube generation routine
 Scene * CreateSkyCube(dword skyType);
