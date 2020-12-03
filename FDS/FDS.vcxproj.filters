@@ -61,6 +61,9 @@
     <Filter Include="Base">
       <UniqueIdentifier>{135c1895-4a3a-4483-be6b-32acee897848}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CoffReader">
+      <UniqueIdentifier>{d9e82236-db56-4f82-962c-b2e647f0b807}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3DS\3DS_READ.CPP">
@@ -181,6 +184,9 @@
       <Filter>IMGGENR</Filter>
     </ClCompile>
     <ClCompile Include="Clipper.cpp" />
+    <ClCompile Include="CoffReader\CoffReader.cpp">
+      <Filter>CoffReader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3ds\I_defs.h">
@@ -314,13 +320,13 @@
       <Filter>FRUSTRUM</Filter>
     </ClInclude>
     <ClInclude Include="Clipper.h" />
+    <ClInclude Include="CoffReader\CoffReader.h">
+      <Filter>CoffReader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="MISC\mmreg.inl">
       <Filter>MISC</Filter>
-    </None>
-    <None Include="IXTGZSAM.asm">
-      <Filter>Fillers</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -396,5 +402,6 @@
     <CustomBuild Include="RENDER\PackedVars.ASM">
       <Filter>RENDER</Filter>
     </CustomBuild>
+    <CustomBuild Include="IXTGZSAM.asm" />
   </ItemGroup>
 </Project>

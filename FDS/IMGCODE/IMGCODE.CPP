@@ -375,6 +375,31 @@ ImageDetectResult JPGDetect(const char *FN)
 	return Res;
 }
 
+#include "../../libpng16/png.h"
+
+ImageDetectResult PNGDetect(const char* FN)
+{
+	ImageDetectResult Res;
+	FILE* F;
+
+	uint8_t ID[8] = {};
+	uint8_t png_signature[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
+
+	Res.BPP = 0;
+
+
+	F = fopen(FN, "rb");
+	if (!F) return Res;
+	fread(ID, 1, 8, F);
+	fclose(F);
+	if (!memcmp(ID, png_signature, 8)) Res.BPP = 24; else Res.BPP = 0;
+
+	return Res;
+}
+
+
+
+
 // Loads a PCX image from FN to Store,using IDR as results from previous
 // Detection via PCXDetect, and Pal to store the Palette.
 char PCXLoad(char *FN,unsigned char *Store,ImageDetectResult IDR,Palette *Pal)
@@ -975,6 +1000,15 @@ char Identify_Texture(Texture *Tx)
 		TAS_Get(Tx,256,256); // detector does not specify X,Y!
 		return 1;
 	}
+
+	IDR = PNGDetect(Tx->FileName);
+	if (IDR.BPP)
+	{
+		Tx->BPP = IDR.BPP;
+		TAS_Get(Tx, 256, 256); // detector does not specify X,Y!
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -987,6 +1021,56 @@ DWord GetOptClass(long X,long Y)
 		return 1;
 	}
 	return 2;
+}
+
+
+
+char* LoadPNG(Texture* Tx)
+{
+	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+
+	if (!png_ptr)
+		return nullptr;
+
+	png_infop info_ptr = png_create_info_struct(png_ptr);
+
+	if (!info_ptr)
+	{
+		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
+		return nullptr;
+	}
+
+	FILE *F = fopen(Tx->FileName, "rb");
+	if (!F) return nullptr;
+	png_init_io(png_ptr, F);
+	//png_set_gamma(png_ptr, PNG_DEFAULT_sRGB, 2.2);
+	//png_set_alpha_mode(png_ptr, PNG_ALPHA_PNG, PNG_DEFAULT_sRGB);
+	png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
+	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, NULL);
+
+	uint8_t BPP = png_get_bit_depth(png_ptr, info_ptr) * png_get_channels(png_ptr, info_ptr);
+	if (BPP != 32) {
+		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+		return nullptr;
+	}
+
+	uint32_t height = png_get_image_height(png_ptr, info_ptr);
+	uint32_t width = png_get_image_width(png_ptr, info_ptr);
+
+	Tx->BPP = BPP;
+	Tx->SizeX = width;
+	Tx->SizeY = height;
+
+	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
+
+	char* data = new char[height * width * (BPP >> 3)];
+	for (int i = 0; i < height; ++i) {
+		memcpy(data + i * width * (BPP >> 3), row_pointers[i], width * (BPP >> 3));
+	}
+	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+
+	Tx->Data = (byte *)data;
+	return data;
 }
 
 
@@ -1143,7 +1227,7 @@ static char _Load_Texture(Texture *Tx)
 	// JPG detection and load goes here
 	fflush(stdout);
 	IDR = JPGDetect(Tx->FileName);
-	fcloseall();
+	// fcloseall(); // WTF???
 	if (IDR.BPP)
 	{
 		Txd=LoadJPEG(Tx->FileName,0);
@@ -1167,7 +1251,14 @@ static char _Load_Texture(Texture *Tx)
 		delete Txd;
 		return 1;
 	}
-	// CEL detection and load goes here
+
+	IDR = PNGDetect(Tx->FileName);
+	if (IDR.BPP)
+	{
+		Txd = LoadPNG(Tx);
+		return 1;
+	}
+		// CEL detection and load goes here
 	return 0;
 }
 

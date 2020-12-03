@@ -50,7 +50,7 @@ typedef struct
 	float					 TFP1;
 } FldMat;
 
-typedef struct
+typedef struct _FldKeyFrame_
 {
   Vector        Position;
   Vector        Rotation;

@@ -50,7 +50,7 @@ void ReadMapFile(unsigned int EndPos)
   char *NewFile = new char[40];
   Material *M;
   Texture *Tx;
-  strcpy(NewFile,"Textures//");
+  strcpy(NewFile,"TexturesNew//");
 
   ReadASCIIZ(&MapFile);
   strcat(NewFile,MapFile);

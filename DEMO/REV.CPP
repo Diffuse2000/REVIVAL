@@ -9,6 +9,8 @@
 #pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "imm32.lib")
 #pragma comment(lib, "Setupapi.lib")
+#pragma comment(lib, "../libpng16/libpng16.lib")
+#pragma comment(lib, "../libpng16/zlib.lib")
 
 
 /******************************************************************************
@@ -1313,6 +1315,8 @@ void Run_RainFX()
 	delete [] BPage;
 }
 
+#include <CoffReader/CoffReader.h>
+extern "C" {	void IX_TGZSAM_AsmFiller(); }
 
 void CodeEntry(void *var)
 {
@@ -1379,6 +1383,8 @@ void CodeEntry(void *var)
 //	InitDisplayDevice(cfg);
 	InitPolyStats(200);
 
+	//TestCoff();
+
 	//dword sh = 0;
 	ModplayerHandle sh = 0;
 	if (g_playMusic)
@@ -1408,7 +1414,20 @@ void CodeEntry(void *var)
 		//module.Start();
 	}
 	Timer = 0;
-	//FillerTest();
+	std::map<std::string, uintptr_t, std::less<>> global_symbols{
+		{"_g_zscale",		(uintptr_t)&g_zscale},
+		{"_g_zscale256",	(uintptr_t)&g_zscale256},
+		{"_VESA_BPSL",		(uintptr_t)&VESA_BPSL},
+		{"_PageSize",		(uintptr_t)&PageSize},
+		{"_XRes",			(uintptr_t)&XRes},
+	};
+
+	CoffReader coff("C:\\Projects\\REVIVAL\\FDS\\IXTGZSAM.obj", global_symbols);
+	void *filler = coff.MapCode(VirtualProtect, PAGE_EXECUTE_READWRITE);
+
+	extern void* TGZSAM_filler;
+	TGZSAM_filler = filler;
+//	FillerTest();
 	//return;
 
 	Run_Glato();

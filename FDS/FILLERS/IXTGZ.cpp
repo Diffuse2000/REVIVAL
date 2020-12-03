@@ -1264,6 +1264,8 @@ void IX_Prefiller_TGZTAM(Vertex **V, dword numVerts)
 //	IXAsmFiller(l_IXArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 }
 
+void* TGZSAM_filler = nullptr;
+
 void IX_Prefiller_TGZSAM(Vertex** V, dword numVerts)
 {
 	dword i;
@@ -1332,7 +1334,8 @@ void IX_Prefiller_TGZSAM(Vertex** V, dword numVerts)
 		push TextureAddr
 		push numVerts
 		push l_IXArray
-		call IX_TGZSAM_AsmFiller
+		//call IX_TGZSAM_AsmFiller
+		call TGZSAM_filler
 		add esp, 24
 		popad
 	}

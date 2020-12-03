@@ -1221,6 +1221,12 @@ void FillerTest()
 
 	const long PartTime = 10000;
 
+	long timerStack[20], timerIndex = 0;
+	for (int i = 0; i < 20; i++)
+		timerStack[i] = Timer;
+	char MSGStr[128];
+
+
 	float TT = Timer;
 	byte* TempBuf = new byte[XRes*YRes*4];
 	memset(TempBuf, 0, XRes * YRes * 4);
@@ -1245,6 +1251,22 @@ void FillerTest()
 
 		//AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
 		//memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
+
+		timerStack[timerIndex++] = Timer;
+		if (timerIndex == 20)
+		{
+			timerIndex = 0;
+			sprintf(MSGStr, "%f FPS", 2000.0 / (float)(timerStack[19] - timerStack[timerIndex]));
+		}
+		else {
+			sprintf(MSGStr, "%f FPS", 2000.0 / (float)(timerStack[timerIndex - 1] - timerStack[timerIndex]));
+		}
+		dword scroll = OutTextXY(VPage, 0, 0, MSGStr, 255);
+
+		sprintf(MSGStr, "%f frame", CurFrame);
+		scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
+
+
 
 		Flip(MainSurf);
 
