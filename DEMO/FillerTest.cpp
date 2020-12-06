@@ -1249,8 +1249,8 @@ void FillerTest()
 		DWord pSrc = 0x10101010;
 		DWord pDst = 0xFCFCFCFC;
 
-		//AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
-		//memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
+		AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
+		memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
 
 		timerStack[timerIndex++] = Timer;
 		if (timerIndex == 20)

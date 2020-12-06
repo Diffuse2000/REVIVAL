@@ -15,7 +15,7 @@ using std::vector;
 #define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved external references).
 #define IMAGE_FILE_DLL                       0x2000  // File is a DLL.
 
-#if not defined(IMAGE_SYM_UNDEFINED) 
+#if not defined(IMAGE_SYM_UNDEFINED)
 	#define IMAGE_SYM_UNDEFINED					(uint16_t)0          // Symbol is undefined or is common.
 #endif
 
@@ -91,12 +91,12 @@ typedef int(__stdcall* VPFunc)(
 
 class CoffReader {
 	vector<uint8_t>									buffer;
-	const CoffHeader* header = nullptr;
-	const SectionHeader* section_table = nullptr;
-	const Symbol* symbol_table = nullptr;
-	const uint8_t* string_table = nullptr;
-	const SectionHeader* data = nullptr;
-	const SectionHeader* text = nullptr;
+	const CoffHeader*								header = nullptr;
+	const SectionHeader*							section_table = nullptr;
+	const Symbol*									symbol_table = nullptr;
+	const uint8_t*									string_table = nullptr;
+	const SectionHeader*							data = nullptr;
+	const SectionHeader*							text = nullptr;
 	uint32_t										data_idx = 0;
 	uint32_t										text_idx = 0;
 	const Relocation* text_relocations = nullptr;
@@ -116,7 +116,7 @@ class CoffReader {
 		}
 	}
 
-	void Read(std::string file) {
+	void Read(const std::string &file) {
 		FILE* f = fopen(file.c_str(), "rb");
 		if (!f) {
 			throw std::runtime_error("Can't open file: " + file);
@@ -189,7 +189,7 @@ class CoffReader {
 		offset -= (sizeof(uint32_t));
 		string_table = (const uint8_t*)AcquireBytes(offset, *string_table_size);
 
-		// we can safely ignore data relocations in our case - we only use it to determine where the code starts 
+		// we can safely ignore relocations in the data section in our case - we only use it to determine where the code starts 
 		// in order to enable self-modifying code, which becomes redaunadant in the case we are loading the code ourselves...
 		//offset = data->pointer_to_relocations;
 		//const Relocation* data_relocation = (const Relocation*)AcquireBytes(offset, sizeof(Relocation) * data->number_of_relocations);
@@ -199,7 +199,7 @@ class CoffReader {
 
 		for (int ii = 0; ii < header->number_of_symbols; ++ii) {
 			const Symbol& symbol = symbol_table[ii];
-			std::string_view name = GetName(symbol);
+			const std::string_view name = GetName(symbol);
 			if (name.starts_with("_IX_") && name.ends_with("_AsmFiller")) {
 				entry_point = symbol.value;
 			}
@@ -219,26 +219,23 @@ class CoffReader {
 				throw std::runtime_error("unsupported relocation type");
 			}
 
-			const void* relocation_ptr = nullptr;
-			auto name = GetName(symbol);
+			const void* relocation_pointee = nullptr;
 			if (symbol.section_number - 1 == text_idx) {
-				relocation_ptr = (void*)((uint8_t*)text - (uint8_t*)this->text->virtual_address + symbol.value);
-			}
-			else if (symbol.section_number - 1 == data_idx) {
-				relocation_ptr = (void*)((uint8_t*)data - (uint8_t*)this->data->virtual_address + symbol.value);
-			}
-			else if (symbol.section_number == IMAGE_SYM_UNDEFINED && symbol.storage_class == IMAGE_SYM_CLASS_EXTERNAL) {
-				auto iter = global_symbols.find(name);
+				relocation_pointee = (void*)((uint8_t*)text - (uint8_t*)this->text->virtual_address + symbol.value);
+			} else if (symbol.section_number - 1 == data_idx) {
+				relocation_pointee = (void*)((uint8_t*)data - (uint8_t*)this->data->virtual_address + symbol.value);
+			} else if (symbol.section_number == IMAGE_SYM_UNDEFINED && symbol.storage_class == IMAGE_SYM_CLASS_EXTERNAL) {
+				const auto name = GetName(symbol);
+				auto const iter = global_symbols.find(name);
 				if (iter == global_symbols.end()) {
 					throw std::runtime_error("unknown external symbol");
 				}
-				relocation_ptr = (void*)iter->second;
-			}
-			else {
+				relocation_pointee = (void*)iter->second;
+			} else {
 				throw std::runtime_error("unknown section number");
 			}
 
-			*(uint32_t*)(((uint32_t)text) + (uint32_t)relocation.virtual_address - (uint32_t)this->text->virtual_address) += (uint32_t)relocation_ptr;
+			*(uint32_t*)(((uint32_t)text) + (uint32_t)relocation.virtual_address - (uint32_t)this->text->virtual_address) += (uint32_t)relocation_pointee;
 		}
 	}
 

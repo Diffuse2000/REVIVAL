@@ -402,6 +402,8 @@
     <CustomBuild Include="RENDER\PackedVars.ASM">
       <Filter>RENDER</Filter>
     </CustomBuild>
-    <CustomBuild Include="IXTGZSAM.asm" />
+    <CustomBuild Include="IXTGZSAM.asm">
+      <Filter>Fillers</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

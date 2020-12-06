@@ -1,7 +1,7 @@
 #pragma once
 typedef void *ModplayerHandle;
 
-#ifdef _DEBUG
+#if 1 //_DEBUG
 inline ModplayerHandle Modplayer_Create(const char* path) { return 0; }
 inline void Modplayer_Start(ModplayerHandle handle) {}
 inline void Modplayer_Stop(ModplayerHandle handle) {}
