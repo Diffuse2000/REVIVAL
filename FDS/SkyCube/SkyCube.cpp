@@ -145,80 +145,92 @@ Scene * CreateSkyCube(dword skyType)
 			((O[3]>>1)&1)) ratio = 1.0;
 
 		o = *O++;
-		SV->LR = SV->LG = SV->LB = 127.0;
+		SV->LR = SV->LG = SV->LB = 255.0;
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 0.5f/256.0f;
-		SV->V = 0.5f/256.0f;
+		SV->U = 0.5f/1024.0f;
+		SV->V = 0.5f/ 1024.0f;
+		SV->i = o + i * 16;
 		SV++;
 		o = *O++;
-		SV->LR = SV->LG = SV->LB = 127.0;
+		SV->LR = SV->LG = SV->LB = 255.0;
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 255.5f/256.0f;
-		SV->V = 0.5f/256.0f;
+		SV->U = 1023.5f/ 1024.0f;
+		SV->V = 0.5f/ 1024.0f;
+		SV->i = o + i * 16;
 		SV++;
 		o = *O++;
-		SV->LR = SV->LG = SV->LB = 127.0;
+		SV->LR = SV->LG = SV->LB = 255.0;
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 255.5f/256.0f;
-		SV->V = 255.5f*ratio/256.0f;
+		SV->U = 1023.5f/ 1024.0f;
+		SV->V = 1023.5f*ratio/ 1024.0f;
+		SV->i = o + i*16;
 		SV++;
 		o = *O++;
-		SV->LR = SV->LG = SV->LB = 127.0;
+		SV->LR = SV->LG = SV->LB = 255.0;
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 0.5f/256.0f;
-		SV->V = 255.5f*ratio / 256.0f;
+		SV->U = 0.5f/ 1024.0f;
+		SV->V = 1023.5f*ratio / 1024.0f;
+		SV->i = o + i * 16;
 		SV++;
 	}
 
 	Material *M[6];
 	Texture *Tx[6];
-	DWord* TempBuf = new DWord[65536];
+
+	const char* names[6] = { "Textures/SBBK.JPG", "Textures/SBRT.JPG", "Textures/SBFT.JPG", "Textures/SBLF.JPG", "Textures/SBDN.JPG", "Textures/SBUP.JPG" };
+
+	//DWord* TempBuf = new DWord[65536];
 	for(i=0; i<6; i++)
 	{
 		M[i] = (Material *)getAlignedBlock(sizeof(Material), 16);
 		memset(M[i], 0, sizeof(Material));
+		
 		Tx[i] = new Texture;
-
 		memset(Tx[i], 0, sizeof(Texture));
-		M[i]->Flags = Mat_TwoSided;
+
+		Tx[i]->FileName = strdup(names[i]);
+		Load_Texture(Tx[i]);
+
+		M[i]->Flags = Mat_TwoSided | Mat_RGBInterp;
 		M[i]->Txtr = Tx[i];	
 
-		Tx[i]->BPP = 32;
-		dword *data = new dword [256*256];
-		Tx[i]->Data = (byte *)data;
-		memset(Tx[i]->Data, 0, 256*256*4);
+//		Tx[i]->BPP = 32;
+//		dword *data = new dword [256*256];
+//		Tx[i]->Data = (byte *)data;
+//		memset(Tx[i]->Data, 0, 256*256*4);
 		Tx[i]->Flags |= Txtr_Nomip | Txtr_Tiled;
-		Tx[i]->Mipmap[0] = (byte *)data;
-		Tx[i]->numMipmaps = 0;
+		Tx[i]->Mipmap[0] = (byte *)Tx[i]->Data;
+		Tx[i]->numMipmaps = 1;
 
 
-		GenerateSkyTexture(Tx[i], 200);
+		Sachletz((DWord *)Tx[i]->Data, Tx[i]->SizeX, Tx[i]->SizeY);
+	//	GenerateSkyTexture(Tx[i], 200);
 
-		memcpy(TempBuf, Tx[i]->Data, 65536 * 4);
-		dword* writePtr = (dword *)Tx[i]->Data;
-		for (dword X = 0; X < 64; X++)
-			for (dword Y = 0; Y < 64; Y++)
-			{
-				dword* blockPtr = TempBuf + ((X + (Y << 8)) << 2);
-				for (dword y = 0; y < 4; y++)
-					for (dword x = 0; x < 4; x++)
-						*writePtr++ = blockPtr[x + (y << 8)];
-			}
+		//memcpy(TempBuf, Tx[i]->Data, 65536 * 4);
+		//dword* writePtr = (dword *)Tx[i]->Data;
+		//for (dword X = 0; X < 64; X++)
+		//	for (dword Y = 0; Y < 64; Y++)
+		//	{
+		//		dword* blockPtr = TempBuf + ((X + (Y << 8)) << 2);
+		//		for (dword y = 0; y < 4; y++)
+		//			for (dword x = 0; x < 4; x++)
+		//				*writePtr++ = blockPtr[x + (y << 8)];
+		//	}
 
-		Tx[i]->OptClass = 0;
-		Tx[i]->SizeX = 256;
-		Tx[i]->SizeY = 256;
+		//Tx[i]->OptClass = 0;
+		//Tx[i]->SizeX = 256;
+		//Tx[i]->SizeY = 256;
 	}
 
-	delete[]TempBuf;
+	//delete[]TempBuf;
 	T->FIndex = 12;
 	Face *F = T->Faces;
 	for(i=0; i<6; i++)

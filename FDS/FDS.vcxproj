@@ -122,13 +122,14 @@
       <WarningLevel>Level3</WarningLevel>
       <AdditionalOptions>/J</AdditionalOptions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
       <FloatingPointModel>Fast</FloatingPointModel>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <OmitFramePointers>false</OmitFramePointers>
+      <OmitFramePointers>true</OmitFramePointers>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Lib>
       <OutputFile>.\Release\FDS.lib</OutputFile>

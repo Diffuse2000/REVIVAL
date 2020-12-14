@@ -230,20 +230,23 @@ void Convert_Texture2Image(Texture *Tx,Image *Img)
 {
 	Texture *TT = new Texture;
 	TT->BPP = Tx->BPP;
-	Img->x = 256;
-	Img->y = 256;
+	TT->LSizeX = Tx->LSizeX;
+	TT->LSizeY = Tx->LSizeY;
+	Img->x = 1 << Tx->LSizeX;
+	Img->y = 1 << Tx->LSizeY;
 	
+	size_t nPixels = 1 << (Tx->LSizeX + Tx->LSizeY);
 	if (TT->BPP!=32)
 	{
 		// make a new texture, convert it, and hand over the data
-		TT->Data = new byte[65536*((TT->BPP+1)>>3)];
-		memcpy(TT->Data,Tx->Data,65536*((TT->BPP+1)>>3));
+		TT->Data = new byte[nPixels*((TT->BPP+1)>>3)];
+		memcpy(TT->Data,Tx->Data, nPixels*((TT->BPP+1)>>3));
 		BPPConvert_Texture(TT,32);
 		Img->Data = (DWord *)TT->Data;
 	} else {
 		// copy txtr as it is
-		Img->Data = (dword *)_aligned_malloc(sizeof(dword)*65536, 16);
-		memcpy(Img->Data,Tx->Data,262144);
+		Img->Data = (dword *)_aligned_malloc(sizeof(dword)*nPixels, 16);
+		memcpy(Img->Data,Tx->Data, sizeof(dword)*nPixels);
 	}
 	delete TT;
 }

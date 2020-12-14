@@ -287,6 +287,7 @@ static void FInterpolator(Vertex *V, float t)
 	V->RZ = _IA->RZ + t * (_IB->RZ - _IA->RZ);
 	V->UZ = _IA->UZ + t * (_IB->UZ - _IA->UZ);
 	V->VZ = _IA->VZ + t * (_IB->VZ - _IA->VZ);
+	V->i = _IA->i;
 
 	// calculate (U,V)
 	V->TPos.z = 1.0 / V->RZ;
@@ -492,6 +493,8 @@ void MiplevelClipper()
 #ifdef NO_MIPMAPS
 		g_MipLevel = 0;
 #endif
+		CorrectCWOrder();
+
 		DoFace->Filler(C_Prim, C_numVerts);
 
 		return;

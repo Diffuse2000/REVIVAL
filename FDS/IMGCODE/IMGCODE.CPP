@@ -14,7 +14,7 @@
 Material * MatLib = NULL; // Internal Material Library. This is global for
 // all Scenes.
 
-DWord TexAutoSize = TAS_256x256; //autosizing flag
+DWord TexAutoSize = TAS_Disable; //autosizing flag
 long TexSizeX,TexSizeY;
 
 void TAS_Set(DWord TASType,long X = 256,long Y = 256)
@@ -155,13 +155,14 @@ void BPPConvert_Texture(Texture *Tx,byte TB)
 		Quantitize(Tx);
 		return;
 	}
-	Data = new byte[65536*RW];
+	size_t nPixels = 1 << (Tx->LSizeX + Tx->LSizeY);
+	Data = new byte[nPixels*RW];
 	P1 = Tx->Data;
 	P2 = Data;
 	
 	if (Tx->BPP>8)
 	{
-		for(I=0;I<65536;I++,P1+=RR,P2+=RW)
+		for(I=0;I<nPixels;I++,P1+=RR,P2+=RW)
 		{
 			//      printf("Data : %d\n",*((Word *)P1));
 //			Read(*((DWord *)P1),&Col);
@@ -178,7 +179,7 @@ void BPPConvert_Texture(Texture *Tx,byte TB)
 		//    delete Data;
 		Tx->BPP = TB;
 	} else {
-		for(I=0;I<65536;I++,P1++,P2+=RW)
+		for(I=0;I<nPixels;I++,P1++,P2+=RW)
 		{
 			Col.R=Tx->Pal->C[*P1].R<<2;
 			Col.G=Tx->Pal->C[*P1].G<<2;

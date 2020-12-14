@@ -1084,8 +1084,8 @@ static void drawPoly(float DT)
 	DummyMat.Txtr = &DummyTex;
 	DummyTex.Data = (byte *)l_TestTexture;
 	DummyTex.Mipmap[0] = DummyTex.Data;
-	DoFace->Txtr->Txtr->LSizeX = 8;
-	DoFace->Txtr->Txtr->LSizeY = 8;
+	DoFace->Txtr->Txtr->LSizeX = 10;
+	DoFace->Txtr->Txtr->LSizeY = 10;
 
 	Viewport vp;
 	vp.ClipX1 = 0;
@@ -1103,7 +1103,7 @@ static void drawPoly(float DT)
 	F.A = &V[0];
 	F.B = &V[1];
 	F.C = &V[2];
-	F.Filler = IX_Prefiller_TGZSAM;
+	F.Filler = IX_Prefiller_TGZM;
  	_2DClipper::getInstance()->clip(vp, F);
 
 	F.A = &V[0];
@@ -1180,8 +1180,12 @@ void FillerTest()
 	Sc.FZP = 1000.0;
 	g_MipLevel = 0;
 
+	Texture Tx;
+	Tx.FileName = strdup("Textures/PBRK34.JPG");
+	Load_Texture(&Tx);
+	BPPConvert_Texture(&Tx, 32);
 	// prepare texture
-	l_TestTexture = new dword [1<<(2*8)];
+//	l_TestTexture = new dword [1<<(2*10)];
 
 	std::vector<GradientEndpoint> endpoints;
 /*	endpoints.emplace_back(0.0, Color{ 0.0, 0.0, 0.0, 0.0 });
@@ -1201,24 +1205,24 @@ void FillerTest()
 	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.0 });
 	auto M = Generate_Gradient(endpoints, 256, 0.1);
 
-	dword i,j;
-	for(j=0; j<256; j++)
-	{
-		for(i=0; i<256; i++)		
-		{
-			l_TestTexture[i + (j << 8)] =
-				//0xFFFFFF;				
-				//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
-				//(i<<16)+(j<<8)+(i^j) * 0x010101;
-				(i ^ j) * 0x010101;
-				//((i>>2)&1)*0xFFFFFF;
-				
-		}
-	}
+	//dword i,j;
+	//for(j=0; j<256; j++)
+	//{
+	//	for(i=0; i<256; i++)		
+	//	{
+	//		l_TestTexture[i + (j << 8)] =
+	//			//0xFFFFFF;				
+	//			//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
+	//			//(i<<16)+(j<<8)+(i^j) * 0x010101;
+	//			(i ^ j) * 0x010101;
+	//			//((i>>2)&1)*0xFFFFFF;
+	//			
+	//	}
+	//}
 //	Sachletz(l_TestTexture, 256, 256);
 
-	l_TestTexture = (DWord *)M->Txtr->Data;
-
+	//l_TestTexture = (DWord *)M->Txtr->Data;
+	l_TestTexture = (DWord *)Tx.Data;
 	const long PartTime = 10000;
 
 	long timerStack[20], timerIndex = 0;
@@ -1249,8 +1253,8 @@ void FillerTest()
 		DWord pSrc = 0x10101010;
 		DWord pDst = 0xFCFCFCFC;
 
-		AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
-		memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
+		//AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
+		//memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
 
 		timerStack[timerIndex++] = Timer;
 		if (timerIndex == 20)

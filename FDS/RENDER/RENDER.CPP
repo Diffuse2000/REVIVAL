@@ -18,6 +18,9 @@
 #include "Base/FDS_DECS.H"
 #include "VESA/VESA.H"
 
+#define TRACE_OBJECTS
+
+
 float frand() {
 	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 }
@@ -85,6 +88,54 @@ void DO_NOP()
 	}
 }
 #endif
+
+Vector Transform_Vec(Vector Pos, Vector Source, Matrix Mat) {
+	Vector U, V, S;
+
+	// postrioric Offset Vector.
+	Vector_Sub(&Pos, &Source, &U);
+	MatrixXVector(Mat, &U, &S);
+	V.x = CntrEX * S.z + FOVX * S.x;
+	V.y = CntrEY * S.z - FOVY * S.y;
+	V.z = S.z;
+
+	//MatrixXVector(Mat, &V, &AP);
+	//Vector_SelfAdd(&S, &AP);
+	V.x /= V.z;
+	V.y /= V.z;
+
+	return V;
+}
+
+void Draw_Line_32Bit_ForKids(Vertex* V1, Vertex* V2);
+void Draw_Line_32Bit(Vertex* V1, Vertex* V2);
+
+void Bivex_Frustrum_Perspective(Vertex* A, Vertex* B, void (*Filler)(Vertex* V1, Vertex* V2));
+
+void DrawSpline(Spline Pos, Vector CamISource, int EndFrame) {
+	Vertex Last, Cur;
+	for (auto frame = 0; frame < EndFrame; ++frame) {
+		Vector IPos;
+		Spline_Calc_3D(&Pos, frame, &IPos);
+		IPos = Transform_Vec(IPos, CamISource, View->Mat);
+		//auto pos = ((Fist(IPos.x * 4) + Fist(IPos.y) * VESA_BPSL));
+		//if (pos < PageSize) {
+		//	*(dword*)(VPage + pos) = 0xffffffff;
+		//}
+		Cur.PX = IPos.x;
+		Cur.PY = IPos.y;
+		if (frame != 0) {
+			if (Last.PX < XRes-1 && Last.PY < YRes-1 && Last.PX > 0 && Last.PY > 0 &&
+				Cur.PX < XRes-1 && Cur.PY < YRes-1 && Cur.PX > 0 && Cur.PY > 0) {
+
+				Draw_Line_32Bit_ForKids(&Last, &Cur);
+			}
+		}
+		Last.PX = Cur.PX;
+		Last.PY = Cur.PY;
+	}
+}
+
 
 void Animate_Objects(Scene *Sc)
 {
@@ -1529,17 +1580,38 @@ void Render()
 		TBR_Render(CurScene);
 	}
 	
-	//test for edges stuff
-	/*  for(Tri=CurScene->TriMeshHead;Tri;Tri=Tri->Next)
+
+#ifdef TRACE_OBJECTS
+	//printf("frame: %f\n\t", CurFrame);
+	Camera* Cam = CurScene->CameraHead;
+
+	for (Object* O = CurScene->ObjectHead; O; O = O->Next)
 	{
-	if (Tri->Flags&Tri_Invisible) continue;
-    for(I=0;I<Tri->EIndex;I++)
-	if (Tri->Edges[I].Flags&Edge_Concave)
-	Bivex_Frustrum_Perspective(Tri->Edges[I].A,Tri->Edges[I].B,&Draw_Line_32Bit_ForKids);
-	else
-	Bivex_Frustrum_Perspective(Tri->Edges[I].A,Tri->Edges[I].B,&Draw_Line_32Bit);
-}*/
-	
+		if (O->Type != Obj_TriMesh) continue;
+		TriMesh* T = (TriMesh*)O->Data;
+		if (!(T->Flags & Tri_Invisible) && T->Flags & Tri_Ahead) {
+			if (T->BSphereScreenPos.x < XRes && T->BSphereScreenPos.y < YRes && T->BSphereScreenPos.x > 0 && T->BSphereScreenPos.y > 0) {
+				char text[255] = { 0 };
+				snprintf(text, 254, "%s (%d)", O->Name, O->Number);
+				OutTextXY(VPage, T->BSphereScreenPos.x, T->BSphereScreenPos.y, text, 255);
+			}
+
+			DrawSpline(T->Pos, View->ISource, Fist(CurScene->EndFrame));
+		}
+	}
+#endif
+
+	//test for edges stuff
+/*	for(Tri=CurScene->TriMeshHead;Tri;Tri=Tri->Next)
+	{
+		if (Tri->Flags&Tri_Invisible) continue;
+		for(I=0;I<Tri->EIndex;I++)
+		if (Tri->Edges[I].Flags&Edge_Concave)
+		Bivex_Frustrum_Perspective(Tri->Edges[I].A,Tri->Edges[I].B,&Draw_Line_32Bit_ForKids);
+		else
+		Bivex_Frustrum_Perspective(Tri->Edges[I].A,Tri->Edges[I].B,&Draw_Line_32Bit);
+    }
+	*/
 /*  for(EP = ColEdge_Stack;EP<CES;EP++)
     Bivex_Frustrum_Perspective(EP[0]->A,EP[0]->B,&Draw_Line_32Bit_ForKids);*/
 	

@@ -1441,7 +1441,12 @@ void Spline_Calc_1D(Spline *S,float Frame, float *Out)
 	NK = SK+1;
 	if (Frame > NK->Frame) {*Out = NK->Pos.x; return;}
 	
-	t = (Frame - SK->Frame)/(NK->Frame - SK->Frame);
+	float step = NK->Frame - SK->Frame;
+	if (step == 0.0) {
+		t = 0.0;
+	} else {
+		t = (Frame - SK->Frame) / step;
+	}
 	t = BKS_Ease(t, SK->EaseFrom, NK->EaseTo);
 	
 	t2 = t*t;    // t2 = t^2;

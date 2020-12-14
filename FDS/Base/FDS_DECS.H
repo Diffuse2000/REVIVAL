@@ -347,6 +347,7 @@ void AW_Staticmap(AGridPoint *AGP);
 #define RenderIncluded
 void FDS_Title(void);
 char FDS_Init(unsigned short x,unsigned short y,unsigned char BPP);
+void DrawSpline(Spline Pos, Vector CamISource, int EndFrame);
 #ifdef _C_WATCOM
 void SetGraphicsMode(void);
 #endif

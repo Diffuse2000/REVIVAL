@@ -1,5 +1,6 @@
 #include "IX.h"
 #include "Base/Scene.h"
+#include <vector>
 
 /////////////////////////////////
 // static filler variables (SFV)
@@ -1040,6 +1041,13 @@ extern "C"
 	void IX_TGZSAM_AsmFiller(IXVertexTG* Verts, dword numVerts, void* Texture, void* Page, dword logWidth, dword logHeight);
 }
 
+struct debug_outtext {
+	dword x, y;
+	std::string str;
+};
+
+extern std::vector<debug_outtext> DebugStrs;
+
 void IX_Prefiller_TGZM(Vertex **V, dword numVerts)
 {
 	dword i;
@@ -1081,8 +1089,12 @@ void IX_Prefiller_TGZM(Vertex **V, dword numVerts)
 			l_IXArray[i].y = V[i]->PY;
 		}
 	} else {
+		char MSGStr[128];
 		for(i=0; i<numVerts; i++)
 		{
+			sprintf(MSGStr, "%f, %f, %x", V[i]->PX, V[i]->PY, V[i]->i);
+			//OutTextXY(VPage, Fist(V[i]->PX), Fist(V[i]->PY), MSGStr, 255);
+			DebugStrs.emplace_back(Fist(V[i]->PX), Fist(V[i]->PY) + (V[i]->i >> 4) * 15, MSGStr);
 			l_IXArray[i].x = V[i]->PX;
 			l_IXArray[i].UZ = V[i]->UZ * UScaleFactor;
 			l_IXArray[i].VZ = V[i]->VZ * VScaleFactor;

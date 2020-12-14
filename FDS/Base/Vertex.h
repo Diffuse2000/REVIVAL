@@ -39,6 +39,7 @@ struct  Vertex
 //	float			REU,REV;    // EU/Z, EV/Z.
 	float			U,V;        // Original mapping coordinates
 	DWord			Flags;
+	int i = -1;
 
 //	dword			align16[3]; // this structure requires 16-byte alignment
 	//  Word           Faces,FRem; // Faces = How many faces share that perticular

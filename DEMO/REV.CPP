@@ -1,6 +1,6 @@
 #pragma comment(lib, "delayimp")  
 #ifndef _DEBUG
-//#pragma comment(lib, "Modplayer")  
+#pragma comment(lib, "Modplayer")  
 #endif // !DEBUG
 
 #pragma comment(lib, "WS2_32")
@@ -1426,8 +1426,8 @@ void CodeEntry(void *var)
 	void *filler = coff.MapCode(VirtualProtect, PAGE_EXECUTE_READWRITE);
 
 	extern void* TGZSAM_filler;
-	//TGZSAM_filler = filler;
-	TGZSAM_filler = IX_TGZSAM_AsmFiller;
+	TGZSAM_filler = filler;
+//	TGZSAM_filler = IX_TGZSAM_AsmFiller;
 	//FillerTest();
 	//return;
 

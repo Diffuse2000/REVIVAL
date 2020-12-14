@@ -1,13 +1,14 @@
 
 #include "REV.H"
 #include "CITY.H"
+#include <algorithm>
+#include <vector>
 
 #define FRONT_TO_BACK_SORTING
 #define CITY_RAIN
-//#define TRACE_OBJECTS
 
 static Scene *CitySc;
-//static Scene *SkySc;
+static Scene *SkySc;
 static Object *RflObj;
 static Vector RflSurfNorm(0,1,0);
 static float RflSurfOfs = 0;
@@ -1324,7 +1325,7 @@ void Initialize_City()
 	memset(CitySc,0,sizeof(Scene));
 	LoadFLD(CitySc,"Scenes\\CITY.FLD");
 //	CitySc->EndFrame = 1046.0f;
-	CTPartTime = 100.0f*(CitySc->EndFrame-CitySc->StartFrame)/50.0f;
+	CTPartTime = 10000.0f*(CitySc->EndFrame-CitySc->StartFrame)/50.0f;
 //	printf("FLD-loaded MEM = %d\n",DPMI_Free_Memory());
 	CitySc->NZP = 20.0;
 	CitySc->FZP = 5000.0f;
@@ -1361,7 +1362,7 @@ void Initialize_City()
 	// when fog will be implemented
 	Init_Distort();
 
-//	SkySc = CreateSkyCube(0);
+	SkySc = CreateSkyCube(0);
 
 	// initialize rain FX
 #ifdef CITY_RAIN
@@ -1447,6 +1448,13 @@ static void TextureBlockTest()
 	}
 }
 
+struct debug_outtext {
+	dword x, y;
+	std::string str;
+};
+
+std::vector<debug_outtext> DebugStrs;
+
 void Run_City()
 {
 	long Polys = 0,TTrd;
@@ -1531,13 +1539,14 @@ void Run_City()
 	for(i=0; i<PROF_NUM; i++)
 		Profiler[i] = 0;	
 
-	while ((!Keyboard[ScESC])&&Timer<CTPartTime)
+	while ((!Keyboard[ScESC]) && Timer < CTPartTime)
 	{
 		numFrames++;
 
 		Profiler[PROF_ZCLR] -= Timer;
 
-		dTime = Timer-TTrd;
+		dTime = Timer - TTrd;
+		if (dTime > 300) dTime = 300;
 		// fast forward/rewind
 		if (Keyboard[ScF2])
 		{
@@ -1563,13 +1572,13 @@ void Run_City()
 
 		// Clear framebuffer and Z-buffer
 		//memset(VPage,0,PageSize + XRes*YRes*sizeof(word));
-		FastWrite(VPage, 0, (PageSize + XRes*YRes*sizeof(word)) >> 2);
+		FastWrite(VPage, 0, (PageSize + XRes * YRes * sizeof(word)) >> 2);
 
 		Profiler[PROF_ZCLR] += Timer;
 		Profiler[PROF_ANIM] -= Timer;
 
 		Reflective_AnimateTexture();
-//		Water_Distort();
+		//		Water_Distort();
 
 		if (Keyboard[ScTab])
 		{
@@ -1579,15 +1588,15 @@ void Run_City()
 				View = &FC;
 		}
 
-		CurFrame = CitySc->StartFrame + (CitySc->EndFrame-CitySc->StartFrame) * (float)g_FrameTime / (float)CTPartTime;
- //							 CitySc->StartFrame + 500 * (float)Timer / (float)CTPartTime;
+		CurFrame = CitySc->StartFrame + (CitySc->EndFrame - CitySc->StartFrame) * (float)g_FrameTime / (float)CTPartTime;
+		//							 CitySc->StartFrame + 500 * (float)Timer / (float)CTPartTime;
 
 		Dynamic_Camera();
-		if (Keyboard[ScC]) {FC.ISource = View->ISource; Matrix_Copy(FC.Mat,View->Mat); FC.IFOV=View->IFOV;}
+		if (Keyboard[ScC]) { FC.ISource = View->ISource; Matrix_Copy(FC.Mat, View->Mat); FC.IFOV = View->IFOV; }
 
 		Animate_Objects(CitySc);
 
-		((TriMesh *)(RflObj->Data))->Flags &= 0xFFFFFFFF-HTrack_Visible;
+		((TriMesh*)(RflObj->Data))->Flags &= 0xFFFFFFFF - HTrack_Visible;
 
 		Profiler[PROF_ANIM] += Timer;
 		Profiler[PROF_LGHT] -= Timer;
@@ -1611,12 +1620,12 @@ void Run_City()
 		if (!CAll) goto norefl;
 		Profiler[PROF_SORT] -= Timer;
 
-		Radix_SortingASM(FList,SList,CAll);
+		Radix_SortingASM(FList, SList, CAll);
 
 		Profiler[PROF_SORT] += Timer;
 		Profiler[PROF_RNDR] -= Timer;
 
-		Render();
+		//Render();
 
 		Profiler[PROF_RNDR] += Timer;
 
@@ -1626,40 +1635,20 @@ void Run_City()
 		//memset(VPage,0,PageSize + XRes*YRes*sizeof(word));		
 //		FastWrite(VPage+PageSize, 0, (XRes*YRes*sizeof(word)) >> 2);
 
-		norefl:
-		//RenderSkyCube(SkySc, View);
+	norefl:
+		RenderSkyCube(SkySc, View);
 
 		// render all objects normally
 		Profiler[PROF_XFRM] -= Timer;
-		((TriMesh *)(RflObj->Data))->Flags |= HTrack_Visible;		 
+		((TriMesh*)(RflObj->Data))->Flags |= HTrack_Visible;
 		Transform_Objects(CitySc);
 		Profiler[PROF_XFRM] += Timer;
 		if (!CAll) continue;
 		Profiler[PROF_SORT] -= Timer;
-		Radix_SortingASM(FList,SList,CAll);
+		Radix_SortingASM(FList, SList, CAll);
 		Profiler[PROF_SORT] += Timer;
 		Profiler[PROF_RNDR] -= Timer;
-		Render();
-
-#ifdef TRACE_OBJECTS
-		//printf("frame: %f\n\t", CurFrame);
-		for (Object *O = CitySc->ObjectHead; O; O = O->Next)
-		{
-			//for (Object *po = O; po; po = po->Parent) {
-			//	printf("%s->", po->Name);
-			//}
-			//printf("NULL\n");
-			if (O->Type != Obj_TriMesh) continue;
-			TriMesh * T = (TriMesh *)O->Data;
-			if (T->Flags&Tri_Inside || T->Flags & Tri_Ahead) {
-				if (T->BSphereScreenPos.x < XRes && T->BSphereScreenPos.y < YRes && T->BSphereScreenPos.x > 0 && T->BSphereScreenPos.y > 0) {
-					char text[255] = { 0 };
-					snprintf(text, 254, "%s (%d)", O->Name, O->Number);
-					OutTextXY(VPage, T->BSphereScreenPos.x, T->BSphereScreenPos.y, text, 255);
-				}
-			}
-		}
-#endif
+		//	Render();
 
 		Profiler[PROF_RNDR] += Timer;
 
@@ -1669,45 +1658,52 @@ void Run_City()
 			mword scroll = 0;
 
 			timerStack[timerIndex++] = Timer;
-			if (timerIndex==20) 
+			if (timerIndex == 20)
 			{
 				timerIndex = 0;
-				sprintf(MSGStr,"%f FPS", 2000.0/(float)(timerStack[19]-timerStack[timerIndex]) );
-			} else {
-				sprintf(MSGStr,"%f FPS", 2000.0/(float)(timerStack[timerIndex-1]-timerStack[timerIndex]) );
+				sprintf(MSGStr, "%f FPS", 2000.0 / (float)(timerStack[19] - timerStack[timerIndex]));
 			}
-			scroll = OutTextXY(VPage,0,0,MSGStr,255);
+			else {
+				sprintf(MSGStr, "%f FPS", 2000.0 / (float)(timerStack[timerIndex - 1] - timerStack[timerIndex]));
+			}
+			scroll = OutTextXY(VPage, 0, 0, MSGStr, 255);
 
 			sprintf(MSGStr, "%f frame", CurFrame);
 			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
-			sprintf(MSGStr, "%dK pixels/frame" , (int32_t)(FillerPixelcount/(1000.0*numFrames)));
-			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
-			sprintf(MSGStr, "%dK pixels/second" , (int32_t)(FillerPixelcount/1000.0 * 100.0 / Profiler[PROF_RNDR]));
-			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
-			sprintf(MSGStr, "%d polys/frame" , (int32_t)(g_renderedPolys / numFrames) );
-			OutTextXY(VPage,0,45,MSGStr,255);
-	//		numDropsRendered=0;
-	//		sprintf(MSGStr, "%d raindrops" , (long)(numDropsRendered) );
-	//		OutTextXY(VPage,0,60,MSGStr,255);
+			sprintf(MSGStr, "%dK pixels/frame", (int32_t)(FillerPixelcount / (1000.0 * numFrames)));
+			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
+			sprintf(MSGStr, "%dK pixels/second", (int32_t)(FillerPixelcount / 1000.0 * 100.0 / Profiler[PROF_RNDR]));
+			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
+			sprintf(MSGStr, "%d polys/frame", (int32_t)(g_renderedPolys / numFrames));
+			OutTextXY(VPage, 0, 45, MSGStr, 255);
+			//		numDropsRendered=0;
+			//		sprintf(MSGStr, "%d raindrops" , (long)(numDropsRendered) );
+			//		OutTextXY(VPage,0,60,MSGStr,255);
 
-	//		FModGetModuleInfo(mmi);
-	//		sprintf(MSGStr, "Order: %d, Row: %d", mmi.Order, mmi.Row);
-	//		OutTextXY(VPage,0,15,MSGStr,255);
-	//		sprintf(MSGStr, "%dK pixels/second" , (long)(FillerPixelcount/1000.0 * 100.0 / Timer));
-	//		OutTextXY(VPage,0,30,MSGStr,255);
-	//		PROFILER: display stats		
-			for(i=0; i<PROF_NUM; i++)
+			//		FModGetModuleInfo(mmi);
+			//		sprintf(MSGStr, "Order: %d, Row: %d", mmi.Order, mmi.Row);
+			//		OutTextXY(VPage,0,15,MSGStr,255);
+			//		sprintf(MSGStr, "%dK pixels/second" , (long)(FillerPixelcount/1000.0 * 100.0 / Timer));
+			//		OutTextXY(VPage,0,30,MSGStr,255);
+			//		PROFILER: display stats		
+			for (i = 0; i < PROF_NUM; i++)
 			{
-				sprintf(MSGStr, "%s %3.1fms (%3.1f%%)" , ProfNames[i], ProfSample[i], ProfPerc[i]);
-				scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
+				sprintf(MSGStr, "%s %3.1fms (%3.1f%%)", ProfNames[i], ProfSample[i], ProfPerc[i]);
+				scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
 			}
 
-			sprintf(MSGStr, "TOTL %3.1fms" , ProfSum*10.0/ numFrames);
-			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
+			sprintf(MSGStr, "TOTL %3.1fms", ProfSum * 10.0 / numFrames);
+			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
 
 		}
 		Profiler[PROF_FLIP] -= Timer;
-		
+
+
+		for (const auto& str : DebugStrs) {
+			OutTextXY(VPage, str.x, str.y, str.str.c_str(), 255);
+		}
+		DebugStrs.clear();
+
 #ifdef _C_WATCOM
 		Flip(Screen);
 #else
@@ -1715,20 +1711,20 @@ void Run_City()
 #endif
 		Profiler[PROF_FLIP] += Timer;
 
-//		PROFILER: Generate sample
+		//		PROFILER: Generate sample
 		ProfSum = 0;
-		for(i=0; i<PROF_NUM; i++)
+		for (i = 0; i < PROF_NUM; i++)
 			ProfSum += Profiler[i];
-		for(i=0; i<PROF_NUM; i++)
+		for (i = 0; i < PROF_NUM; i++)
 		{
 			ProfSample[i] =
-				Profiler[i]*10.0 / numFrames;
-			ProfPerc[i] = 
-				Profiler[i]*100.0/ProfSum;
+				Profiler[i] * 10.0 / numFrames;
+			ProfPerc[i] =
+				Profiler[i] * 100.0 / ProfSum;
 		}
 
 		//if (dTime<5) SysSleep(10*(5-dTime));
-	} Timer-=CTPartTime;
+	} Timer -= CTPartTime;
 /*	if (Keyboard[ScESC])
 	{
 		#ifdef Play_Music
