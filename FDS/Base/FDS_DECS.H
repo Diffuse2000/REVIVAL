@@ -282,6 +282,7 @@ void Detect_MMX();
 
 void *getAlignedBlock(mword size, mword alignment = 64);
 void freeAlignedBlock(void *ptr);
+
 #endif
 
 #ifndef ImageCodeIncluded
@@ -496,6 +497,21 @@ Scene * CreateSkyCube(dword skyType);
 void RenderSkyCube(Scene *Sc, Camera *Cm);
 
 void Sachletz(dword* data, dword xres, dword yres);
+
+template <typename T>
+T* getAlignedArray(size_t N, size_t alignment) {
+	T* block = (T*)getAlignedBlock(sizeof(T) * N, alignment);
+	for (auto i = 0u; i < N; ++i) {
+		new(&block[i]) T();
+	}
+	return block;
+}
+
+template <typename T>
+T* getAlignedType(size_t alignment) {
+	T* block = (T*)getAlignedBlock(sizeof(T), alignment);
+	return new(block) T();
+}
 
 
 #endif //FDS_DECS_H_INCLUDED

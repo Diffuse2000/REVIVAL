@@ -154,6 +154,7 @@ void _2DClipper::swap()
 void _2DClipper::lerp(const Vertex& IA, const Vertex& IB, Vertex& V, float t) const {
 	V.PX = IA.PX + t * (IB.PX - IA.PX);
 	V.PY = IA.PY + t * (IB.PY - IA.PY);
+	V.LA = IA.LA + t * (IB.LA - IA.LA);
 	V.LR = IA.LR + t * (IB.LR - IA.LR);
 	V.LG = IA.LG + t * (IB.LG - IA.LG);
 	V.LB = IA.LB + t * (IB.LB - IA.LB);

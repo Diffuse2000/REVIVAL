@@ -18,7 +18,7 @@
 #include "Base/FDS_DECS.H"
 #include "VESA/VESA.H"
 
-#define TRACE_OBJECTS
+//#define TRACE_OBJECTS
 
 
 float frand() {

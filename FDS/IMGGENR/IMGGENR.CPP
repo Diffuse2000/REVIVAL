@@ -266,8 +266,8 @@ void Generate_RGBFlares()
 Material *Generate_RGBFlare(unsigned char R,unsigned char G,unsigned char B)
 {
 	Image Img;
-	Material *M=(Material *)getAlignedBlock(sizeof(Material), 16);
-	memset(M,0,sizeof(Material));
+	Material *M = getAlignedType<Material>(16); //(Material *)getAlignedBlock(sizeof(Material), 16);
+	//memset(M,0,sizeof(Material));
 	Img.x = 256;
 	Img.y = 256;
 	M->Flags = Mat_Virtual;

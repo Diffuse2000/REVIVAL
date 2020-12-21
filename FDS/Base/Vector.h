@@ -98,7 +98,7 @@ struct alignas(16) XMMVector
 // [12 Bytes]
 struct Vector
 {
-	float x, y, z;
+	float x = 0.0f , y = 0.0f, z = 0.0f;
 
 	void Read(FILE * f) {
 		fread(&x, 1, sizeof(float), f);
@@ -107,9 +107,9 @@ struct Vector
 	}
 
 
-	Vector() {}
+	Vector() = default;
 	Vector(float _x, float _y, float _z): x(_x), y(_y), z(_z){}
-	~Vector() {}
+	//~Vector() {}
 
 	void print() {
 		printf("(%f, %f, %f)", x, y, z);

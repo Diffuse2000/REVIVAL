@@ -135,7 +135,7 @@ align 16
 	Right_X			dd		0.0
 	Right_dX		dd		0.0
 	save_esp		dd		0
-	align32			dd		0
+	update_zbuffer	dd		0
 
 ; innerloop variables (cacheline 1)
 
@@ -845,7 +845,7 @@ Outer:
 ; SSE: xmm1,xmm5-6
 
 
-;align 16
+align 16
 	Inner:
  		cmp ax, word ptr [esi+ecx]
 		jbe nodraw
@@ -854,7 +854,10 @@ Outer:
 		lea		ebx,	[edi+ebp]
 		shr		ebx,	16
 
-;		mov  word ptr [esi+ecx], ax
+		cmp [update_zbuffer], 1
+		jne no_zbuffer_update
+		mov  word ptr [esi+ecx], ax
+		no_zbuffer_update:
 
 		pxor	mm4,	mm4
 		
@@ -945,12 +948,13 @@ _IX_TGZSAM_AsmFiller	proc	near
 ;static void IXAsmFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page, dword logWidth, dword logHeight)
 
 ;;; ARGUMENTS ;;;
-	Arg_Verts		equ		esp + 4h
-	Arg_NumVerts	equ		esp + 8h
-	Arg_Texture		equ		esp + 0Ch
-	Arg_Page		equ		esp + 10h
-	Arg_LogWidth	equ		esp + 14h
-	Arg_LogHeight	equ		esp + 18h
+	Arg_Verts			equ		esp + 4h
+	Arg_NumVerts		equ		esp + 8h
+	Arg_Texture			equ		esp + 0Ch
+	Arg_Page			equ		esp + 10h
+	Arg_LogWidth		equ		esp + 14h
+	Arg_LogHeight		equ		esp + 18h
+	Arg_ZBufferUpdate	equ		esp + 1Ch
 	
 ;IX.Texture = Texture;
 	mov	eax,		[Arg_Texture]
@@ -962,9 +966,13 @@ _IX_TGZSAM_AsmFiller	proc	near
 	mov	eax,		[Arg_LogWidth]
 	mov	[_L2Size], eax
 
+	mov	eax,		[Arg_ZBufferUpdate]
+	mov	[update_zbuffer],	eax
+
 ;IX.Page = Page;
 	mov eax,		[Arg_Page]
 	mov	[_Page],	eax
+
 
 ;// ZBuffer data starts at the end of framebuffer
 ;IX.ZBuffer = (word *) ((dword)Page + PageSize);

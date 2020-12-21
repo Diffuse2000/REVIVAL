@@ -654,13 +654,13 @@ void Init_Flare_Textures(Scene *Sc)
 		if (MatLib) {
 			for(M=MatLib;M->Next;M=M->Next);
 			//      printf("<PR:IFT>: New material will be linked to last entry %s",M->Name);
-			M->Next = (Material *)getAlignedBlock(sizeof(Material), 16);
+			M->Next = getAlignedType<Material>(16); //(Material *)getAlignedBlock(sizeof(Material), 16);
 			M->Next->Prev = M;
 			M=M->Next;
 			M->Next = NULL;
 		} else {
 			//      printf("<PR:IFT>: No previous entries detected, Creating Library.\n");
-			MatLib = (Material *)getAlignedBlock(sizeof(Material), 16);
+			MatLib = getAlignedType<Material>(16); //(Material *)getAlignedBlock(sizeof(Material), 16);
 			M = MatLib;
 			M->Next = NULL;
 			M->Prev = NULL;
@@ -776,14 +776,14 @@ void Default_Texture(Scene *Sc)
 			if (MatLib)
 			{
 				for(M=MatLib;M->Next;M=M->Next);
-				M->Next = (Material *)getAlignedBlock(sizeof(Material), 16);
+				M->Next = getAlignedType<Material>(16); //(Material *)getAlignedBlock(sizeof(Material), 16);
 				M->Next->Prev = M;
 				M = M->Next;
 				M->Next = NULL;
 			}
 			else
 			{
-				MatLib = (Material *)getAlignedBlock(sizeof(Material), 16);
+				MatLib = getAlignedType<Material>(16); //(Material *)getAlignedBlock(sizeof(Material), 16);
 				M = MatLib;
 				M->Next = M->Prev = NULL;
 			}
@@ -1001,8 +1001,10 @@ void Assign_Fillers(Scene *Sc)
 			if (F->Txtr->Flags & Mat_RGBInterp) rasterFlags += 2;
 			if (F->Txtr->Flags & Mat_Transparent) rasterFlags += 4;
 			if (test_for_alpha && (F->Txtr->Flags & Mat_Transparent)) rasterFlags = 8;
+			if (F->Txtr->Flags & Mat_Additive) rasterFlags = 9;
+
 			//if (F->Txtr->Flags & Mat_UseTextureAlpha) rasterFlags += 8;
-			RasterFunc stdFillers[9] = {
+			RasterFunc stdFillers[10] = {
 				IX_Prefiller_FZ, // Flat (impl. gouraud)
 				IX_Prefiller_TZ, // Texture
 				IX_Prefiller_GZ, // Gouraud
@@ -1012,7 +1014,8 @@ void Assign_Fillers(Scene *Sc)
 				IX_Prefiller_TAcZ, // transparent Texture
 				IX_Prefiller_GAcZ, // transparent Gouraud
 				IX_Prefiller_TGZTM,//TGAcZ, // transparent Texture/Gouraud
-				IX_Prefiller_TGZTAM//TGAcZ, // transparent Texture/Gouraud with Alpha blending
+				IX_Prefiller_TGZTAM, //TGAcZ, // transparent Texture/Gouraud with Alpha blending
+				IX_Prefiller_TGZSAM,
 			};
 
 			F->Filler = stdFillers[rasterFlags];

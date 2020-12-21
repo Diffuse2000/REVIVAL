@@ -8,7 +8,7 @@
 #define CITY_RAIN
 
 static Scene *CitySc;
-static Scene *SkySc;
+Scene *SkySc;
 static Object *RflObj;
 static Vector RflSurfNorm(0,1,0);
 static float RflSurfOfs = 0;
@@ -1214,7 +1214,7 @@ static void initRain(Scene *Sc)
 	Sc->Pcl = new Particle[Sc->NumOfParticles];
 	memset(Sc->Pcl,0,sizeof(Particle)*Sc->NumOfParticles);
 
-	memset(&dummyRainMat, 0, sizeof(Material));
+//	memset(&dummyRainMat, 0, sizeof(Material));
 	// dont use TBR for rain.
 //	float typicalParticleSize = 30.0/384.0;
 //	dword typicalSpans = Fist(YRes * typicalParticleSize / 4.0);
@@ -1325,14 +1325,14 @@ void Initialize_City()
 	memset(CitySc,0,sizeof(Scene));
 	LoadFLD(CitySc,"Scenes\\CITY.FLD");
 //	CitySc->EndFrame = 1046.0f;
-	CTPartTime = 10000.0f*(CitySc->EndFrame-CitySc->StartFrame)/50.0f;
+	CTPartTime = 100.0f*(CitySc->EndFrame-CitySc->StartFrame)/50.0f;
 //	printf("FLD-loaded MEM = %d\n",DPMI_Free_Memory());
 	CitySc->NZP = 20.0;
-	CitySc->FZP = 5000.0f;
+	CitySc->FZP = 7500.0f;
 	CitySc->Flags |= Scn_Fogged|Scn_ZBuffer;
-	CitySc->Ambient.B = 32 * 2;
-	CitySc->Ambient.G = 48 * 2;
-	CitySc->Ambient.R = 64 * 2;
+	CitySc->Ambient.B = 32*2;
+	CitySc->Ambient.G = 48*2;
+	CitySc->Ambient.R = 64*2;
 	
 	Material *M;
 	for(M = MatLib;M;M=M->Next)
@@ -1447,13 +1447,15 @@ static void TextureBlockTest()
 		}
 	}
 }
-
+#ifdef TRACE_OBJECTS
 struct debug_outtext {
 	dword x, y;
 	std::string str;
 };
 
 std::vector<debug_outtext> DebugStrs;
+
+#endif
 
 void Run_City()
 {
@@ -1573,6 +1575,7 @@ void Run_City()
 		// Clear framebuffer and Z-buffer
 		//memset(VPage,0,PageSize + XRes*YRes*sizeof(word));
 		FastWrite(VPage, 0, (PageSize + XRes * YRes * sizeof(word)) >> 2);
+		RenderSkyCube(SkySc, View);
 
 		Profiler[PROF_ZCLR] += Timer;
 		Profiler[PROF_ANIM] -= Timer;
@@ -1625,7 +1628,7 @@ void Run_City()
 		Profiler[PROF_SORT] += Timer;
 		Profiler[PROF_RNDR] -= Timer;
 
-		//Render();
+		Render();
 
 		Profiler[PROF_RNDR] += Timer;
 
@@ -1636,7 +1639,6 @@ void Run_City()
 //		FastWrite(VPage+PageSize, 0, (XRes*YRes*sizeof(word)) >> 2);
 
 	norefl:
-		RenderSkyCube(SkySc, View);
 
 		// render all objects normally
 		Profiler[PROF_XFRM] -= Timer;
@@ -1648,7 +1650,7 @@ void Run_City()
 		Radix_SortingASM(FList, SList, CAll);
 		Profiler[PROF_SORT] += Timer;
 		Profiler[PROF_RNDR] -= Timer;
-		//	Render();
+		Render();
 
 		Profiler[PROF_RNDR] += Timer;
 
@@ -1698,17 +1700,14 @@ void Run_City()
 		}
 		Profiler[PROF_FLIP] -= Timer;
 
-
+#ifdef TRACE_OBJECTS
 		for (const auto& str : DebugStrs) {
 			OutTextXY(VPage, str.x, str.y, str.str.c_str(), 255);
 		}
 		DebugStrs.clear();
-
-#ifdef _C_WATCOM
-		Flip(Screen);
-#else
-		Flip(MainSurf);
 #endif
+
+		Flip(MainSurf);
 		Profiler[PROF_FLIP] += Timer;
 
 		//		PROFILER: Generate sample

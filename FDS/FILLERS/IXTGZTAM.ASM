@@ -261,6 +261,9 @@ align 16
 	rf18	dd		0.055556,0.055556,0.055556,0.055556
 	rf19	dd		0.052632,0.052632,0.052632,0.052632
 ;	rf20	dd		0.05,0.05,0.05,0.05
+
+	_255x4	dq		000ff00ff00ff00ffh
+	mmspill	dq		000ff00ff00ff00ffh
  
 	; Integer division table (lock and load)
 	RITable equ		ri1 - 4
@@ -848,7 +851,7 @@ Outer:
 ;align 16
 	Inner:
 		cmp ax, word ptr [esi+ecx]
-		jbe nodraw
+		;jbe nodraw
 
 		; get texture
 		lea		ebx,	[edi+ebp]
@@ -862,16 +865,27 @@ Outer:
 		org $ - 4
 		SMC_Texture dd 0
 
+		;movq [mmspill], mm2
 		punpcklbw	mm5,	mm4
+		pshufw		mm2,	mm5, 11111111b ; alpha channel
+		;psllw		mm2,	8
+		pmullw		mm5,	mm2
+		;psrlw		mm2,	8
+		;psrlw		mm5,	8
+
+		pxor		mm2,	[_255x4] ; mm2 = 255 - mm2 (in words) 
+		;psllw		mm2,	8
+
 		pmulhuw		mm5,	mm0
-		psllw		mm5,	1
+		;psllw		mm5,	1
 
 		movd mm6,	dword ptr [esp+ecx*2]
 
 		punpcklbw	mm6,	mm4
-		psrlw		mm5,	1
-		psrlw		mm6,	1
+		pmullw		mm6,	mm2
+		;movq mm2, [mmspill]
 		paddw		mm5,	mm6
+		psrlw		mm5,	8
 
 		packuswb	mm5,	mm5
 		; write to screen

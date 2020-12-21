@@ -27,14 +27,14 @@ void ReadMaterialName(unsigned int EndPos)
   {
 //    printf("<3DS:M>: No previous entries detected, Creating Library.\n");
     fflush(stdout);
-    MatLib = (Material *)getAlignedBlock(sizeof(Material), 16);
+    MatLib = getAlignedType<Material>(16);// (Material*)getAlignedBlock(sizeof(Material), 16);
     Cur_Mat = MatLib;
-    memset(MatLib,0,sizeof(Material));
+    //memset(MatLib,0,sizeof(Material));
   } else {
 //    printf("<3DS:M>: New material will be linked to last entry %s\n",Cur_Mat->Name);
     fflush(stdout);
-    Cur_Mat->Next=(Material *)getAlignedBlock(sizeof(Material), 16);
-    memset(Cur_Mat->Next,0,sizeof(Material));
+    Cur_Mat->Next = getAlignedType<Material>(16);// (Material*)getAlignedBlock(sizeof(Material), 16);
+//    memset(Cur_Mat->Next,0,sizeof(Material));
     Cur_Mat->Next->Prev = Cur_Mat;
     Cur_Mat=Cur_Mat->Next;
   }

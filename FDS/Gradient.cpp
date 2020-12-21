@@ -41,8 +41,8 @@ Color evalGradient(const std::vector<GradientEndpoint>& endpoints, float u, floa
 
 Material* Generate_Gradient(const std::vector<GradientEndpoint>& endpoints, int txSize, float vSlack) {
 	Image Img;
-	Material* M = (Material*)getAlignedBlock(sizeof(Material), 16);
-	memset(M, 0, sizeof(Material));
+	Material* M = getAlignedType<Material>(16); //(Material*)getAlignedBlock(sizeof(Material), 16);
+	//memset(M, 0, sizeof(Material));
 	Img.x = txSize;
 	Img.y = txSize;
 	// whatever that means

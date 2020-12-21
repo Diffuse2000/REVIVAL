@@ -493,7 +493,7 @@ void MiplevelClipper()
 #ifdef NO_MIPMAPS
 		g_MipLevel = 0;
 #endif
-		CorrectCWOrder();
+//		CorrectCWOrder();
 
 		DoFace->Filler(C_Prim, C_numVerts);
 

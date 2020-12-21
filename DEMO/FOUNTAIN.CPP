@@ -128,7 +128,8 @@ void Initialize_Particles(Scene *Sc)
 		Om=Om->Next;
 	}*/
 	NPMats = 2;
-	PclT = (Material *)getAlignedBlock(sizeof(Material) * NPMats, 16);
+	//PclT = (Material *)getAlignedBlock(sizeof(Material) * NPMats, 16);
+	PclT = getAlignedArray<Material>(2, 16);
 	PclT[0].Txtr = new Texture;
 	memset(PclT[0].Txtr, 0, sizeof(Texture));
 	PclT[0].Txtr->BPP = 32;
@@ -299,6 +300,7 @@ void Initialize_Particles(Scene *Sc)
 
 void Particle_Kinematics(Scene *Sc)
 {
+	const float intensity = 0.8;
 	float u,v,cv;
 	// Destroy particles
 	Particle *P,*PE;
@@ -355,7 +357,7 @@ void Particle_Kinematics(Scene *Sc)
 //		P->Color.R = 63;
 //		P->Color.G = 127;
 //		P->Color.B = 255;
-		float colorscale = 0.3;
+		float colorscale = 0.3 * intensity;
 		P->Color.R = 63*colorscale;
 		P->Color.G = 127*colorscale;
 		P->Color.B = 255*colorscale;
@@ -503,6 +505,9 @@ void Particle_Kinematics(Scene *Sc)
 				break;
 			}
 
+			P->Color.R *= intensity;
+			P->Color.G *= intensity;
+			P->Color.B *= intensity;
 
 			switch(Spwn%3)
 			{
@@ -1651,8 +1656,8 @@ void Load_Vortex()
 
 	Material *M = &VortexMat;
 	M->Txtr = &VorTexture;
-	M->Luminosity = 0.5f; // X2 saturated ambient
-	M->Flags = Mat_RGBInterp;
+	M->Luminosity = 2.f; // X2 saturated ambient
+	M->Flags = Mat_RGBInterp | Mat_Additive;
 	M->RelScene = FntSc;
 	Material *Mat;
 	for(Mat=MatLib;Mat->Next;Mat=Mat->Next);
@@ -1756,6 +1761,7 @@ void Add_Vortex_ToScene()
 	Vector_Form(&T->Verts[2].Pos, vortex_size,0.0f,vortex_size);
 	Vector_Form(&T->Verts[3].Pos, vortex_size,0.0f,-vortex_size);
 
+
 	T->FIndex = 2;
 	T->Faces = new Face[2];
 	T->Faces[0].A = T->Verts;
@@ -1794,8 +1800,9 @@ void Add_Vortex_ToScene()
 	Quaternion_Form(&T->Rotate.Keys->Pos,0.0f,0.0f,0.0f,1.0f);
 	Vector_Form(&T->BSphereCtr,0.0f,0.0f,0.0f);
 	T->BSphereRad = 10000.0f;
-
+	T->SortPriorityBias = SP_DrawFirst;
 }
+extern Scene* SkySc;
 
 void Run_Fountain()
 {
@@ -1866,6 +1873,7 @@ void Run_Fountain()
 
 //		memset(VPage, 0, PageSize + XRes*YRes*sizeof(word));
 		FastWrite(VPage, 0, (PageSize + XRes*YRes*sizeof(word)) >> 2);
+		RenderSkyCube(SkySc, View);
 
 		dTime = Timer-TTrd;
 		// fast forward/rewind

@@ -1428,8 +1428,8 @@ void CodeEntry(void *var)
 	extern void* TGZSAM_filler;
 	TGZSAM_filler = filler;
 //	TGZSAM_filler = IX_TGZSAM_AsmFiller;
-	//FillerTest();
-	//return;
+	FillerTest();
+	return;
 
 	Run_Glato();
 	while (Timer<4000);

@@ -28,15 +28,15 @@ void AddMaterial(FldMat *OrgMat, Scene *SceneGroup)
 
 	if (!MatLib)
 	{
-		MatLib=(Material *)getAlignedBlock(sizeof(Material), 16);
+		MatLib = getAlignedType<Material>(16);//(Material *)getAlignedBlock(sizeof(Material), 16);
 		CurMat=MatLib;
 	}
 	else
 	{
-		CurMat->Next=(Material *)getAlignedBlock(sizeof(Material), 16);
+		CurMat->Next = getAlignedType<Material>(16); //(Material *)getAlignedBlock(sizeof(Material), 16);
 		CurMat=CurMat->Next;
 	}
-	memset(CurMat,0,sizeof(Material));
+//	memset(CurMat,0,sizeof(Material));
 	CurMat->Name=OrgMat->Name;
 	CurMat->Flags=0;
 	CurMat->Diffuse=OrgMat->Diffuse*0.01;
@@ -59,7 +59,7 @@ void AddMaterial(FldMat *OrgMat, Scene *SceneGroup)
 	if (Temp==CurMat)
 	{
 		Tx=new Texture;
-		memset(Tx,0,sizeof(Texture));
+//		memset(Tx,0,sizeof(Texture));
 		Tx->FileName=strdup(Image);
 #ifdef DebugMode
 		printf("Attempting to identify texture \"%s\"...\n",Image);

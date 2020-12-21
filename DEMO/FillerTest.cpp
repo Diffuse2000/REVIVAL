@@ -1037,9 +1037,10 @@ static void drawPoly(float DT)
 	V[i].TPos.z = 1.0;
 	V[i].U = 0.0;
 	V[i].V = 0.0;
-	V[i].LR = 2.0;
-	V[i].LG = 2.0;
-	V[i].LB = 253.0;
+	V[i].LA = 255;
+	V[i].LR = 2;
+	V[i].LG = 2;
+	V[i].LB = 253;
 
 	i=1;
 	V[i].PX = 900.1 + 280 * c - 250 * s;
@@ -1049,9 +1050,10 @@ static void drawPoly(float DT)
 	V[i].TPos.z = 1.0;
 	V[i].U = 0.999;
 	V[i].V = 0.0;
-	V[i].LR = 2.0;
-	V[i].LG = 253.0;
-	V[i].LB = 127.0;
+	V[i].LA = 255;
+	V[i].LR = 2;
+	V[i].LG = 2;
+	V[i].LB = 127;
 
 	i=2;
 	V[i].PX = 900.1 + 280 * c + 250 * s;
@@ -1061,9 +1063,10 @@ static void drawPoly(float DT)
 	V[i].TPos.z = 1.0;
 	V[i].U = 0.999;
 	V[i].V = 0.999;
-	V[i].LR = 253.0;
-	V[i].LG = 253.0;
-	V[i].LB = 2.0;
+	V[i].LA = 255;
+	V[i].LR = 253;
+	V[i].LG = 2;
+	V[i].LB = 2;
 
 	i=3;
 	V[i].PX = 900.1 - 280 * c + 250 * s;
@@ -1071,21 +1074,22 @@ static void drawPoly(float DT)
 	V[i].TPos.z = 1.0;
 	V[i].U = 0;
 	V[i].V = 0.999;
-	V[i].LR = 253.0;
-	V[i].LG = 2.0;
-	V[i].LB = 127.0;
+	V[i].LA = 255;
+	V[i].LR = 253;
+	V[i].LG = 2;
+	V[i].LB = 127;
 
-	for (i = 0; i != 4; ++i) {
-		V[i].LR = V[i].LG = V[i].LB = 255.0;
-	}
+	//for (i = 0; i != 4; ++i) {
+	//	V[i].LR = V[i].LG = V[i].LB = 255;
+	//}
 
 	DoFace = &F;
 	F.Txtr = &DummyMat;
 	DummyMat.Txtr = &DummyTex;
 	DummyTex.Data = (byte *)l_TestTexture;
 	DummyTex.Mipmap[0] = DummyTex.Data;
-	DoFace->Txtr->Txtr->LSizeX = 10;
-	DoFace->Txtr->Txtr->LSizeY = 10;
+	DoFace->Txtr->Txtr->LSizeX = 8;
+	DoFace->Txtr->Txtr->LSizeY = 8;
 
 	Viewport vp;
 	vp.ClipX1 = 0;
@@ -1103,7 +1107,7 @@ static void drawPoly(float DT)
 	F.A = &V[0];
 	F.B = &V[1];
 	F.C = &V[2];
-	F.Filler = IX_Prefiller_TGZM;
+	F.Filler = IX_Prefiller_TGZTAM;
  	_2DClipper::getInstance()->clip(vp, F);
 
 	F.A = &V[0];
@@ -1180,12 +1184,12 @@ void FillerTest()
 	Sc.FZP = 1000.0;
 	g_MipLevel = 0;
 
-	Texture Tx;
-	Tx.FileName = strdup("Textures/PBRK34.JPG");
-	Load_Texture(&Tx);
-	BPPConvert_Texture(&Tx, 32);
+//	Texture Tx;
+//	Tx.FileName = strdup("Textures/PBRK34.JPG");
+//	Load_Texture(&Tx);
+//	BPPConvert_Texture(&Tx, 32);
 	// prepare texture
-//	l_TestTexture = new dword [1<<(2*10)];
+	//l_TestTexture = new dword [1<<(2*8)];
 
 	std::vector<GradientEndpoint> endpoints;
 /*	endpoints.emplace_back(0.0, Color{ 0.0, 0.0, 0.0, 0.0 });
@@ -1197,12 +1201,20 @@ void FillerTest()
 //	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0 });
 	auto M = Generate_Gradient(endpoints, 256, 0.2);*/
 
-	endpoints.emplace_back(0, Color{ 0.0, 0.0, 0.0, 0.0 });
-	endpoints.emplace_back(0.5, Color{ 0.3, 0.0, 0.1, 0.0 });
-	endpoints.emplace_back(0.6, Color{ 1.0, 0.0, 0.1, 0.0 });
-	endpoints.emplace_back(0.75, Color{ 1.0, 0.4, 0.8, 0.0 });
-	endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.0 });
+	//endpoints.emplace_back(0, Color{ 0.0, 0.0, 0.0, 1.0 });
+	//endpoints.emplace_back(0.5, Color{ 0.3, 0.0, 0.1, 0.80 });
+	//endpoints.emplace_back(0.6, Color{ 1.0, 0.0, 0.1, 0.60 });
+	//endpoints.emplace_back(0.75, Color{ 1.0, 0.4, 0.8, 0.40 });
+	//endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.20 });
+	//endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.0 });
+
+	endpoints.emplace_back(0, Color{ 1.0, 1.0, 1.0, 1.0 });
+	endpoints.emplace_back(0.5, Color{ 1.0, 1.0, 1.0, 0.80 });
+	endpoints.emplace_back(0.6, Color{ 1.0, 1.0, 1., 0.60 });
+	endpoints.emplace_back(0.75, Color{ 1.0, 1., 1., 0.40 });
+	endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.20 });
 	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.0 });
+
 	auto M = Generate_Gradient(endpoints, 256, 0.1);
 
 	//dword i,j;
@@ -1219,10 +1231,11 @@ void FillerTest()
 	//			
 	//	}
 	//}
-//	Sachletz(l_TestTexture, 256, 256);
+	//Sachletz(l_TestTexture, 256, 256);
 
-	//l_TestTexture = (DWord *)M->Txtr->Data;
-	l_TestTexture = (DWord *)Tx.Data;
+	l_TestTexture = (DWord *)M->Txtr->Data;
+//	l_TestTexture = (DWord *)Tx.Data;
+	//memset(l_TestTexture, 255, 256 * 256 * 4);
 	const long PartTime = 10000;
 
 	long timerStack[20], timerIndex = 0;
@@ -1246,15 +1259,21 @@ void FillerTest()
 			}
 		}*/
 		memset(VPage,0,PageSize + XRes*YRes*sizeof(word));
-		
+		//memset(VPage, 0, PageSize);
+		for (int y = 0; y != YRes; ++y) {
+			for (int x = 0; x != XRes; ++x) {
+				((dword*)VPage)[y * XRes + x] = (x % 64 < 32) ? 0x3f3f3f : 0;
+			}
+		}
+
 		drawPoly(0);
 		drawPoly(500);
 
 		DWord pSrc = 0x10101010;
 		DWord pDst = 0xFCFCFCFC;
 
-		//AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
-		//memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
+		AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
+		memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
 
 		timerStack[timerIndex++] = Timer;
 		if (timerIndex == 20)

@@ -22,23 +22,23 @@ struct  Vertex
 	//float			LB, LG, LR, LA; // Light intensity for R/G/B components.
 	union
 	{
-		dword			BGRA;		//
+		dword			BGRA = 0;		//
 		struct
 		{
 			byte LB, LG, LR, LA;
 		};
 	};
 
-	float			PX,PY;      // Projected X and Y
+	float			PX = 0.0f, PY = 0.0f;      // Projected X and Y
 
 	// 17.04.02 consider replacing PX, PY and TPos with x, y, and z.
-	float			UZ, VZ, RZ; // U/Z, V/Z and 1/Z. (should be called UZ, VZ, RZ)
+	float			UZ = 0.0f, VZ = 0.0f, RZ = 0.0f; // U/Z, V/Z and 1/Z. (should be called UZ, VZ, RZ)
 	Vector			Pos,TPos;   // Position and transformed position
 	Vector			N;          // PseudoNormal
 //	float			EU,EV;      // Environment mapping coordinates
 //	float			REU,REV;    // EU/Z, EV/Z.
-	float			U,V;        // Original mapping coordinates
-	DWord			Flags;
+	float			U = 0.0f, V = 0.0f;        // Original mapping coordinates
+	DWord			Flags = 0;
 	int i = -1;
 
 //	dword			align16[3]; // this structure requires 16-byte alignment

@@ -38,10 +38,10 @@ static void InitializeComets(Scene *Sc)
 
 	Sc->NumOfParticles = NUM_COMETS * TRAIL_PCLS;
 	Sc->Pcl = new Particle[Sc->NumOfParticles];
-	memset(Sc->Pcl,0,sizeof(Particle)*Sc->NumOfParticles);
+//	memset(Sc->Pcl,0,sizeof(Particle)*Sc->NumOfParticles);
 
 
-	PclT = (Material *)getAlignedBlock(sizeof(Material), 16);
+	PclT = getAlignedType<Material>(16);// (Material *)getAlignedBlock(sizeof(Material), 16);
 	PclT->Txtr = new Texture;
 	memset(PclT->Txtr, 0, sizeof(Texture));
 	PclT->Txtr->BPP = 32;
@@ -85,12 +85,12 @@ static void InitializeComets(Scene *Sc)
 
 static void GenerateScene(Scene *Sc)
 {
-	TriMesh *T = (TriMesh *)getAlignedBlock(sizeof(TriMesh), 16);
+	TriMesh *T = (TriMesh *)getAlignedType<TriMesh>(16);
 	Object *O = new Object;
-	Material *M = (Material *)getAlignedBlock(sizeof(Material), 16);
-	memset(T, 0, sizeof(TriMesh));
-	memset(O, 0, sizeof(Object));
-	memset(M, 0, sizeof(Material));
+	Material *M = (Material *)getAlignedType<Material>(16);
+	//memset(T, 0, sizeof(TriMesh));
+	//memset(O, 0, sizeof(Object));
+	//memset(M, 0, sizeof(Material));
 	
 	// M->AAAAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhhhhhhhhhhhhhhh!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// T->AAAAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhhhhhhhhhhhhhhh!!!!!!!!!!!!!!!!!!!!!!!!!!!!

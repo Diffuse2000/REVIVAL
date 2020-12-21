@@ -69,6 +69,7 @@ Scene * CreateSkyCube(dword skyType)
 {
 	Scene *Sc = (Scene *)getAlignedBlock(sizeof(Scene), 16);
 	memset(Sc, 0, sizeof(Scene));
+	Sc->NZP = 20.0;
 	Sc->FZP = 200.0;
 
 	TriMesh *T = (TriMesh *)getAlignedBlock(sizeof(TriMesh), 16);
@@ -114,12 +115,12 @@ Scene * CreateSkyCube(dword skyType)
 
 	// Vertex positions
 	Vector P[8] = {
-		Vector(-1.0f, 0.0f,-1.0f),
-		Vector( 1.0f, 0.0f,-1.0f),
+		Vector(-1.0f,-1.0f,-1.0f),
+		Vector( 1.0f,-1.0f,-1.0f),
 		Vector(-1.0f, 1.0f,-1.0f),
 		Vector( 1.0f, 1.0f,-1.0f),
-		Vector(-1.0f, 0.0f, 1.0f),
-		Vector( 1.0f, 0.0f, 1.0f),
+		Vector(-1.0f,-1.0f, 1.0f),
+		Vector( 1.0f,-1.0f, 1.0f),
 		Vector(-1.0f, 1.0f, 1.0f),
 		Vector( 1.0f, 1.0f, 1.0f),
 	};
@@ -129,7 +130,7 @@ Scene * CreateSkyCube(dword skyType)
 		3,7,5,1,
 		2,3,1,0,
 		6,2,0,4,
-		4,0,1,5,
+		0,1,5,4,
 		6,7,3,2
 	};
 
@@ -138,7 +139,7 @@ Scene * CreateSkyCube(dword skyType)
 	dword i;
 	for(i=0;i<6;i++)
 	{
-		float ratio = 0.5;
+		float ratio = 1.0;
 		if (((O[0]>>1)&1) ==
 			((O[1]>>1)&1) ==
 			((O[2]>>1)&1) ==
@@ -188,28 +189,33 @@ Scene * CreateSkyCube(dword skyType)
 	const char* names[6] = { "Textures/SBBK.JPG", "Textures/SBRT.JPG", "Textures/SBFT.JPG", "Textures/SBLF.JPG", "Textures/SBDN.JPG", "Textures/SBUP.JPG" };
 
 	//DWord* TempBuf = new DWord[65536];
-	for(i=0; i<6; i++)
+	for (i = 0; i < 6; i++)
 	{
-		M[i] = (Material *)getAlignedBlock(sizeof(Material), 16);
-		memset(M[i], 0, sizeof(Material));
-		
+		M[i] = getAlignedType<Material>(16); //(Material*)getAlignedBlock(sizeof(Material), 16);
+		//memset(M[i], 0, sizeof(Material));
+
 		Tx[i] = new Texture;
-		memset(Tx[i], 0, sizeof(Texture));
+		//memset(Tx[i], 0, sizeof(Texture));
 
 		Tx[i]->FileName = strdup(names[i]);
 		Load_Texture(Tx[i]);
 
 		M[i]->Flags = Mat_TwoSided | Mat_RGBInterp;
-		M[i]->Txtr = Tx[i];	
+		M[i]->Txtr = Tx[i];
 
-//		Tx[i]->BPP = 32;
-//		dword *data = new dword [256*256];
-//		Tx[i]->Data = (byte *)data;
-//		memset(Tx[i]->Data, 0, 256*256*4);
+		//		Tx[i]->BPP = 32;
+		//		dword *data = new dword [256*256];
+		//		Tx[i]->Data = (byte *)data;
+		//		memset(Tx[i]->Data, 0, 256*256*4);
 		Tx[i]->Flags |= Txtr_Nomip | Txtr_Tiled;
-		Tx[i]->Mipmap[0] = (byte *)Tx[i]->Data;
+		Tx[i]->Mipmap[0] = (byte*)Tx[i]->Data;
 		Tx[i]->numMipmaps = 1;
-
+		//for (int y = 0; y < 1024; y++) {
+		//	for (int x = 0; x < 1024; x++) {
+		//		((DWord *)Tx[i]->Data)[y * 1024 + x] =  ((x^y) & 32) ? 0xffffffff: 0;
+		//	}
+		//}
+	
 
 		Sachletz((DWord *)Tx[i]->Data, Tx[i]->SizeX, Tx[i]->SizeY);
 	//	GenerateSkyTexture(Tx[i], 200);
@@ -235,12 +241,11 @@ Scene * CreateSkyCube(dword skyType)
 	Face *F = T->Faces;
 	for(i=0; i<6; i++)
 	{
-		F->A = T->Verts + i*4;
-		F->B = T->Verts + i*4 + 1;
-		F->C = T->Verts + i*4 + 2;
-		F->Txtr = M[i];
-//		F->Filler = The_BiTrue;
-		//F->Clipper = Frust_Set_UV;
+		int ii = i;
+		F->A = T->Verts + ii*4;
+		F->B = T->Verts + ii*4 + 1;
+		F->C = T->Verts + ii*4 + 2;
+		F->Txtr = M[ii];
 		F->U1 = F->A->U;
 		F->U2 = F->B->U;
 		F->U3 = F->C->U;
@@ -249,12 +254,10 @@ Scene * CreateSkyCube(dword skyType)
 		F->V3 = F->C->V;
 		F++;
 
-		F->A = T->Verts + i*4;
-		F->B = T->Verts + i*4 + 2;
-		F->C = T->Verts + i*4 + 3;
-		F->Txtr = M[i];
-//		F->Filler = The_BiTrue;
-		//F->Clipper = Frust_Set_UV;
+		F->A = T->Verts + ii*4;
+		F->B = T->Verts + ii*4 + 2;
+		F->C = T->Verts + ii*4 + 3;
+		F->Txtr = M[ii];
 		F->U1 = F->A->U;
 		F->U2 = F->B->U;
 		F->U3 = F->C->U;
@@ -290,15 +293,13 @@ Scene * CreateSkyCube(dword skyType)
 	return Sc;
 }
 
+
 void RenderSkyCube(Scene *Sc, Camera *Cm)
 {
 	Scene *PrevCurScene = CurScene;
 	Camera *PrevView = View;
 	View = Cm;
-	CurScene = Sc;
-
-	C_FZP = 65530.0;
-	C_rFZP = 1.0 /65530.0;
+	SetCurrentScene(Sc);
 
 	Animate_Objects(Sc);
 
@@ -314,8 +315,6 @@ void RenderSkyCube(Scene *Sc, Camera *Cm)
 	}
 	View->ISource = PrevViewPos;
 
-	CurScene = PrevCurScene;
 	View = PrevView;
-	C_FZP = CurScene->FZP;
-	C_rFZP = 1.0f/C_FZP;
+	SetCurrentScene(PrevCurScene);
 }
