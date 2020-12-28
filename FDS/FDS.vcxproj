@@ -9,6 +9,14 @@
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="llvm|Win32">
+      <Configuration>llvm</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="llvm|x64">
+      <Configuration>llvm</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -44,11 +52,24 @@
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>ClangCL</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>llvm</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='llvm|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>ClangCL</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -62,14 +83,22 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='llvm|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">.\Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">.\Release\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</IntDir>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
@@ -79,16 +108,29 @@
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='llvm|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='llvm|x64'" />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(ProjectDir);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
+    <IncludePath>$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(ProjectDir);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
     <IncludePath>$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
   </PropertyGroup>
@@ -98,10 +140,14 @@
   <PropertyGroup Label="LLVM" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <UseLldLink>false</UseLldLink>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'" Label="LLVM">
+    <UseLldLink>false</UseLldLink>
+  </PropertyGroup>
   <PropertyGroup Label="LLVM" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <UseLldLink>true</UseLldLink>
   </PropertyGroup>
   <PropertyGroup Label="LLVM" Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='llvm|x64'" Label="LLVM" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -144,7 +190,87 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <PreprocessorDefinitions>PORTABLE_COD=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>.\Release/FDS.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
+      <ObjectFileName>.\Release/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <WarningLevel>Level3</WarningLevel>
+      <AdditionalOptions>/J</AdditionalOptions>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ControlFlowGuard>false</ControlFlowGuard>
+    </ClCompile>
+    <Lib>
+      <OutputFile>.\Release\FDS.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
+    </Lib>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x040d</Culture>
+    </ResourceCompile>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>.\Release/FDS.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
+      <ObjectFileName>.\Release/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <WarningLevel>Level3</WarningLevel>
+      <AdditionalOptions>/J -Wno-c++11-narrowing %(AdditionalOptions)</AdditionalOptions>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+    </ClCompile>
+    <Lib>
+      <OutputFile>.\Release\FDS.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Lib>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x040d</Culture>
+    </ResourceCompile>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">
     <ClCompile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -250,18 +376,25 @@
     <ClCompile Include="3DS\3DS_READ.CPP" />
     <ClCompile Include="3DS\FUTILS.CPP">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="3DS\MATERIAL.CPP">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="3DS\TRACKS.CPP">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="3DS\WORLD.CPP">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Base\Texture.cpp" />
     <ClCompile Include="CAMERAS\CAMERAS.CPP" />
@@ -297,6 +430,7 @@
     <ClCompile Include="V3D\V3D_READ.CPP" />
     <ClCompile Include="VESA\FONTS.CPP">
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">false</ExceptionHandling>
     </ClCompile>
     <ClCompile Include="VESA\VESA_TABLES.CPP" />
     <ClCompile Include="VESA\VESA.CPP" />
@@ -364,12 +498,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bihi.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bihi.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">bihi.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">bihi.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">bihi.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\BILINEAR.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -382,12 +524,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bilinear.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bilinear.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">bilinear.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">bilinear.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">bilinear.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\BITRFLAT.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -400,12 +550,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bitrflat.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bitrflat.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">bitrflat.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">bitrflat.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">bitrflat.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\BITRUE.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -418,12 +576,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bitrue.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bitrue.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">bitrue.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">bitrue.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">bitrue.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\BITTRUE.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -436,12 +602,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bittrue.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bittrue.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">bittrue.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">bittrue.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">bittrue.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\GOURAUD.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -454,12 +628,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gouraud.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">gouraud.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">gouraud.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gouraud.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">gouraud.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\GOURMMX.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -472,12 +654,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gourmmx.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">gourmmx.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">gourmmx.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gourmmx.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">gourmmx.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\GOURMMXT.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -490,12 +680,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gourmmxt.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">gourmmxt.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">gourmmxt.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">gourmmxt.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">gourmmxt.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\IXTGZM.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)</Command>
@@ -504,10 +702,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">%(Filename).obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="FILLERS\IXTGZTAM.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)</Command>
@@ -516,10 +720,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">%(Filename).obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="FILLERS\IXTGZTM.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)</Command>
@@ -528,10 +738,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">%(Filename).obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="FILLERS\SCALE.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)
@@ -542,10 +758,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">scale.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">scale.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">scale.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">scale.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">scale.obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="FILLERS\SCALE64.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)
@@ -556,10 +778,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">scale64.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">scale64.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">scale64.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">scale64.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">scale64.obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="FILLERS\SCALEMMX.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)
@@ -570,10 +798,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">scalemmx.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">scalemmx.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">scalemmx.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">scalemmx.obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="FILLERS\SclMMX32.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)
@@ -584,10 +818,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">sclmmx32.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">sclmmx32.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">sclmmx32.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">sclmmx32.obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="FILLERS\TEXTGOUR.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -600,12 +840,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">textgour.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">textgour.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">textgour.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">textgour.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\TRNSGOUR.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -618,12 +866,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">trnsgour.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">trnsgour.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">trnsgour.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">trnsgour.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">trnsgour.obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="FILLERS\ZSCALE.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)
@@ -634,10 +890,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">zscale.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">zscale.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">zscale.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">zscale.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">zscale.obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="IMGGENR\WOBTR.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Sc /Zi /Zd %(FullPath)
@@ -648,10 +910,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">wobtr.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">wobtr.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">wobtr.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">wobtr.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">wobtr.obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="IMGGENR\WOBTR320.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Sc /Zi /Zd %(FullPath)
@@ -662,10 +930,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">wobtr320.obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">wobtr320.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">wobtr320.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">wobtr320.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">wobtr320.obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="IMGGENR\WOBTRMMX.asm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -678,12 +952,20 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="IMGGENR\WOBTRnew.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /Fl /coff /nologo /Zd /Zf /Zi %(FullPath)
@@ -694,10 +976,16 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa Imggenr\wobtrnew.asm
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa Imggenr\wobtrnew.asm
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa Imggenr\wobtrnew.asm
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa Imggenr\wobtrnew.asm
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">wobtrnew.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">wobtrnew.obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">wobtrnew.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">wobtrnew.obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="IMGGENR\WOBTRXXX.ASM">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -710,18 +998,27 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">%(Filename).obj;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="IXTGZSAM.asm">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Zi /Zd %(FullPath)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">%(Filename).obj;%(Outputs)</Outputs>
     </CustomBuild>
+    <None Include="FILLERS\IXTGZTTAM.ASM" />
     <None Include="MISC\mmreg.inl" />
     <CustomBuild Include="RENDER\PackedVars.ASM">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa /Sc %(FullPath)
@@ -732,16 +1029,19 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
 </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">ml /c /Cp /Cx /coff /Fl /nologo /Sa %(FullPath)
+</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">%(Filename).obj;%(Outputs)</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\fmod\FMod.vcxproj">
-      <Project>{aa8348a9-b816-0319-2aff-38b85bc354c4}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\IJLD\IJLD.vcxproj">
       <Project>{8b62af28-c242-9b32-27df-492a187c8d42}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

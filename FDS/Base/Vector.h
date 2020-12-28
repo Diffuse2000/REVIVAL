@@ -178,18 +178,25 @@ struct Vector
 	}
 
 /////////////////////////////////////////////////////////
-	inline static void cross(Vector &u, Vector &v, Vector &w)
+	inline static void cross(const Vector &u, const Vector &v, Vector &w)
 	{
 		w.x = u.y * v.z - u.z * v.y;
 		w.y = u.z * v.x - u.x * v.z;
 		w.z = u.x * v.y - u.y * v.x;
 	}
 
-	inline void cross(Vector &u, Vector &v)
+	inline void cross(const Vector &u, const Vector &v)
 	{
 		x = u.y * v.z - u.z * v.y;
 		y = u.z * v.x - u.x * v.z;
 		z = u.x * v.y - u.y * v.x;
+	}
+
+	Vector cross(const Vector& v) const {
+		return Vector(
+			y * v.z - z * v.y,
+			z * v.x - x * v.z,
+			x * v.y - y * v.x);
 	}
 
 	inline Vector operator ^ (const Vector &v) const

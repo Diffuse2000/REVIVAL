@@ -1216,7 +1216,7 @@ void IX_Prefiller_TGZTAM(Vertex **V, dword numVerts)
 	float UScaleFactor = (1<<LogWidth);
 	float VScaleFactor = (1<<LogHeight);
 
-	if (CurScene->Flags & Scn_Fogged)
+	if (false) //CurScene->Flags & Scn_Fogged)
 	{
 		for(i=0; i<numVerts; i++)
 		{
@@ -1295,7 +1295,7 @@ void IX_Prefiller_TGZSAM(Vertex** V, dword numVerts)
 	float UScaleFactor = (1 << LogWidth);
 	float VScaleFactor = (1 << LogHeight);
 
-	if (CurScene->Flags & Scn_Fogged)
+	if (false) // CurScene->Flags & Scn_Fogged)
 	{
 		//if (V[0]->)
 		for (i = 0; i < numVerts; i++)

@@ -328,6 +328,9 @@
     <None Include="MISC\mmreg.inl">
       <Filter>MISC</Filter>
     </None>
+    <None Include="FILLERS\IXTGZTTAM.ASM">
+      <Filter>Fillers</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="FILLERS\BIHI.ASM">

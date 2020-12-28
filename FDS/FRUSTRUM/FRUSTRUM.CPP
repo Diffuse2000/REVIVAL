@@ -496,7 +496,7 @@ void MiplevelClipper()
 //		CorrectCWOrder();
 
 		DoFace->Filler(C_Prim, C_numVerts);
-
+		//IX_Prefiller_TGZSAM(C_Prim, C_numVerts);
 		return;
 	}
 

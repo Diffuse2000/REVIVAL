@@ -17,6 +17,7 @@
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
 #include "VESA/VESA.H"
+#include "FRUSTRUM.H"
 
 //#define TRACE_OBJECTS
 
@@ -293,6 +294,74 @@ void Vertex_Loop1(Vertex *Vert,Vertex *VEnd,Matrix M,Vector *V)
 	}
 }
 
+void calcVisibilityFlags(Scene* Sc, Vertex* Vtx) {
+	Vtx->Flags &= 0xFFFFFFFF - Vtx_Visible;
+	//      if (*(long *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
+	if (Vtx->TPos.z > Sc->NZP) {
+		Vtx->RZ = 1.0 / Vtx->TPos.z;
+		Vtx->PX = Vtx->TPos.x * Vtx->RZ;
+		Vtx->PY = Vtx->TPos.y * Vtx->RZ;
+		//          Vtx->PX=CntrEX+PX*Vtx->TPos.x*Vtx->RZ;
+		//          Vtx->PY=CntrEY-PY*Vtx->TPos.y*Vtx->RZ;
+		Vtx->UZ = Vtx->U * Vtx->RZ;
+		Vtx->VZ = Vtx->V * Vtx->RZ;
+		if (Vtx->PX < 0) Vtx->Flags |= Vtx_VisLeft;
+		if (Vtx->PX >= XRes) Vtx->Flags |= Vtx_VisRight;
+		if (Vtx->PY < 0) Vtx->Flags |= Vtx_VisUp;
+		if (Vtx->PY >= YRes_1) Vtx->Flags |= Vtx_VisDown;
+		if (Vtx->TPos.z > Sc->FZP) Vtx->Flags |= Vtx_VisFar;
+	} else Vtx->Flags |= Vtx_VisNear;
+}
+
+void addParticleTrail(Scene* Sc, Face**& Ins /* Three star programming */, Particle& p) {
+	Vector V;
+
+	Vector VelDir = p.Vel;
+	Vector_Norm(&VelDir);
+
+	Vector src = p.V.Pos - p.TrailLength * VelDir;
+	Vector targ = p.V.Pos;
+
+	Vector d1 = (src - View->ISource).cross(targ - View->ISource);
+	Vector_Norm(&d1);
+
+	int quad_uvs[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
+	Vector* centerPoints[2] = { &src, &targ };
+	Vertex* quad = p.TrailV;
+	for (const auto& uv : quad_uvs) {
+		float u = float(uv[0]);
+		int v = uv[1];
+		// interpolate along middle of raindrop quad
+
+		const Vector& tmp = *(centerPoints[v]);
+		Vertex& A = *quad;
+		V = tmp + d1 * (u - 0.5f) * p.TrailWidth - View->ISource;
+		MatrixXVector(View->Mat, &V, &A.TPos);
+
+		A.TPos.x = A.TPos.z * CntrX + A.TPos.x * FOVX;
+		A.TPos.y = A.TPos.z * CntrY - A.TPos.y * FOVY;
+		A.RZ = 1.0f / A.TPos.z;
+		A.PX = A.TPos.x * A.RZ;
+		A.PY = A.TPos.y * A.RZ;
+
+		A.LA = A.LR = A.LG = A.LB = 255.0;
+
+		calcVisibilityFlags(Sc, &A);
+		++quad;
+	}
+
+	for (size_t i = 0; i != 2; ++i) {
+#ifdef FRONT_TO_BACK_SORTING
+		p.TrailF[i].SortZ.F = 2 * Sc->FZP - p.V.TPos.z;
+#else
+		p.TrailF[i].SortZ.F = Sc->FZP - p.V.TPos.z;
+#endif
+	}
+	*Ins++ = &p.TrailF[0];
+	*Ins++ = &p.TrailF[1];
+}
+
+#define DEBUG_PARTICLES 0
 
 void Transform_Objects(Scene *Sc)
 {
@@ -313,7 +382,8 @@ void Transform_Objects(Scene *Sc)
 	float *fv;
 
 	float fzp = Sc->FZP;
-	
+
+#if not(DEBUG_PARTICLES)
 	Object *Obj; 
 //	for (T=Sc->TriMeshHead;T;T=T->Next)
 	for(Obj=Sc->ObjectHead; Obj; Obj=Obj->Next)
@@ -727,23 +797,46 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 			*Ins++ = &O->F;
 		}
 	}
+
 	COmnies = (Ins-FList)-CPolys;
-	for(I=0;I<Sc->NumOfParticles;I++)
-		if (Sc->Pcl[I].Flags&Particle_Active)
-			if ((dz=Sc->Pcl[I].V.TPos.z)>=Sc->NZP) {
-				F = &Sc->Pcl[I].F;
-				//dz *=-16384;
-				//dz +=0x7FFFFFFF;
-				//RoundToInt(&F->SortZ.DW,dz);
-#ifdef FRONT_TO_BACK_SORTING
-				F->SortZ.F = 2*fzp-dz;
-#else
-				F->SortZ.F = fzp-dz;
 #endif
-				*Ins++ = F;
+	for (I = 0; I < Sc->NumOfParticles; I++) {
+		Particle& p = Sc->Pcl[I];
+
+		auto v = p.V.Pos - View->ISource;
+		
+		p.V.TPos = View->Mat * v;
+
+		if (p.V.TPos.z >= Sc->NZP)
+		{
+			p.V.RZ = 1.0 / p.V.TPos.z;
+			p.V.PX = CntrX + FOVX * p.V.TPos.x * p.V.RZ;
+			p.V.PY = CntrY - FOVY * p.V.TPos.y * p.V.RZ;
+			p.V.Flags = 0;
+		} else {
+			p.V.Flags |= Vtx_VisNear;
+		}
+
+
+		if (p.Flags & Particle_Active) {
+			if ((dz = p.V.TPos.z) >= Sc->NZP) {
+				if (p.TrailLength == 0) {
+					F = &Sc->Pcl[I].F;
+#ifdef FRONT_TO_BACK_SORTING
+					F->SortZ.F = 2 * fzp - dz;
+#else
+					F->SortZ.F = fzp - dz;
+#endif
+					*Ins++ = F;
+				} else {
+					addParticleTrail(Sc, Ins, p);
+				}
 			}
-			CAll = Ins-FList;
-			CPcls = CAll-COmnies-CPolys;
+		}
+	}
+
+	CAll = Ins-FList;
+	CPcls = CAll-COmnies-CPolys;
 }
 
 float Vector_CosAngleFAST(Vector *U,Vector *V)

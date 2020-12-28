@@ -926,150 +926,6 @@ static void rainmapper(float x1, float y1, float x2, float y2)
 	}
 }
 
-static void initrain()
-{
-	numDrops = 5000;
-	RD = new Raindrop [numDrops];
-
-	for(dword i=0; i<numDrops; i++)
-	{
-		RD[i].pos.x = ((rand()-16384) * 10.0) / 16384.0;
-		RD[i].pos.y = ((rand()-16384) * 10.0) / 16384.0;
-		RD[i].pos.z = ((rand()-16834) * 10.0) / 16384.0;
-	}
-}
-
-static void calc_DomDirection(Vector &RainDir, Vector &DomDir)
-{
-	float dom = 0.0;
-	if (RainDir.x > dom)
-	{
-		dom = RainDir.x;
-		DomDir.x = 1.0;
-		DomDir.y = 0.0;
-		DomDir.z = 0.0;
-	}
-	if (-RainDir.x > dom)
-	{
-		dom =-RainDir.x;
-		DomDir.x =-1.0;
-		DomDir.y = 0.0;
-		DomDir.z = 0.0;
-	}
-	if (RainDir.y > dom)
-	{
-		dom = RainDir.y;
-		DomDir.x = 0.0;
-		DomDir.y = 1.0;
-		DomDir.z = 0.0;
-	}
-	if (-RainDir.y > dom)
-	{
-		dom =-RainDir.y;
-		DomDir.x = 0.0;
-		DomDir.y =-1.0;
-		DomDir.z = 0.0;
-	}
-	if (RainDir.z > dom)
-	{
-		dom = RainDir.z;
-		DomDir.x = 0.0;
-		DomDir.y = 0.0;
-		DomDir.z = 1.0;
-	}
-	if (-RainDir.z > dom)
-	{
-		dom =-RainDir.z;
-		DomDir.x = 0.0;
-		DomDir.y = 0.0;
-		DomDir.z =-1.0;
-	}
-}
-
-static void rain(Image &Im)
-{
-	float cx = Im.x * 0.5;
-	float cy = Im.y * 0.5;
-
-	float kx = Im.x * 0.8;
-	float ky = Im.x * 0.8;
-
-	static float alpha = PI*0.9, beta = 0.0;
-
-	if (Keyboard[ScLeft]) alpha -= 0.01;
-	if (Keyboard[ScRight]) alpha += 0.01;
-	if (Keyboard[ScDown]) beta -= 0.01;
-	if (Keyboard[ScUp]) beta += 0.01;
-
-	Vector RainDir;
-	RainDir.x = sin(alpha) * cos(beta);
-	RainDir.y = cos(alpha) * cos(beta);
-	RainDir.z = sin(beta);	
-
-	Vector DomDir;
-	calc_DomDirection(RainDir, DomDir);
-
-	Vector delta;
-	Vector_Form(&delta, 
-		RainDir.x * dTime * 10.0, 
-		RainDir.y * dTime * 10.0, 
-		RainDir.z * dTime * 10.0);
-
-	Vector rainTrail;
-	Vector_Scale(&RainDir, 0.5, &rainTrail);
-
-	for(dword i=0; i<numDrops; i++)
-	{
-		RD[i].pos.x += delta.x;
-		RD[i].pos.y += delta.y;
-		RD[i].pos.z += delta.z;
-
-		if (Dot_Product(&RD[i].pos, &DomDir) > 10.0)
-		{
-			RD[i].pos.x = ((rand()-16384) * 10.0) / 16384.0;
-			RD[i].pos.y = ((rand()-16384) * 10.0) / 16384.0;
-			RD[i].pos.z = ((rand()-16834) * 10.0) / 16384.0;
-
-			// project on <x,DomDir> = -10.0
-			// x := x + a*RainDir.
-			// <x+a*RainDir, DomDir> = -10.0.
-			// <x,DomDir> + a*<RainDir, DomDir> = -10.0
-			// a = - (10.0 + <x, DomDir>) / <RainDir, DomDir>.
-			float a = - (10.0 + Dot_Product(&RD[i].pos, &DomDir)) / Dot_Product(&RainDir, &DomDir);
-			RD[i].pos.x += a*RainDir.x;
-			RD[i].pos.y += a*RainDir.y;
-			RD[i].pos.z += a*RainDir.z;
-		}
-
-		float ahead_z = RD[i].pos.z + rainTrail.z;
-
-		if (RD[i].pos.z < 1.0 || ahead_z < 1.0) continue;
-
-		float rz = 1.0 / RD[i].pos.z;
-
-		float x = cx + kx * RD[i].pos.x * rz;
-		float y = cy - ky * RD[i].pos.y * rz;
-
-		float raz = 1.0 / ahead_z;
-		float ahead_x = cx + kx * (RD[i].pos.x + rainTrail.x) * raz;
-		float ahead_y = cy - ky * (RD[i].pos.y + rainTrail.y) * raz;
-
-		// fat map
-		if (ahead_y > y)			
-			rainmapper(x, y, ahead_x, ahead_y);
-		else
-			rainmapper(ahead_x, ahead_y, x, y);
-
-		// pixel rendering
-//		int ix = x;
-//		int iy = y;
-
-//		if (ix>=0 && ix<Im.x && iy>=0 && iy<Im.y)
-//			((dword *)Im.Data)[ix + iy * Im.x] = 0xFFFFFF;
-	}
-}
-
-
 static Vector 
 	TexOrigin(-1.0, 1.5, 6.0), 
 	TexU(3.0, 0.0,-1.0), 
@@ -1262,59 +1118,6 @@ void VolTrace(Image &Im)
 	}
 }
 
-void Run_RainFX()
-{
-	const long PartTime = 10000;
-
-	Image Im;
-	Im.x = XRes;
-	Im.y = YRes;
-	Im.Data = (dword *)VPage;
-
-	initrain();
-
-	// motion blur trash
-	byte *BPage = new byte[PageSize];
-	VESA_Surface Blur;
-	memcpy(&Blur,MainSurf,sizeof(VESA_Surface));
-	Blur.Data = BPage;
-	Blur.Flags = VSurf_Noalloc;
-	Blur.Targ = VPage;
-
-
-	float TT = Timer;
-	while (Timer < PartTime)
-	{
-		dTime = (Timer - TT) / 100.0;
-		TT = Timer;
-
-		memset(VPage, 0, PageSize);
-		
-		// draw scene
-		//Generate_Plasma(&Im, 10, 3621);
-		
-//		VolTrace(Im);
-		rain(Im);
-//		int fpcw = _control87(0, 0);
-//		FILE *F = fopen("fpu.log", "at");
-//		fprintf(F, "[exec] control word = %xh\n" , fpcw);
-//		fclose(F);
-
-		Flip(MainSurf);
-//		Modulate(MainSurf,&Blur,0x707070,0x808080);
-//		Flip(&Blur);
-
-		//while (Timer < TT + 50) continue;
-		if (Keyboard[ScESC])
-		{
-			Timer = PartTime;
-			break;
-		}
-	} Timer -= PartTime;
-
-	delete [] BPage;
-}
-
 #include <CoffReader/CoffReader.h>
 extern "C" {	void IX_TGZSAM_AsmFiller(); }
 
@@ -1426,10 +1229,10 @@ void CodeEntry(void *var)
 	void *filler = coff.MapCode(VirtualProtect, PAGE_EXECUTE_READWRITE);
 
 	extern void* TGZSAM_filler;
-	TGZSAM_filler = filler;
-//	TGZSAM_filler = IX_TGZSAM_AsmFiller;
-	FillerTest();
-	return;
+//	TGZSAM_filler = filler;
+	TGZSAM_filler = IX_TGZSAM_AsmFiller;
+	//FillerTest();
+	//return;
 
 	Run_Glato();
 	while (Timer<4000);

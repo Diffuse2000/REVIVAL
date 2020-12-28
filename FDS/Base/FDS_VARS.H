@@ -479,19 +479,51 @@ extern float *InvTbl;
 extern long Kbpos;
 
 // Particle System Variables
-// [192 Bytes]
 struct Particle
 {
 	Vertex V;
 	Face F;
 	Vector Conv,Vel;
 	QColor Color;
-	float Grav,Charge;
-	float Mass;
-	void (*GFX)(Particle *P);
-	float Radius;
-	float PRad;
-	DWord Flags;
+	float Grav = 0.0f, Charge = 0.0f;
+	float Mass = 0.0f;
+	void (*GFX)(Particle *P) = nullptr;
+	float Radius = 0.0f;
+	float PRad = 0.0f;
+	DWord Flags = 0;
+
+	Vertex TrailV[4];
+	Face TrailF[2];
+	float TrailLength = 0.0f;
+	float TrailWidth = 0.0f;
+
+	void InitTrail(Material* M, RasterFunc rasterFunc, float length, float width) {
+		TrailLength = length;
+		TrailWidth = width;
+		TrailV[0].U = 0.0f;
+		TrailV[0].V = 0.0f;
+		TrailV[1].U = 1.0f;
+		TrailV[1].V = 0.0f;
+		TrailV[2].U = 1.0f;
+		TrailV[2].V = 1.0f;
+		TrailV[3].U = 0.0f;
+		TrailV[3].V = 1.0f;
+
+		TrailF[0].A = &TrailV[0];
+		TrailF[0].B = &TrailV[1];
+		TrailF[0].C = &TrailV[2];
+		TrailF[0].Filler = rasterFunc;
+		TrailF[0].Txtr = M;
+		TrailF[0].uvFromVertices();
+
+		TrailF[1].A = &TrailV[0];
+		TrailF[1].B = &TrailV[2];
+		TrailF[1].C = &TrailV[3];
+		TrailF[1].Filler = rasterFunc;
+		TrailF[1].Txtr = M;
+		TrailF[1].uvFromVertices();
+	}
+
 };
 
 
@@ -703,7 +735,7 @@ modify [eax ecx edx];
 
 #ifdef WIN32
 template <typename MATRIX, typename VECTOR>
-inline void MatrixXVector(MATRIX M, VECTOR *U, VECTOR *V)
+inline void MatrixXVector(const MATRIX M, const VECTOR *U, VECTOR *V)
 {
 
 	V->x = M[0][0] * U->x + M[0][1] * U->y + M[0][2] * U->z;
@@ -791,6 +823,15 @@ inline void Vector_Sub(Vector *U,Vector *V,Vector *W)
 	//		FSTP  DWORD PTR [EDI+8]
 	//}
 }
+
+
+inline Vector operator * (const Matrix M, const Vector &V)
+{
+	Vector out;
+	MatrixXVector(M, &V, &out);
+	return out;
+}
+
 
 inline void FPU_LPrecision()
 {

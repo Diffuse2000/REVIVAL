@@ -894,7 +894,7 @@ Outer:
 		punpcklbw	mm5,	mm4
 		pmulhuw		mm5,	mm0
 		psllw		mm5,	1
-
+		
 		movd mm6,	dword ptr [esp+ecx*2]
 
 		punpcklbw	mm6,	mm4

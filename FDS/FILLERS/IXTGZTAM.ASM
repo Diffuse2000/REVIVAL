@@ -851,7 +851,7 @@ Outer:
 ;align 16
 	Inner:
 		cmp ax, word ptr [esi+ecx]
-		;jbe nodraw
+		jbe nodraw
 
 		; get texture
 		lea		ebx,	[edi+ebp]

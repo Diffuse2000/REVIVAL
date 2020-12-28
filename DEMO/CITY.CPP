@@ -3,6 +3,7 @@
 #include "CITY.H"
 #include <algorithm>
 #include <vector>
+#include "Gradient.h"
 
 #define FRONT_TO_BACK_SORTING
 #define CITY_RAIN
@@ -989,22 +990,14 @@ static void AddCameraOmni()
 {
 }
 
-#define NUM_RAIN_PCLS 5000
+const float rainMaxHeight = 2000.0f;
+const float rainMaxDist = 6000.0f;
+
+XMMVector rainVel;
+
+#define NUM_RAIN_PCLS 3000
 
 static Material dummyRainMat;
-
-static void getRadialRandomHeight(Vector &c, Vector &v)
-{
-	float x, y;
-	do
-	{
-		x = (rand() - 16384)/16384.0;
-		y = (rand() - 16384)/16384.0;
-	} while (x*x+y*y > 1.0);
-	v.x = c.x + x * rainMaxDist;
-	v.y = rand() * rainMaxHeight / 32768.0;
-	v.z = c.z + y * rainMaxDist;
-}
 
 static void getRadial(Vector &c, Vector &v)
 {
@@ -1017,11 +1010,18 @@ static void getRadial(Vector &c, Vector &v)
 
 	// project c onto plane y = v.y + rainMaxHeight.
 	float y = v.y;
-	float t = (y - c.y) / rainDir.y;
+	float t = (y - c.y) / rainVel.y;
 
-	v.x = c.x + t * rainDir.x + a * rainMaxDist;
-	v.z = c.z + t * rainDir.z + b * rainMaxDist;
+	v.x = c.x + t * rainVel.x + a * rainMaxDist;
+	v.z = c.z + t * rainVel.z + b * rainMaxDist;
 }
+
+static void getRadialRandomHeight(Vector& c, Vector& v)
+{
+	v.y = rand() * rainMaxHeight / 32768.0;
+	getRadial(c, v);
+}
+
 
 static dword numDropsRendered;
 static void drawRainDrop(Vertex **VA, mword numVerts)
@@ -1207,12 +1207,22 @@ static void drawRainDropV2(Vertex **VA, mword numVerts)
 	}
 }
 
+XMMVector evalRainVel(float curFrame) {
+	const float rainVelMult = 200.0;
+	XMMVector vel(2.0, -7.0, -1.0);
+	vel *= rainVelMult;
+	
+	vel.x += sin(curFrame * 0.1) * 30.0 + sin(curFrame * 0.15) * 30.0 + sin(curFrame * 0.19) * 20.0;
+	vel.z += sin(curFrame * 0.07) * 30.0 + sin(curFrame * 0.17) * 30.0 + sin(curFrame * 0.23) * 20.0;
+	return vel;
+}
 
 static void initRain(Scene *Sc)
 {
+	rainVel = evalRainVel(0);
 	Sc->NumOfParticles = NUM_RAIN_PCLS;
 	Sc->Pcl = new Particle[Sc->NumOfParticles];
-	memset(Sc->Pcl,0,sizeof(Particle)*Sc->NumOfParticles);
+	//memset(Sc->Pcl,0,sizeof(Particle)*Sc->NumOfParticles);
 
 //	memset(&dummyRainMat, 0, sizeof(Material));
 	// dont use TBR for rain.
@@ -1221,28 +1231,61 @@ static void initRain(Scene *Sc)
 //	TBR_Init(Sc, Sc->NumOfParticles * typicalSpans);
 	Vector InitialCenter = Sc->CameraHead->Source.Keys[0].Pos.im();
 
+	std::vector<GradientEndpoint> endpoints;
+	endpoints.emplace_back(0.0, Color{ 0.75, 0.65, 0.55, 0.0 });
+	endpoints.emplace_back(1.0, Color{ 0.75, 0.65, 0.55, 0.6 });
+
+	auto M = Generate_Gradient(endpoints, 256, 1, true);
+	M->Flags |= Mat_SrcAlpha | Mat_Transparent;
+
+	/*dword i,j;
+	for(j=0; j<256; j++)
+	{
+		for(i=0; i<256; i++)		
+		{
+			((dword*)M->Txtr->Data)[i + (j << 8)] =
+				//0xFFFFFF;				
+				//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
+				//(i<<16)+(j<<8)+(i^j) * 0x010101;
+				(i == 0 && j == 0) ? 0xffffffff : 0;
+				//0xff000000 | ((((i ^ j) & 8) != 0) ? 0xffffff : 0);
+				//((i>>2)&1)*0xFFFFFF;
+				
+		}
+	}
+	Sachletz((dword*)(M->Txtr->Data), 256, 256);*/
+	
 	for(mword i=0; i<NUM_RAIN_PCLS; i++)
 	{
-		Sc->Pcl[i].Grav = 0.0;
-		Sc->Pcl[i].Mass = 1.0;
-		Sc->Pcl[i].Charge = 0.0;
-		Sc->Pcl[i].Radius = 0.0;
-		Sc->Pcl[i].Flags = Particle_Active;
-		getRadialRandomHeight(InitialCenter, Sc->Pcl[i].V.Pos);
+		Particle& p = Sc->Pcl[i];
+		p.Grav = 0.0;
+		p.Mass = 1.0;
+		p.Charge = 0.0;
+		p.Radius = 0.0;
+		p.Flags = Particle_Active;
+		getRadialRandomHeight(InitialCenter, p.V.Pos);
 
 		// Particle Virtual Face -> Particle Vertex		
-		Sc->Pcl[i].F.FlareSize = 3.0f; 
-		Sc->Pcl[i].F.A = Sc->Pcl[i].F.B = &Sc->Pcl[i].V;
+		p.F.FlareSize = 3.0f; 
+		p.F.A = p.F.B = &p.V;
 		// manual assignment
-		Sc->Pcl[i].F.Filler = drawRainDrop;
-		Sc->Pcl[i].F.Txtr = &dummyRainMat;
+		p.F.Filler = drawRainDrop;
+		p.F.Txtr = M;
 
-		Sc->Pcl[i].Vel = rainVel;
+		p.InitTrail(M, IX_Prefiller_TGZTAM, 50.0f, 5.0f);
+
+		// NOTE: consider adding some randomization (per particle and over time)
+		p.Vel.x = rainVel.x;
+		p.Vel.y = rainVel.y;
+		p.Vel.z = rainVel.z;
 	}
 }
 
-static void runRain(Scene *Sc)
+static void riskOfRain(Scene *Sc)
 {
+	// set rainvel based on some noise function of current frame
+	rainVel = evalRainVel(CurFrame);
+
 	// Animate Particles
 	float dt = 0.01*dTime;
 	Particle *P, *PE;
@@ -1262,8 +1305,10 @@ static void runRain(Scene *Sc)
 
 	// the amount of time taken for 'FrameStep' Frames to be presented (at 25FPS)
 	const float TimeStep = FrameStep / 25.0;
+	
 	Vector rVelStep;
 	Vector_Scale(&rainVel, TimeStep, &rVelStep);
+	
 	Vector cPos[NumFrames];
 	Matrix cMat[NumFrames];
 	Spline_Calc_3D(&Cm->Source, CurFrame+50.0, &centerPred);
@@ -1283,6 +1328,9 @@ static void runRain(Scene *Sc)
 		Vector_SelfAdd(&P->V.Pos, &v);
 		if (P->V.Pos.y < 0.0f)
 		{
+			P->Vel.x = rainVel.x;
+			P->Vel.y = rainVel.y;
+			P->Vel.z = rainVel.z;
 			P->V.Pos.y += rainMaxHeight;
 			for(i=0; i<100; i++)
 			{
@@ -1538,6 +1586,36 @@ void Run_City()
 	const char *ProfNames[] = {"ZCLR","ANIM","XFRM", "LGHT", "SORT", "RNDR", "FLIP"};
 	dword ProfSum = 0;
 
+	std::vector<int> dispMap;
+	dispMap.resize(XRes * YRes);
+
+	//float waves[10][2];
+	//for (int w = 0; w != 10; ++w) {
+	//	waves[w][0] = (1.0 / 50.0) * (2 * (rand() / 32768.0f) - 1);
+	//	waves[w][1] = (1.0 / 50.0) * (2 * (rand() / 32768.0f) - 1);
+	//	waves[w][2] = (1.0 / 50.0) * (2 * (rand() / 32768.0f) - 1);
+	//	waves[w][3] = (1.0 / 50.0) * (2 * (rand() / 32768.0f) - 1);
+	//}
+	int idx = 0;
+	for (int y = 0; y < YRes; ++y) {
+		for (int x = 0; x < XRes; ++x) {
+			int tx = x, ty = y;
+
+			//for (int w = 0; w != 10; ++w) {
+			//	tx += sin(x * waves[w][0] + y * waves[w][1]) * 3.5;
+			//	ty += cos(x * waves[w][0] + y * waves[w][1]) * 3.5;
+			//}
+			tx += sin(x/30.0) * 15;
+			ty += cos(y/50.0) * 15;
+
+			if (tx < 0) { tx = -tx; } if (tx > XRes_1) { tx = 2 * XRes_1 - tx; }
+			if (ty < 0) { ty = -ty; } if (ty > YRes_1) { ty = 2 * YRes_1 - ty; }
+			dispMap[idx++] = ty * XRes + tx;
+		}
+	}
+	std::vector<dword> backBuffer;
+	backBuffer.resize(XRes * YRes);
+
 	for(i=0; i<PROF_NUM; i++)
 		Profiler[i] = 0;	
 
@@ -1609,7 +1687,7 @@ void Run_City()
 
 		// NOTE: Profiler ignores rain f/x
 #ifdef CITY_RAIN
-		runRain(CitySc);
+		riskOfRain(CitySc);
 #endif
 		Profiler[PROF_LGHT] += Timer;
 		Profiler[PROF_XFRM] -= Timer;
@@ -1629,6 +1707,15 @@ void Run_City()
 		Profiler[PROF_RNDR] -= Timer;
 
 		Render();
+		{
+			memcpy(backBuffer.data(), VPage, PageSize);
+			int ii = 0;
+			dword* ptr = (dword*)VPage;
+			for (auto displacement : dispMap) {
+				*ptr++ = backBuffer[displacement];
+			}
+		}
+
 
 		Profiler[PROF_RNDR] += Timer;
 

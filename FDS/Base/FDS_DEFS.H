@@ -122,6 +122,7 @@ enum SceneFlags
 #define Mat_TwoSided     0x0010
 #define Mat_Transparent  0x0020
 #define Mat_Additive	 0x0040
+#define Mat_SrcAlpha	 0x0080
 
 #define DEFAULT_BLOCKSIZEX 2
 #define DEFAULT_BLOCKSIZEY 2

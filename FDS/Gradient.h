@@ -10,4 +10,4 @@ struct GradientEndpoint {
 	GradientEndpoint(float u, Color c) : u(u), c(c) {}
 };
 
-Material* Generate_Gradient(const std::vector<GradientEndpoint>& endpoints, int txSize, float vSlack);
+Material* Generate_Gradient(const std::vector<GradientEndpoint>& endpoints, int txSize, float vSlack, bool rainDrop);

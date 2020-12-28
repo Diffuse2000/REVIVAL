@@ -747,7 +747,7 @@ void Initialize_Fountain()
 	endpoints.emplace_back(0.85, Color{ 1.0, 1.0, 1.0, 0.0 });
 	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.0 });
 
-	g_LnMat = Generate_Gradient(endpoints, 256, 0.01);
+	g_LnMat = Generate_Gradient(endpoints, 256, 0.01, false);
 
 //	Noise_Sample();
 

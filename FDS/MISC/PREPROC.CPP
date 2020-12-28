@@ -981,7 +981,7 @@ void Assign_Fillers(Scene *Sc)
 	TriMesh *T;
 	Omni *O;
 	Face *F,*FEnd;
-	int test_for_alpha = 1;
+	int test_for_alpha = 0;
 	
 	for(T=Sc->TriMeshHead;T;T=T->Next)
 	{
@@ -1000,7 +1000,7 @@ void Assign_Fillers(Scene *Sc)
 			if (F->Txtr->Txtr) rasterFlags += 1;
 			if (F->Txtr->Flags & Mat_RGBInterp) rasterFlags += 2;
 			if (F->Txtr->Flags & Mat_Transparent) rasterFlags += 4;
-			if (test_for_alpha && (F->Txtr->Flags & Mat_Transparent)) rasterFlags = 8;
+			if (F->Txtr->Flags & Mat_SrcAlpha) rasterFlags = 8;
 			if (F->Txtr->Flags & Mat_Additive) rasterFlags = 9;
 
 			//if (F->Txtr->Flags & Mat_UseTextureAlpha) rasterFlags += 8;

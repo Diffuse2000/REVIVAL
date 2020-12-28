@@ -1075,13 +1075,13 @@ static void drawPoly(float DT)
 	V[i].U = 0;
 	V[i].V = 0.999;
 	V[i].LA = 255;
-	V[i].LR = 253;
+	V[i].LR = 255;
 	V[i].LG = 2;
 	V[i].LB = 127;
 
-	//for (i = 0; i != 4; ++i) {
-	//	V[i].LR = V[i].LG = V[i].LB = 255;
-	//}
+	for (i = 0; i != 4; ++i) {
+		V[i].LR = V[i].LG = V[i].LB = V[i].LA = 255;
+	}
 
 	DoFace = &F;
 	F.Txtr = &DummyMat;
@@ -1201,21 +1201,28 @@ void FillerTest()
 //	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0 });
 	auto M = Generate_Gradient(endpoints, 256, 0.2);*/
 
-	//endpoints.emplace_back(0, Color{ 0.0, 0.0, 0.0, 1.0 });
-	//endpoints.emplace_back(0.5, Color{ 0.3, 0.0, 0.1, 0.80 });
-	//endpoints.emplace_back(0.6, Color{ 1.0, 0.0, 0.1, 0.60 });
-	//endpoints.emplace_back(0.75, Color{ 1.0, 0.4, 0.8, 0.40 });
+	//endpoints.emplace_back(0, Color{ 0.0, 0.0, 0.0, 0.0 });
+	//endpoints.emplace_back(0.5, Color{ 0.3, 0.0, 0.1, 0.20 });
+	//endpoints.emplace_back(0.6, Color{ 1.0, 0.0, 0.1, 0.40 });
+	//endpoints.emplace_back(0.75, Color{ 1.0, 0.4, 0.8, 0.60 });
+	//endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.80 });
+	//endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 1.0 });
+
+	//endpoints.emplace_back(0, Color{ 1.0, 1.0, 1.0, 1.0 });
+	//endpoints.emplace_back(0.5, Color{ 1.0, 1.0, 1.0, 0.80 });
+	//endpoints.emplace_back(0.6, Color{ 1.0, 1.0, 1., 0.60 });
+	//endpoints.emplace_back(0.75, Color{ 1.0, 1., 1., 0.40 });
 	//endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.20 });
 	//endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.0 });
 
-	endpoints.emplace_back(0, Color{ 1.0, 1.0, 1.0, 1.0 });
-	endpoints.emplace_back(0.5, Color{ 1.0, 1.0, 1.0, 0.80 });
-	endpoints.emplace_back(0.6, Color{ 1.0, 1.0, 1., 0.60 });
-	endpoints.emplace_back(0.75, Color{ 1.0, 1., 1., 0.40 });
-	endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.20 });
-	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.0 });
+	endpoints.emplace_back(0, Color{ 0.0, 0.0, 0.0, 0.5 });
+	endpoints.emplace_back(0.5, Color{ 0.3, 0.0, 0.1, 0.50 });
+	endpoints.emplace_back(0.6, Color{ 1.0, 0.0, 0.1, 0.50 });
+	endpoints.emplace_back(0.75, Color{ 1.0, 0.4, 0.8, 0.50 });
+	endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.50 });
+	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, .50 });
 
-	auto M = Generate_Gradient(endpoints, 256, 0.1);
+	auto M = Generate_Gradient(endpoints, 256, 0.2, false);
 
 	//dword i,j;
 	//for(j=0; j<256; j++)
@@ -1260,20 +1267,20 @@ void FillerTest()
 		}*/
 		memset(VPage,0,PageSize + XRes*YRes*sizeof(word));
 		//memset(VPage, 0, PageSize);
-		for (int y = 0; y != YRes; ++y) {
-			for (int x = 0; x != XRes; ++x) {
-				((dword*)VPage)[y * XRes + x] = (x % 64 < 32) ? 0x3f3f3f : 0;
-			}
-		}
+		//for (int y = 0; y != YRes; ++y) {
+		//	for (int x = 0; x != XRes; ++x) {
+		//		((dword*)VPage)[y * XRes + x] = ((x ^ y) & 8) ? 0x7f7f7f : 0;
+		//	}
+		//}
 
 		drawPoly(0);
-		drawPoly(500);
+		//drawPoly(500);
 
-		DWord pSrc = 0x10101010;
-		DWord pDst = 0xFCFCFCFC;
+		DWord pSrc = 0x80808080;
+		DWord pDst = 0x8C8C8C8C;
 
-		AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
-		memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
+		//AlphaBlend((byte*)MainSurf->Data, TempBuf, pSrc, pDst, XRes * YRes * 4);
+		//memcpy(MainSurf->Data, TempBuf, XRes * YRes * 4);
 
 		timerStack[timerIndex++] = Timer;
 		if (timerIndex == 20)

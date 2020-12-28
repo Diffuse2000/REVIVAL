@@ -20,11 +20,27 @@ Color lerp(Color a, Color b, float t) {
 	};
 }
 
-Color evalGradient(const std::vector<GradientEndpoint>& endpoints, float u, float v, float vSlack) {
-	if (v < vSlack) {
-		float r = 1.0f - v / vSlack;
+Color evalGradient(const std::vector<GradientEndpoint>& endpoints, float u, float v, float vSlack, bool rainDrop) {
+	float vCenter = (rainDrop) ? -0.3 : 0;
+	if (rainDrop) {
+		u = 1 - fabs(u - 0.5) * 2;
+		v = (v - 0.5) * 2;
+		float r;
+		if (v < vCenter) {
+			r = lerpRatio(vCenter, -1.0f, v);
+		} else {
+			r = lerpRatio(vCenter, 1.0f, v);
+		}
 		float reduction = 1.0 - sqrt(1 - r * r);
 		u = std::max(u - reduction, 0.0f);
+	} else {
+		u = 1 - fabs(u - 0.5) * 2;
+		v = 1 - fabs(v - 0.5) * 2;
+		if (v < vSlack) {
+			float r = 1.0f - v / vSlack;
+			float reduction = 1.0 - sqrt(1 - r * r);
+			u = std::max(u - reduction, 0.0f);
+		}
 	}
 	if (u <= endpoints.front().u) {
 		return endpoints.front().c;
@@ -39,7 +55,7 @@ Color evalGradient(const std::vector<GradientEndpoint>& endpoints, float u, floa
 	return endpoints.back().c;
 }
 
-Material* Generate_Gradient(const std::vector<GradientEndpoint>& endpoints, int txSize, float vSlack) {
+Material* Generate_Gradient(const std::vector<GradientEndpoint>& endpoints, int txSize, float vSlack, bool rainDrop) {
 	Image Img;
 	Material* M = getAlignedType<Material>(16); //(Material*)getAlignedBlock(sizeof(Material), 16);
 	//memset(M, 0, sizeof(Material));
@@ -61,7 +77,7 @@ Material* Generate_Gradient(const std::vector<GradientEndpoint>& endpoints, int 
 		float v = (float)y / txSize;
 		for (size_t x = 0; x != txSize; ++x) {
 			float u = (float)x / txSize;
-			Color c = evalGradient(endpoints, 1 - fabs(u - 0.5) * 2, 1 - fabs(v - 0.5) * 2, vSlack);
+			Color c = evalGradient(endpoints, u, v, vSlack, rainDrop);
 			Img.Data[x + y * txSize] = ToQColor(c);
 		}
 	}
