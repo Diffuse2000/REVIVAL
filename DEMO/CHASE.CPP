@@ -424,7 +424,9 @@ static void Reflected_Transform(Scene *Sc)
 	for (O = Sc->OmniHead; O; O = O->Next)
 	{
 		Vtx = &O->V;
-		Vector_Sub(&O->IPos, &View->ISource, &V);
+		Vector ReflectedPos = O->IPos;
+		ReflectedPos.y = -ReflectedPos.y;
+		Vector_Sub(&ReflectedPos, &View->ISource, &V);
 		MatrixXVector(View->Mat, &V, &Vtx->TPos);
 		if (Vtx->TPos.z > Sc->NZP&&Vtx->TPos.z < Sc->FZP)
 		{
@@ -436,7 +438,7 @@ static void Reflected_Transform(Scene *Sc)
 			//dz *=-16384;
 			//dz +=0x7FFFFFFF;
 			//RoundToInt(&O->Face.SortZ.DW,dz);
-			// *Ins++ = &O->F; // no insertion : flares are not reflected for now
+			*Ins++ = &O->F; // no insertion : flares are not reflected for now
 
 			O->F.FlareSize = O->ISize;
 #ifdef FRONT_TO_BACK_SORTING

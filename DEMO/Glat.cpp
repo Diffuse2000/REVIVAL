@@ -568,25 +568,25 @@ void Run_Glato(void)
 		if (Code)
 		{
 //			Grid_Texture_Mapper_XXX(Code_GP,CodeImage,(DWord *)Page2);
-			//GridRendererT(Code_GP,CodeImage,(DWord *)Page2, XRes, YRes);
-			Grid_Texture_Mapper_T(Code_GP, CodeImage, (DWord *)Page2);
+			GridRendererT(Code_GP,CodeImage,(DWord *)Page2, XRes, YRes);
+			//Grid_Texture_Mapper_T(Code_GP, CodeImage, (DWord *)Page2);
 			Modulate(&Surf1,&Surf2,0xa0a0a0,0xa0a0a0);
-			Modulate(&Surf2,VSurface,0xa0a0a0, 0xa0a0a0);
+			Modulate(&Surf2,VSurface,0xa0a0a0, 0xb0b0b0);
 		}
 		if (Gfx)
 		{
 //			Grid_Texture_Mapper_XXX(Gfx_GP,GfxImage,(DWord *)Page3);
-			Grid_Texture_Mapper_T(Gfx_GP,GfxImage,(DWord *)Page3);
+			GridRendererT(Gfx_GP,GfxImage,(DWord *)Page3, XRes, YRes);
 			Modulate(&Surf1,&Surf3,0xa0a0a0, 0xd0d0d0);
-			Modulate(&Surf3,VSurface,0xa0a0a0, 0xa0a0a0);
+			Modulate(&Surf3,VSurface,0xa0a0a0, 0xb0b0b0);
  //			Modulate(&Surf2,&Surf3,0xa0a0a0,0xa0a0a0);
 		}
 		if (Sfx)
 		{
 //			Grid_Texture_Mapper_XXX(Sfx_GP,SfxImage,(DWord *)Page4);
-			Grid_Texture_Mapper_T(Sfx_GP,SfxImage,(DWord *)Page4);
+			GridRendererT(Sfx_GP,SfxImage,(DWord *)Page4, XRes, YRes);
 			Modulate(&Surf1,&Surf4,0xa0a0a0,0xa0a0a0);
-			Modulate(&Surf4,VSurface,0xa0a0a0, 0xa0a0a0);
+			Modulate(&Surf4,VSurface,0xa0a0a0, 0xb0b0b0);
 		}
 //		memcpy(VPage, Page1, PageSize);
 		if (Timer>3200)

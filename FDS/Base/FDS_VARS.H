@@ -737,47 +737,46 @@ modify [eax ecx edx];
 template <typename MATRIX, typename VECTOR>
 inline void MatrixXVector(const MATRIX M, const VECTOR *U, VECTOR *V)
 {
-
 	V->x = M[0][0] * U->x + M[0][1] * U->y + M[0][2] * U->z;
 	V->y = M[1][0] * U->x + M[1][1] * U->y + M[1][2] * U->z;
 	V->z = M[2][0] * U->x + M[2][1] * U->y + M[2][2] * U->z;
-
-	//__asm {
-	//	mov	EDX, [M]
-	//		mov ESI, [U]
-	//		mov EDI, [V]
-	//		FLD   DWORD PTR [ESI]
-	//		FMUL  DWORD PTR [EDX]
-	//		FLD   DWORD PTR [ESI]
-	//		FMUL  DWORD PTR [EDX+12]
-	//		FLD   DWORD PTR [ESI]
-	//		FMUL  DWORD PTR [EDX+24]
-	//		FLD   DWORD PTR [ESI+4]
-	//		FMUL  DWORD PTR [EDX+4]
-	//		FLD   DWORD PTR [ESI+4]
-	//		FMUL  DWORD PTR [EDX+16]
-	//		FLD   DWORD PTR [ESI+4]
-	//		FMUL  DWORD PTR [EDX+28]
-	//		FXCH  ST(2)
-	//		FADDP ST(5),ST(0)
-	//		FADDP ST(3),ST(0)
-	//		FADDP ST(1),ST(0)
-	//		FLD   DWORD PTR [ESI+8]
-	//		FMUL  DWORD PTR [EDX+8]
-	//		FLD   DWORD PTR [ESI+8]
-	//		FMUL  DWORD PTR [EDX+20]
-	//		FLD   DWORD PTR [ESI+8]
-	//		FMUL  DWORD PTR [EDX+32]
-	//		FXCH  ST(2)
-	//		FADDP ST(5),ST(0)
-	//		FADDP ST(3),ST(0)
-	//		FADDP ST(1),ST(0)
-	//		FXCH  ST(1)
-	//		FXCH  ST(2)
-	//		FSTP  DWORD PTR [EDI]
-	//		FSTP  DWORD PTR [EDI+8]
-	//		FSTP  DWORD PTR [EDI+4]
-	//}
+/*
+	__asm {
+		mov	EDX, [M]
+			mov ESI, [U]
+			mov EDI, [V]
+			FLD   DWORD PTR [ESI]
+			FMUL  DWORD PTR [EDX]
+			FLD   DWORD PTR [ESI]
+			FMUL  DWORD PTR [EDX+12]
+			FLD   DWORD PTR [ESI]
+			FMUL  DWORD PTR [EDX+24]
+			FLD   DWORD PTR [ESI+4]
+			FMUL  DWORD PTR [EDX+4]
+			FLD   DWORD PTR [ESI+4]
+			FMUL  DWORD PTR [EDX+16]
+			FLD   DWORD PTR [ESI+4]
+			FMUL  DWORD PTR [EDX+28]
+			FXCH  ST(2)
+			FADDP ST(5),ST(0)
+			FADDP ST(3),ST(0)
+			FADDP ST(1),ST(0)
+			FLD   DWORD PTR [ESI+8]
+			FMUL  DWORD PTR [EDX+8]
+			FLD   DWORD PTR [ESI+8]
+			FMUL  DWORD PTR [EDX+20]
+			FLD   DWORD PTR [ESI+8]
+			FMUL  DWORD PTR [EDX+32]
+			FXCH  ST(2)
+			FADDP ST(5),ST(0)
+			FADDP ST(3),ST(0)
+			FADDP ST(1),ST(0)
+			FXCH  ST(1)
+			FXCH  ST(2)
+			FSTP  DWORD PTR [EDI]
+			FSTP  DWORD PTR [EDI+8]
+			FSTP  DWORD PTR [EDI+4]
+	}*/
 }
 
 inline void Vector_Add(Vector *U,Vector *V,Vector *W)

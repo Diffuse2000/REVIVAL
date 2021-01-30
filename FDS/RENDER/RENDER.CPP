@@ -264,11 +264,15 @@ void Animate_Objects(Scene *Sc, bool SkipCameraAnimation)
 	// lalala, HARARCHIA , Ver 3, it now rulati
 	for (Obj=Sc->ObjectHead;Obj;Obj=Obj->Next)
 	{
-		if (Obj->Pivot.is_zero()) {
-			U.x = U.y = U.z = 0.0f;
-		} else {
-			MatrixXVector(*Obj->Rot, &Obj->Pivot, &U);
+		if (Obj->Type == Obj_Omni) {
+			Matrix_Identity(*Obj->Rot);
 		}
+		//if (Obj->Pivot.is_zero()) {
+		MatrixXVector(*Obj->Rot, &Obj->Pivot, &U);
+//			U.x = U.y = U.z = 0.0f;
+		//} else {
+			//MatrixXVector(*Obj->Rot, &Obj->Pivot, &U);
+		//}
 		//printf("%s U: \n", Obj->Name);
 		//U.print();
 		//printf("\n");

@@ -250,7 +250,7 @@ static void Reflective_Surface_Setup()
 
 			// Extract coverage (range) over XZ plane and over texture
 			// (notice: this reads texture coords. from vertices, not faces).
-/*			float mx, Mx, mz, Mz, y;
+			float mx, Mx, mz, Mz, y;
 			float mu, Mu, mv, Mv;
 			dword i, j;
 			mx = Mx = T->Verts[0].Pos.x;
@@ -308,8 +308,8 @@ static void Reflective_Surface_Setup()
 					Vtx->Pos.x = x;
 					Vtx->Pos.y = y;
 					Vtx->Pos.z = z;
-					Vtx->U = u;
-					Vtx->V = v;
+					Vtx->U = u / 2.5;
+					Vtx->V = v / 2.5;
 					Vtx++;
 				}
 			}
@@ -343,7 +343,7 @@ static void Reflective_Surface_Setup()
 					F->V3 = F->C->V;
 					F++;
 				}
-			}*/
+			}
 
 //			break;
 		} else {
@@ -761,7 +761,9 @@ OUT:FEnd=T->Faces+T->FIndex;
 	for(O=Sc->OmniHead;O;O=O->Next)
 	{
 		Vtx=&O->V;
-		Vector_Sub(&O->IPos,&View->ISource,&V);
+		Vector ReflectedPos = O->IPos;
+		ReflectedPos.y = -ReflectedPos.y;
+		Vector_Sub(&ReflectedPos,&View->ISource,&V);
 		MatrixXVector(View->Mat,&V,&Vtx->TPos);
 		if (Vtx->TPos.z>Sc->NZP&&Vtx->TPos.z<Sc->FZP)
 		{
@@ -769,11 +771,13 @@ OUT:FEnd=T->Faces+T->FIndex;
 			Vtx->PX=CntrEX+Vtx->TPos.x*PX*Vtx->RZ;
 			Vtx->PY=CntrEY-Vtx->TPos.y*PY*Vtx->RZ;
 			// Insert to List
+			//dz = Vtx->TPos.z;
+			//dz *=-16384;
+			//dz +=0x7FFFFFFF;
+			//RoundToInt((long *)&O->F.SortZ.DW,dz);
 			dz = Vtx->TPos.z;
-			dz *=-16384;
-			dz +=0x7FFFFFFF;
-			RoundToInt((long *)&O->F.SortZ.DW,dz);
 			*Ins++ = &O->F; // no insertion : flares are not reflected for now
+			O->F.SortZ.F = 2 * fzp - dz;
 		}
 	}
 	COmnies = (Ins-FList)-CPolys;
@@ -1008,12 +1012,12 @@ void Reflective_AnimateTexture()
 	Face *F, *FE;
 	for(F = T->Faces, FE = F + T->FIndex; F<FE; F++)
 	{
-		F->U1 += dTime * 0.0007;
-		F->V1 += dTime * 0.0003;
-		F->U2 += dTime * 0.0007;
-		F->V2 += dTime * 0.0003;
-		F->U3 += dTime * 0.0007;
-		F->V3 += dTime * 0.0003;
+		F->U1 += dTime * 0.0007 * 2;
+		F->V1 += dTime * 0.0003 * 2;
+		F->U2 += dTime * 0.0007 * 2;
+		F->V2 += dTime * 0.0003 * 2;
+		F->U3 += dTime * 0.0007 * 2;
+		F->V3 += dTime * 0.0003 * 2;
 	}
 
 }
