@@ -597,6 +597,8 @@ void FList_Allocate(Scene *Sc)
 	for(O=Sc->OmniHead;O;O=O->Next)
 		Polys++;
 	Polys += Sc->NumOfParticles;
+	delete[] FList;
+	delete[] SList;
 	FList = new Face * [Polys];
 	SList = new Face * [Polys];
 }

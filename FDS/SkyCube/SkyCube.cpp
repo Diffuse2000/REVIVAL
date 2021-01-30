@@ -294,14 +294,14 @@ Scene * CreateSkyCube(dword skyType)
 }
 
 
-void RenderSkyCube(Scene *Sc, Camera *Cm)
+void RenderSkyCube(Scene *Sc, Camera *Cm, bool SkipCameraAnimation)
 {
 	Scene *PrevCurScene = CurScene;
 	Camera *PrevView = View;
 	View = Cm;
 	SetCurrentScene(Sc);
 
-	Animate_Objects(Sc);
+	Animate_Objects(Sc, SkipCameraAnimation);
 
 	Vector PrevViewPos = View->ISource;
 	Vector_Zero(&View->ISource);

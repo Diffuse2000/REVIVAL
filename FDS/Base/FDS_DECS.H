@@ -369,7 +369,7 @@ void Radix_Sorting();
 
 void SetCurrentScene(Scene *Sc);
 
-void Animate_Objects(Scene *Sc);
+void Animate_Objects(Scene *Sc, bool SkipCameraAnimation = false);
 void Transform_Objects(Scene *Sc);
 char BFC(Face *F);
 char BOC(Face *F);
@@ -494,7 +494,7 @@ extern dword New_SCache(dword Size);
 
 // Skycube generation routine
 Scene * CreateSkyCube(dword skyType);
-void RenderSkyCube(Scene *Sc, Camera *Cm);
+void RenderSkyCube(Scene *Sc, Camera *Cm, bool SkipCameraAnimation);
 
 void Sachletz(dword* data, dword xres, dword yres);
 

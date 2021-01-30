@@ -1,162 +1,97 @@
-cmake_minimum_required(VERSION 3.12)
-project(REVIVAL)
+cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_SYSTEM_VERSION 10.0 CACHE STRING "" FORCE)
+set(CMAKE_VS_PLATFORM_NAME "Win32")
 
-include_directories(DEMO)
-include_directories(FDS)
-include_directories(FDS/3DS)
-include_directories(FDS/DPMI)
-include_directories(FDS/FILLERS)
-include_directories(FDS/FLD)
-include_directories(FDS/IMGCODE)
-include_directories(FDS/MATH)
-include_directories(FDS/MDSPLAY)
-include_directories(FDS/MISC)
-include_directories(FDS/Old)
-include_directories(FDS/RENDER)
-include_directories(FDS/SkyCube)
-include_directories(FDS/V3D)
-include_directories(FDS/VESA)
-include_directories(fmod)
-include_directories(FMod.old)
-include_directories(FMod.old/api)
-include_directories(FMod.old/api/inc)
-include_directories(IJLD)
+project(REVIVAL CXX)
 
-add_executable(REVIVAL
-        DEMO/CHASE.CPP
-        DEMO/CHASE.H
-        DEMO/CITY.CPP
-        DEMO/CITY.H
-        DEMO/Config.cpp
-        DEMO/Config.h
-        DEMO/CRASH.CPP
-        DEMO/CRASH.H
-        DEMO/CREDITS.CPP
-        DEMO/CREDITS.H
-        DEMO/D3D8.CPP
-        DEMO/D3D8.h
-        DEMO/D3D8i.h
-        DEMO/d3dapp.h
-        DEMO/d3dfont.h
-        DEMO/d3dres.h
-        DEMO/d3dutil.cpp
-        DEMO/d3dutil.h
-        DEMO/DDRAW.cpp
-        DEMO/DDRAW.h
-        DEMO/dxutil.cpp
-        DEMO/dxutil.h
-        DEMO/END.CPP
-        FDS/Base/FDS_DECS.H
-        FDS/Base/FDS_DEFS.H
-        FDS/Base/FDS_VARS.H
-        DEMO/FillerTest.cpp
-        DEMO/FillerTest.h
-        DEMO/FOUNT.CPP
-        DEMO/FOUNTAIN.CPP
-        DEMO/FOUNTAIN.H
-        DEMO/Gdi.cpp
-        DEMO/Gdi.h
-        DEMO/Glat.cpp
-        DEMO/GLAT.H
-        DEMO/GREEET.CPP
-        DEMO/GREETS.CPP
-        DEMO/GREETS.H
-        DEMO/ImageCompression.cpp
-        DEMO/ImageCompression.h
-        DEMO/Koch.cpp
-        DEMO/Koch.h
-        DEMO/Nova.cpp
-        DEMO/Nova.h
-        DEMO/PhotonTracer.cpp
-        DEMO/PhotonTracer.h
-        DEMO/Raytracer.cpp
-        DEMO/Raytracer.h
-        DEMO/REV.CPP
-        DEMO/Rev.h
-        DEMO/SHIT.CPP
-        DEMO/Win32Display.h
-        FDS/3DS/3DS_READ.CPP
-        FDS/3DS/FUTILS.CPP
-        FDS/3DS/FUtils.h
-        FDS/3DS/I_defs.h
-        FDS/3DS/MATERIAL.CPP
-        FDS/3DS/TRACKS.CPP
-        FDS/3DS/WORLD.CPP
-        FDS/CAMERAS/CAMERAS.CPP
-        FDS/DPMI/DPMI.CPP
-        FDS/DPMI/DPMI.H
-        FDS/DPMI/STUPDPMI.CPP
-        FDS/FILLERS/F4Vec.cpp
-        FDS/FILLERS/F4Vec.h
-        FDS/FILLERS/FILLERS.CPP
-        FDS/FILLERS/IX.cpp
-        FDS/FILLERS/IX.h
-        FDS/FILLERS/IXFZ.cpp
-        FDS/FILLERS/IXGZ.cpp
-        FDS/FILLERS/IXTGZ.cpp
-        FDS/FILLERS/IXTZ.cpp
-        FDS/FILLERS/TestFillers.cpp
-        FDS/FILLERS/TEX.CPP
-        FDS/FLD/FLD_CONV.CPP
-        FDS/FLD/FLD_MAT.CPP
-        FDS/FLD/FLD_READ.CPP
-        FDS/FLD/FLD_READ.H
-        FDS/FLD/LWREAD.H
-        FDS/FRUSTRUM/FL.CPP
-        FDS/FRUSTRUM/FRUSTRUM.CPP
-        FDS/IMGCODE/IMGCODE.CPP
-        FDS/IMGCODE/QUANTUM.H
-        FDS/IMGGENR/IMGGENR.CPP
-        FDS/IMGPROC/Imgproc.cpp
-        FDS/ISR/ISR.CPP
-        FDS/MATH/BASEMATH.H
-        FDS/MATH/MATH.CPP
-        FDS/MDSPLAY/MDSPLAY.CPP
-        FDS/MDSPLAY/MIDASDLL.H
-        FDS/MISC/Memmgr.cpp
-        FDS/MISC/mmreg.cpp
-        FDS/MISC/mmreg.inl
-        FDS/MISC/MOUSE.CPP
-        FDS/MISC/PREPROC.CPP
-        FDS/MISC/TABLES.CPP
-        FDS/MISC/TxtrLib.cpp
-        FDS/PCLSYS/PCLSYS.CPP
-        FDS/RADIO/RADIO.CPP
-        FDS/RENDER/GENERAL.H
-        FDS/RENDER/RENDER.CPP
-        FDS/RENDER/SORTS.H
-        FDS/RENDER/SQRTTBL.H
-        FDS/SkyCube/SkyCube.cpp
-        FDS/SkyCube/SkyCube.h
-        FDS/V3D/M_DEFS.H
-        FDS/V3D/OBJECTS.H
-        FDS/V3D/V3D_READ.CPP
-        FDS/VESA/FONTS.CPP
-        FDS/VESA/VESA_TABLES.CPP
-        FDS/VESA/VESA.CPP
-        FDS/VESA/Vesa.h
-        FDS/Base/FDS_DECS.H
-        FDS/Base/FDS_DEFS.H
-        FDS/Base/FDS_VARS.H
-        fmod/FMod.cpp
-        fmod/fmod.h
-        fmod/fmod_errors.h
-        fmod/fmoddyn.h
-        fmod/FModWrapper.cpp
-        fmod/FModWrapper.h
-        fmod/wincompat.h
-        FMod.old/api/inc/fmod.h
-        FMod.old/api/inc/fmod.hpp
-        FMod.old/api/inc/fmod_codec.h
-        FMod.old/api/inc/fmod_common.h
-        FMod.old/api/inc/fmod_dsp.h
-        FMod.old/api/inc/fmod_dsp_effects.h
-        FMod.old/api/inc/fmod_errors.h
-        FMod.old/api/inc/fmod_output.h
-        FMod.old/api/inc/wincompat.h
-        FMod.old/FMod.cpp
-        FMod.old/FMod.h
-        IJLD/ijl.h
-        IJLD/IJLD.cpp FDS/Base/Texture.cpp FDS/Base/Texture.h FDS/Base/Material.h FDS/Base/Color.h FDS/Base/Scene.h FDS/Base/Object.h FDS/Base/BaseDefs.h FDS/Base/TriMesh.h FDS/Base/Vertex.h FDS/Base/Vector.h FDS/Base/Face.h FDS/Base/Quaternion.h FDS/Base/Camera.h FDS/Base/Omni.h FDS/Base/SpotLight.h FDS/Base/Spline.h FDS/Base/Edge.h FDS/Base/TBR.h FDS/Base/KeyFrame.h FDS/Base/Matrix.h FDS/Base/Surface.h FDS/Base/Palette.h)
+################################################################################
+# Set target arch type if empty. Visual studio solution generator provides it.
+################################################################################
+if(NOT CMAKE_VS_PLATFORM_NAME)
+    set(CMAKE_VS_PLATFORM_NAME "x64")
+endif()
+message("${CMAKE_VS_PLATFORM_NAME} architecture in use")
+
+if(NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32"
+     OR "${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64"))
+    message(FATAL_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")
+endif()
+
+################################################################################
+# Global configuration types
+################################################################################
+set(CMAKE_CONFIGURATION_TYPES
+    "Debug"
+    "llvm"
+    "Release"
+    CACHE STRING "" FORCE
+)
+
+################################################################################
+# Global compiler options
+################################################################################
+if(MSVC)
+    # remove default flags provided with CMake for MSVC
+    set(CMAKE_CXX_FLAGS "")
+    set(CMAKE_CXX_FLAGS_DEBUG "")
+    set(CMAKE_CXX_FLAGS_LLVM "")
+    set(CMAKE_CXX_FLAGS_RELEASE "")
+endif()
+
+################################################################################
+# Global linker options
+################################################################################
+if(MSVC)
+    # remove default flags provided with CMake for MSVC
+    set(CMAKE_EXE_LINKER_FLAGS "")
+    set(CMAKE_MODULE_LINKER_FLAGS "")
+    set(CMAKE_SHARED_LINKER_FLAGS "")
+    set(CMAKE_STATIC_LINKER_FLAGS "")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS}")
+    set(CMAKE_MODULE_LINKER_FLAGS_DEBUG "${CMAKE_MODULE_LINKER_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS}")
+    set(CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CMAKE_STATIC_LINKER_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS_LLVM "${CMAKE_EXE_LINKER_FLAGS}")
+    set(CMAKE_MODULE_LINKER_FLAGS_LLVM "${CMAKE_MODULE_LINKER_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS_LLVM "${CMAKE_SHARED_LINKER_FLAGS}")
+    set(CMAKE_STATIC_LINKER_FLAGS_LLVM "${CMAKE_STATIC_LINKER_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS}")
+    set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS}")
+    set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CMAKE_STATIC_LINKER_FLAGS}")
+endif()
+
+################################################################################
+# Nuget packages function stub.
+################################################################################
+function(use_package TARGET PACKAGE VERSION)
+    message(WARNING "No implementation of use_package. Create yours. "
+                    "Package \"${PACKAGE}\" with version \"${VERSION}\" "
+                    "for target \"${TARGET}\" is ignored!")
+endfunction()
+
+################################################################################
+# Common utils
+################################################################################
+include(CMake/Utils.cmake)
+
+################################################################################
+# Additional Global Settings(add specific info there)
+################################################################################
+include(CMake/GlobalSettingsInclude.cmake OPTIONAL)
+
+################################################################################
+# Use solution folders feature
+################################################################################
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+################################################################################
+# Sub-projects
+################################################################################
+add_subdirectory(DEMO)
+add_subdirectory(FDS)
+add_subdirectory(IJLD)
+add_subdirectory(libpng16)
+add_subdirectory(Modplayer)
+

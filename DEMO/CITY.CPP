@@ -3,6 +3,7 @@
 #include "CITY.H"
 #include <algorithm>
 #include <vector>
+#include "FRUSTRUM.H"
 #include "Gradient.h"
 
 #define FRONT_TO_BACK_SORTING
@@ -15,6 +16,38 @@ static Vector RflSurfNorm(0,1,0);
 static float RflSurfOfs = 0;
 
 static long CTPartTime;
+static Matrix AxisAlignedViews[6] = {
+	{
+		{ 1,  0,  0},
+		{ 0,  1,  0},
+		{ 0,  0,  1},
+	},
+	{
+		{ 0,  0,  1},
+		{ 0,  1,  0},
+		{-1,  0,  0},
+	},
+	{
+		{-1,  0,  0},
+		{ 0,  1,  0},
+		{ 0,  0, -1},
+	},
+	{
+		{ 0,  0, -1},
+		{ 0,  1,  0},
+		{ 1,  0,  0},
+	},
+	{
+		{ 1,  0,  0},
+		{ 0,  0,  1},
+		{ 0,  -1, 0},
+	},
+	{
+		{ 1,  0,  0},
+		{ 0,  0, -1},
+		{ 0,  1,  0},
+	},
+};
 
 
 signed char *STbl,*SOTbl,*CTbl,*COTbl;
@@ -1367,6 +1400,24 @@ BailOut:;
 
 }
 
+static dword V_Create(VESA_Surface* VS)
+{
+	VS->CPP = (VS->BPP + 1) >> 3;
+	VS->BPSL = VS->CPP * VS->X;
+	VS->PageSize = VS->BPSL * VS->Y;
+
+	dword ZBufferSize = sizeof(word) * VS->X * VS->Y;
+	if (!(VS->Data = (byte*)malloc(VS->PageSize + ZBufferSize))) return 1;
+	memset(VS->Data, 0x7f, VS->PageSize + ZBufferSize);
+
+	//	VS->Flags = VSurf_Exists;
+	
+	VS->Handle = 0;
+
+	return 0;
+}
+
+
 void Initialize_City()
 {
 	CitySc = (Scene *)getAlignedBlock(sizeof(Scene), 16);
@@ -1411,6 +1462,70 @@ void Initialize_City()
 	Init_Distort();
 
 	SkySc = CreateSkyCube(0);
+
+	// TODO: should animate the object to the frame where the camera is nearest to it
+	CurFrame = 0;
+	View = CitySc->CameraHead;
+	Animate_Objects(CitySc);
+	Lighting(CitySc);
+
+	// render env maps for a few select objects
+	FList_Allocate(CitySc);
+	Camera EnvCam = { 0 };
+	View = &EnvCam;
+	EnvCam.IFOV = 90.0;
+	EnvCam.PerspX = 512.0;
+	EnvCam.PerspY = 512.0;
+
+	VESA_Surface* PrevMainSurf = MainSurf;
+	VESA_Surface TmpSurf = { 0 };
+	MainSurf = &TmpSurf;
+	TmpSurf.X = 1024;
+	TmpSurf.Y = 1024;
+	TmpSurf.BPP = 32;
+	TmpSurf.Flip = PrevMainSurf->Flip;
+	VESA_BPSL = 4096;
+	V_Create(&TmpSurf);
+	VESA_VPageExternal(&TmpSurf);
+
+	SetCurrentScene(CitySc);
+	int building_count = 0;
+	bool bailout = false;
+	for (Object* Obj = CitySc->ObjectHead; Obj != nullptr; Obj = Obj->Next) {
+		if (Obj->Type != Obj_TriMesh) { continue; }
+		if (Obj->Name == nullptr) { continue; }
+		if (!(Obj->Name[0] == 'b' && '0' <= Obj->Name[1] && Obj->Name[1] <= '9' && 0 == strcmp(Obj->Name + 2, ".lwo"))) { continue; }
+
+		building_count++;
+		auto T = (TriMesh*)(Obj->Data);
+		EnvCam.ISource = T->IPos + T->BSphereCtr;
+		for (int i = 0; i != 6; ++i) {
+			FastWrite(VPage, 0, (PageSize + XRes * YRes * sizeof(word)) >> 2);
+			memcpy(EnvCam.Mat, AxisAlignedViews[i], sizeof(EnvCam.Mat));
+
+			RenderSkyCube(SkySc, View, true);
+			Reflected_Transform(CitySc);
+			if (0 != CAll) {
+				Radix_SortingASM(FList, SList, CAll);
+				Render();
+			}
+			Transform_Objects(CitySc);
+			if (0 != CAll) {
+				Radix_SortingASM(FList, SList, CAll);
+				Render();
+			}
+			/*Flip(&TmpSurf);
+			if (!bailout) {
+				SysSleep(500);
+				if (Keyboard[ScESC]) {
+					bailout = true;
+				}
+			}*/
+		}
+	}
+
+	MainSurf = PrevMainSurf;
+	VESA_Surface2Global(MainSurf);
 
 	// initialize rain FX
 #ifdef CITY_RAIN
@@ -1653,7 +1768,7 @@ void Run_City()
 		// Clear framebuffer and Z-buffer
 		//memset(VPage,0,PageSize + XRes*YRes*sizeof(word));
 		FastWrite(VPage, 0, (PageSize + XRes * YRes * sizeof(word)) >> 2);
-		RenderSkyCube(SkySc, View);
+		RenderSkyCube(SkySc, View, false);
 
 		Profiler[PROF_ZCLR] += Timer;
 		Profiler[PROF_ANIM] -= Timer;

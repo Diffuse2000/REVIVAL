@@ -1873,7 +1873,8 @@ void Run_Fountain()
 
 //		memset(VPage, 0, PageSize + XRes*YRes*sizeof(word));
 		FastWrite(VPage, 0, (PageSize + XRes*YRes*sizeof(word)) >> 2);
-		RenderSkyCube(SkySc, View);
+		bool SkipCameraAnimation = false;
+		RenderSkyCube(SkySc, View, SkipCameraAnimation);
 
 		dTime = Timer-TTrd;
 		// fast forward/rewind

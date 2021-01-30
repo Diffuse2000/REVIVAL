@@ -6,6 +6,8 @@
 #include <string.h>
 #include <conio.h>
 #include <Base/Vector.h>
+#include <memory>
+#include <vector>
 
 #ifdef _C_WATCOM
 #include <i86.H>
@@ -29,13 +31,31 @@ float frand() {
 // Front-to-back sorting used together with ZBuffer.
 #define FRONT_TO_BACK_SORTING
 
+struct SceneContext {
+	std::unique_ptr<Scene>  CurScene;
+	std::vector<Face *>     FList;
+	std::vector<Face *>     SList;
+	Face                    *DoFace;
+	long CPolys,COmnies,CPcls,CAll,Polys;
+	char Cam_HeadLight;
+	float CurFrame;
+	float g_zscale;
+	float g_zscale256;
+	int32_t g_FrameTime;
+	float Ambient_Factor;
+	float Diffusive_Factor;
+	float Specular_Factor;
+	float Range_Factor;
+};
+
+
 Scene *CurScene;
-Face **FList;
-Face **SList;
+Face **FList = nullptr;
+Face **SList = nullptr;
 Face *DoFace; // mar gamish, ta'ase partsuf!
 long CPolys,COmnies,CPcls,CAll,Polys;
-char *TxtrBuf,*TxtrAlign;
-float Exec_FPS;
+//char *TxtrBuf,*TxtrAlign;
+//float Exec_FPS;
 Material Default_Mat;
 #ifdef PORTABLE_CODE
 unsigned int OldFPUCW, FPUCW;
@@ -138,7 +158,7 @@ void DrawSpline(Spline Pos, Vector CamISource, int EndFrame) {
 }
 
 
-void Animate_Objects(Scene *Sc)
+void Animate_Objects(Scene *Sc, bool SkipCameraAnimation)
 {
 	TriMesh *T;
 	Omni *Om;
@@ -223,7 +243,7 @@ void Animate_Objects(Scene *Sc)
 		Om->rRange = 1.0f/Om->IRange;
 		//		Om->IRange*=Om->IRange;
 	}
-	if (View!=&FC)
+	if (View!=&FC && !SkipCameraAnimation)
 	{
 		Spline_Calc_3D(&View->Source,CurFrame,&View->ISource);
 		Spline_Calc_3D(&View->Target,CurFrame,&View->ITarget);
@@ -238,8 +258,8 @@ void Animate_Objects(Scene *Sc)
 	
 	CalcPersp(View);
 	
-	FOVX=View->PerspX;
-	FOVY=View->PerspY;
+	FOVX = View->PerspX;
+	FOVY = View->PerspY;
 	
 	// lalala, HARARCHIA , Ver 3, it now rulati
 	for (Obj=Sc->ObjectHead;Obj;Obj=Obj->Next)
@@ -1970,7 +1990,7 @@ Away:Tot = Timer-TTrd;
 	//	printf("FPS == %f\n",100.0*(float)Frames/(float)Timer);
 	while (Keyboard[ScESC]) DO_NOP();
 	Exec_FPS = 100.0*(float)Frames/(float)Par5;
-	/*  sprintf(Str,"Inst. FPS = %3.2f (%3.2f)",FPS,100.0*(float)Frames/(float)Par4);
+	/*  sprintf(Str,"Inst. FPS = %3.2f (%3.2f)",FPGS,100.0*(float)Frames/(float)Par4);
 	OutTextXY(VGAPtr,0,0,Str,63);
 	while (!Keyboard[ScESC]) DO_NOP();
 	while (Keyboard[ScESC]) DO_NOP();*/
