@@ -60,8 +60,7 @@
 ;		Supports Z-buffering			 ;
 ;;										;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; All rights reserved to Flood corp. ;;;
-;;; (diffuse, silvatar, and buffer)    ;;;
+;;; All rights reserved to Flood inc.  ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; ASSEMBLER DIRECTIVES ;;;
@@ -84,11 +83,19 @@ align 16
 	Left_UZ			dd		0.0
 	Left_VZ			dd		0.0
 	Left_X			dd		0.0
+	Left_UZ2		dd		0.0
+	Left_VZ2		dd		0.0
+	Left_SRCA		dd		0.0
+	Left_DSTA		dd		0.0
 					
 	Left_dRZ		dd		0.0
 	Left_dUZ		dd		0.0
 	Left_dVZ		dd		0.0
 	Left_dX			dd		0.0
+	Left_dUZ2		dd		0.0
+	Left_dVZ2		dd		0.0
+	Left_dSRCA		dd		0.0
+	Left_dDSTA		dd		0.0
 					
 	Left_R			dd		0.0
 	Left_G			dd		0.0
@@ -116,6 +123,10 @@ align 16
 	_dUZdx		dd		0.0
 	_dVZdx		dd		0.0	
 	_filler1	dd		0.0
+	_dU2Zdx		dd		0.0
+	_dV2Zdx		dd		0.0	
+	_dSrcAZdx	dd		0.0
+	_dDstAZdx	dd		0.0
 	; Scaled deltas over X
 	;_sdRZdx		dd		0.0
 	;_sdUZdx		dd		0.0
@@ -136,7 +147,7 @@ align 16
 	Right_X			dd		0.0
 	Right_dX		dd		0.0
 	save_esp		dd		0
-	update_zbuffer	dd		0
+	align32			dd		0
 
 ; innerloop variables (cacheline 1)
 
@@ -174,83 +185,61 @@ align 16
 	_pfSPANSIZE	equ		pf16
 
 ; Float tables
+align	16
+
 ;	mask tables for standard textures (1x1 blocks)
+	_T0		dd		000010000h,
+					000030000h,
+					000070000h,
+					0000f0000h,
+					0001f0000h,
+					0003f0000h,
+					0007f0000h,
+					000ff0000h,
 
-;					 3         2         1         0
-;                   21098765432109876543210987654321
-	_T0		dd		00000000000000000000000000000000b,
-					00000000000000000001000000000000b,
-					00000000000000000011000000000000b,
-					00000000000000000111000000000000b,
-					00000000000000001111000000000000b,
-					00000000000000011111000000000000b,
-					00000000000000111111000000000000b,
-					00000000000001111111000000000000b,
-					00000000000011111111000000000000b,
-					00000000000111111111000000000000b,
-					00000000001111111111000000000000b
+	_T1		dd		0fffe8000h,
+					0fffc8000h,
+					0fff88000h,
+					0fff08000h,
+					0ffe08000h,
+					0ffc08000h,
+					0ff808000h,
+					0ff008000h
 
-;					 3         2         1         0
-;                   21098765432109876543210987654321
-	_T1		dd		11111111111111111111100000000000b,
-					11111111111111111110100000000000b,
-					11111111111111111100100000000000b,
-					11111111111111111000100000000000b,
-					11111111111111110000100000000000b,
-					11111111111111100000100000000000b,
-					11111111111111000000100000000000b,
-					11111111111110000000100000000000b,
-					11111111111100000000100000000000b,
-					11111111111000000000100000000000b,
-					11111111110000000000100000000000b
 
 ;	mask tables for tiled textures (4x4 blocks - 2 bits for inner tile position)
-;					 3         2         1         0
-;                   21098765432109876543210987654321
 	_TB0	dd		00000000000000000000000000000000b,
 					00000000000000000000000000000000b,
-					00000000000000000000000000000000b,
-					00000000000000000100000000000000b,
-					00000000000000001100000000000000b,
-					00000000000000011100000000000000b,
-					00000000000000111100000000000000b,
-					00000000000001111100000000000000b,
-					00000000000011111100000000000000b,
-					00000000000111111100000000000000b,
-					00000000001111111100000000000000b
+					00000000000001000000000000000000b,
+					00000000000011000000000000000000b,
+					00000000000111000000000000000000b,
+					00000000001111000000000000000000b,
+					00000000011111000000000000000000b,
+					00000000111111000000000000000000b
 
 
-	_TB1 	dd		00000000000000001100100000000000b,
-					00000000000000001100100000000000b,
-					00000000000000001100100000000000b,
-					00000000000000011100100000000000b,
-					00000000000000111100100000000000b,
-					00000000000001111100100000000000b,
-					00000000000011111100100000000000b,
-					00000000000111111100100000000000b,
-					00000000001111111100100000000000b,
-					00000000011111111100100000000000b,
-					00000000111111111100100000000000b
+	_TB1 	dd		00000000000000001000000000000000b,
+					00000000000011001000000000000000b,
+					00000000000111001000000000000000b,
+					00000000001111001000000000000000b,
+					00000000011111001000000000000000b,
+					00000000111111001000000000000000b,
+					00000001111111001000000000000000b,
+					00000011111111001000000000000000b
 
-	_TB2	dd		11111111111111110011100000000000b,
-					11111111111111110011100000000000b,
-					11111111111111110011100000000000b,
-					11111111111111100011100000000000b,
-					11111111111111000011100000000000b,
-					11111111111110000011100000000000b,
-					11111111111100000011100000000000b,
-					11111111111000000011100000000000b,
-					11111111110000000011100000000000b,
-					11111111100000000011100000000000b,
-					11111111000000000011100000000000b
+	_TB2	dd		00000000000000001000000000000000b,
+					11111111111100111000000000000000b,
+					11111111111000111000000000000000b,
+					11111111110000111000000000000000b,
+					11111111100000111000000000000000b,
+					11111111000000111000000000000000b,
+					11111110000000111000000000000000b,
+					11111100000000111000000000000000b
 
-
-align	16
 
 	f65536	equ		pf65536
 	pf65536	dd		65536.0, 65536.0, 65536.0, 65536.0
 	pf32768	dd		32768.0, 32768.0, 32768.0, 32768.0
-	pf16384	dd		4096.0, 4096.0, 4096.0, 4096.0
 	f256	equ		pf256
 	pf256	dd		256.0, 256.0, 256.0, 256.0
 	pf128	dd		128.0, 128.0, 128.0, 128.0
@@ -280,22 +269,13 @@ align 16
 	rf14	dd		0.071429,0.071429,0.071429,0.071429
 	rf15	dd		0.06666667,0.06666667,0.06666667,0.06666667
 	rf16	dd		0.0625,0.0625,0.0625,0.0625
-;	rf17	dd		0.0588235,0.0588235,0.0588235,0.0588235
-;	rf18	dd		0.055556,0.055556,0.055556,0.055556
-;	rf19	dd		0.052632,0.052632,0.052632,0.052632
+	rf17	dd		0.0588235,0.0588235,0.0588235,0.0588235
+	rf18	dd		0.055556,0.055556,0.055556,0.055556
+	rf19	dd		0.052632,0.052632,0.052632,0.052632
 ;	rf20	dd		0.05,0.05,0.05,0.05
-;	rf21	dd		0.0476190485,0.0476190485,0.0476190485,0.0476190485
-;	rf22	dd		0.0454545468,0.0454545468,0.0454545468,0.0454545468
-;	rf23	dd		0.0434782617,0.0434782617,0.0434782617,0.0434782617
-;	rf24	dd		0.0416666679,0.0416666679,0.0416666679,0.0416666679
-;	rf25	dd		0.0399999991,0.0399999991,0.0399999991,0.0399999991
-;	rf26	dd		0.0384615399,0.0384615399,0.0384615399,0.0384615399
-;	rf27	dd		0.0370370373,0.0370370373,0.0370370373,0.0370370373
-;	rf28	dd		0.0357142873,0.0357142873,0.0357142873,0.0357142873
-;	rf29	dd		0.0344827585,0.0344827585,0.0344827585,0.0344827585
-;	rf30	dd		0.0333333351,0.0333333351,0.0333333351,0.0333333351
-;	rf31	dd		0.0322580636,0.0322580636,0.0322580636,0.0322580636
-;	rf32	dd		0.0312500000,0.0312500000,0.0312500000,0.0312500000
+
+	_255x4	dq		000ff00ff00ff00ffh
+	mmspill	dq		000ff00ff00ff00ffh
  
 	; Integer division table (lock and load)
 	RITable equ		ri1 - 4
@@ -315,22 +295,6 @@ align 16
 	ri14	dd		012492492h
 	ri15	dd		011111111h
 	ri16	dd		010000000h
-;	ri17	dd		0F0F0F0Fh
-;	ri18	dd		0E38E38Eh
-;	ri19	dd		0D79435Eh
-;	ri20	dd		0CCCCCCCh
-;	ri21	dd		0C30C30Ch
-;	ri22	dd		0BA2E8BAh
-;	ri23	dd		0B21642Ch
-;	ri24	dd		0AAAAAAAh
-;	ri25	dd		0A3D70A3h
-;	ri26	dd		09D89D89h
-;	ri27	dd		097B425Eh
-;	ri28	dd		09249249h
-;	ri29	dd		08D3DCB0h
-;	ri30	dd		08888888h
-;	ri31	dd		08421084h
-;	ri32	dd		08000000h
 
 	; assorted values (debug)
 	whitecolor dd	0ffffffh
@@ -340,20 +304,24 @@ align 16
 	Vertex_UZ	equ		4h
 	Vertex_VZ	equ		8h
 	Vertex_X	equ		0Ch
-	Vertex_R	equ		10h
-	Vertex_G	equ		14h
-	Vertex_B	equ		18h
-	Vertex_A	equ		1Ch
-	Vertex_Y	equ		20h
-	VertexSize	equ		30h
+	Vertex_UZ1	equ		10h
+	Vertex_VZ1	equ		14h
+	Vertex_SRCA	equ		18h
+	Vertex_DSTA	equ		1Ch
+	Vertex_R	equ		20h
+	Vertex_G	equ		24h
+	Vertex_B	equ		28h
+	Vertex_A	equ		2Ch
+	Vertex_Y	equ		30h
+	VertexSize	equ		40h
 
 
 ;;; STATIC VARIABLES ;;;
 
-	public			_IX_TGZM_Code_Start
-	public			_IX_TGZM_Code_Size
-	_IX_TGZM_Code_Start	dd	ASM_FILE_START
-	_IX_TGZM_Code_Size	dd	ASM_FILE_END - ASM_FILE_START
+	public			_IX_TGZTTAM_Code_Start
+	public			_IX_TGZTTAM_Code_Size
+	_IX_TGZTTAM_Code_Start	dd	ASM_FILE_START
+	_IX_TGZTTAM_Code_Size	dd	ASM_FILE_END - ASM_FILE_START
 
 ;;; CODE SEGMENTS ;;;
 
@@ -365,7 +333,7 @@ _TEXT   SEGMENT PARA PUBLIC 'CODE'
 
 ;;; EXPORTED VARIABLES ;;;
 
-public _IX_TGZM_AsmFiller
+public _IX_TGZTTAM_AsmFiller
 
 ASM_FILE_START	equ	$
 
@@ -376,7 +344,7 @@ ASM_FILE_START	equ	$
 ;				edi	- V2
 ; Returns:		Number of scan lines
 ;;;;;;;;;;;
-TGZM_CalcRightSection	proc	near
+TGZTTAM_CalcRightSection	proc	near
 
 	V1		equ		esi
 	V2		equ		edi
@@ -384,54 +352,54 @@ TGZM_CalcRightSection	proc	near
 	push ebx
 
 ; calc integer number of scanlines
-	movss	xmm0,	dword ptr [V1 + Vertex_Y]
-	movss	xmm1,	dword ptr [V2 + Vertex_Y]
-	cvtss2si ebx,	xmm0
-	cvtss2si eax,	xmm1
-	sub		eax,	ebx
+	vmovss	xmm0,	dword ptr [V1 + Vertex_Y]
+	vmovss	xmm1,	dword ptr [V2 + Vertex_Y]
+	vcvtss2si ebx,	xmm0
+	vcvtss2si eax,	xmm1
+	sub		 eax,	ebx
 	mov		[Right_ScanLines], eax
 
 ; return if scanlines = 0
 	jz		JmpRet
 ; xmm1 = float height
-	subss	xmm1,	xmm0
+	vsubss	xmm1,	xmm0
 ; calculate xmm2 = 1.0/height
 ; should consider revising using rcpss
-	movss   xmm2,	[f1]
+	vmovss   xmm2,	[f1]
 
 ; forward loading of vertex lighting
-	movaps	xmm4, [V2 + Vertex_R]
+	vmovaps	xmm4, [V2 + Vertex_R]
 
-	divss	xmm2,	xmm1
+	vdivss	xmm2,	xmm1
 ;	rcpss	xmm2,	xmm1
 
 ; forward loading of vertex X	xmm0 = V1 X
-	movss	xmm0,	dword ptr [V1 + Vertex_X]
+	vmovss	xmm0,	dword ptr [V1 + Vertex_X]
 
 
 ; Right.dX = (V2->X - V1->X) * rHeight;
 ; sdword FPRevHeight;
 
-	movss  xmm3,   dword ptr [V2 + Vertex_X]
-	subss	xmm3,	xmm0
+	vmovss  xmm3,   dword ptr [V2 + Vertex_X]
+	vsubss	xmm3,	xmm0
 
 ; forward loading of vertex lighting
-	movaps	xmm5,	dword ptr [V1 + Vertex_R]
+	vmovaps	xmm5,	dword ptr [V1 + Vertex_R]
 
 ; xmm3 now contains X delta
-	mulss   xmm3,	xmm2
+	vmulss   xmm3,	xmm2
 
 ; shuffle xmm2 = 1.0/height
-	shufps	xmm2,	xmm2,	00000000b
+	vshufps	xmm2,	xmm2,	00000000b
 
 ; Right.dR = (V2->R - V1->R) * RevHeight;
 ; Right.dG = (V2->G - V1->G) * RevHeight;
 ; Right.dB = (V2->B - V1->B) * RevHeight;
 ; Right.dA = (V2->A - V1->A) * RevHeight;
 ; xmm4 - V2 Light	xmm5 - V1 Light
-	subps	xmm4,	xmm5
+	vsubps	xmm4,	xmm5
 ; xmm4 = RGBA Deltas
-	mulps   xmm4,	xmm2
+	vmulps   xmm4,	xmm2
 
 ;float prestep = ((float)iy1 - V1->Y);
 ; Right.X  = V1->X  + Left.dX  * prestep;
@@ -440,32 +408,32 @@ TGZM_CalcRightSection	proc	near
 ; Right.RZ = V1->RZ + Left.dRZ * prestep;
 
 ; ebx = ceil(V1->Y)
-	cvtsi2ss	xmm1,	ebx
+	vcvtsi2ss	xmm1,	ebx
 ; load V1 X
-	subss		xmm1,	dword ptr [V1 + Vertex_Y]
-	movss		xmm6,	xmm1
-	shufps		xmm6,	xmm6,	00000000b
+	vsubss		xmm1,	dword ptr [V1 + Vertex_Y]
+	vmovss		xmm6,	xmm1
+	vshufps		xmm6,	xmm6,	00000000b
 ; multiply delta (xmm3) by prestep (xmm1)
-	mulss		xmm1,	xmm3
+	vmulss		xmm1,	xmm3
 ; xmm0 = prestepped X
-	addss		xmm0,	xmm1
+	vaddss		xmm0,	xmm1
 	
 ; Left.R = V1->R + prestep * Left.dR;
 ; Left.G = V1->G + prestep * Left.dG;
 ; Left.B = V1->B + prestep * Left.dB;
 ; Left.A = V1->A + prestep * Left.dA;
 ; xmm5 = V1 Light	xmm6 - prestep	xmm4 - RGBA deltas
-	mulps		xmm6,	xmm4
+	vmulps		xmm6,	xmm4
 ; xmm5 = prestepped RGBA
-	addps		xmm5,	xmm6
+	vaddps		xmm5,	xmm6
 	
 
 ; late storing of X and delta
-	movss	[Right_X],	xmm0
-	movss	[Right_dX],	xmm3
+	vmovss	dword ptr [Right_X],	xmm0
+	vmovss	dword ptr [Right_dX],	xmm3
 
-	movaps	[Right_R],	xmm5
-	movaps	[Right_dR],	xmm4
+	vmovaps	dword ptr [Right_R],	xmm5
+	vmovaps	dword ptr [Right_dR],	xmm4
 ; multiply RGBA(xmm5), dRGBA(xmm4) by 65536.0 for fixed point
 ; and store as RGBA(mm0, mm1) and dRGBA(mm2, mm3)
 ;	movaps  xmm0,	[f65536]
@@ -488,7 +456,7 @@ JmpRet:
 	pop ebx
 	ret
 
-TGZM_CalcRightSection	endp
+TGZTAM_CalcRightSection	endp
 
 
 ;;;;;;;;;;;
@@ -498,7 +466,7 @@ TGZM_CalcRightSection	endp
 ;				edi	- IXVertex *V2
 ; Returns:		Number of scan lines
 ;;;;;;;;;;;
-TGZM_CalcLeftSection		proc	near
+TGZTTAM_CalcLeftSection		proc	near
 
 	V1		equ		esi
 	V2		equ		edi
@@ -506,30 +474,30 @@ TGZM_CalcLeftSection		proc	near
 	push ebx
 
 ; calc integer number of scanlines
-	movss	xmm0,	dword ptr [V1 + Vertex_Y]
-	movss	xmm1,	dword ptr [V2 + Vertex_Y]
-	cvtss2si ebx,	xmm0
-	cvtss2si eax,	xmm1
+	vmovss	xmm0,	dword ptr [V1 + Vertex_Y]
+	vmovss	xmm1,	dword ptr [V2 + Vertex_Y]
+	vcvtss2si ebx,	xmm0
+	vcvtss2si eax,	xmm1
 	sub		eax,	ebx
 	mov		[Left_ScanLines], eax
 
 ; return if scanlines = 0
 	jz		JmpRet
 ; xmm1 = float height
-	subss	xmm1,	xmm0
+	vsubss	xmm1,	xmm0
 
 ; should consider revising using rcpss
 ; calculate xmm2 = 1.0/height
-	movss   xmm2,	[f1]
+	vmovss   xmm2,	[f1]
 
 ; forward loading of vertex lighting
-	movaps	xmm4, [V2 + Vertex_R]
+	vmovaps	xmm4, [V2 + Vertex_R]
 
-	divss	xmm2,	xmm1
+	vdivss	xmm2,	xmm1
 ;	rcpss	xmm2,	xmm1
 
 ; forward loading of vertex ZUVX	xmm0 = V1 ZUVX
-	movaps	xmm0,	[V1 + Vertex_RZ]
+	vmovaps	ymm0,	[V1 + Vertex_RZ]
 
 
 ; IX.Left.dX = (V2->X - V1->X) * RevHeight;
@@ -537,26 +505,26 @@ TGZM_CalcLeftSection		proc	near
 ; IX.Left.dVZ = (V2->VZ - V1->VZ) * RevHeight;
 ; IX.Left.dRZ = (V2->RZ - V1->RZ) * RevHeight;
 
-	movaps  xmm3,   [V2 + Vertex_RZ]
-	subps	xmm3,	xmm0
+	vmovaps  ymm3,   [V2 + Vertex_RZ]
+	vsubps	ymm3,	xmm0
 
 ; shuffle xmm2 = 1.0/height
-	shufps	xmm2,	xmm2,	00000000b
+	vshufps	ymm2,	ymm2,	00000000b
 
 ; forward loading of vertex lighting
-	movaps	xmm5,	[V1 + Vertex_R]
+	vmovaps	xmm5,	[V1 + Vertex_R]
 
 ; xmm3 now contains XUVZ deltas	
-	mulps   xmm3,	xmm2
+	vmulps   ymm3,	ymm2
 
 ; Left.dR = (V2->R - V1->R) * RevHeight;
 ; Left.dG = (V2->G - V1->G) * RevHeight;
 ; Left.dB = (V2->B - V1->B) * RevHeight;
 ; Left.dA = (V2->A - V1->A) * RevHeight;
 ; xmm4 - V2 Light	xmm5 - V1 Light
-	subps	xmm4,	xmm5
+	vsubps	xmm4,	xmm5
 ; xmm4 = RGBA Deltas
-	mulps   xmm4,	xmm2
+	vmulps   xmm4,	xmm2
 
 ;float prestep = ((float)iy1 - V1->Y);
 ; Left.X  = V1->X  + Left.dX  * prestep;
@@ -565,31 +533,31 @@ TGZM_CalcLeftSection		proc	near
 ; Left.RZ = V1->RZ + Left.dRZ * prestep;
 
 ; ebx = ceil(V1->Y)
-	cvtsi2ss	xmm1,	ebx
+	vcvtsi2ss	ymm1,	ebx
 ; load V1 XUVZ
-	subss		xmm1,	dword ptr [V1 + Vertex_Y]
-	shufps		xmm1,	xmm1,	00000000b
-	movaps		xmm6,	xmm1
+	vsubss		ymm1,	dword ptr [V1 + Vertex_Y]
+	vshufps		ymm1,	ymm1,	00000000b
+	vmovaps		ymm6,	ymm1
 ; multiply deltas (xmm3) by prestep (xmm1)
-	mulps		xmm1,	xmm3
+	mulps		ymm1,	ymm3
 ; xmm0 = prestepped XUVZ
-	addps		xmm0,	xmm1
+	vaddps		ymm0,	ymm1
 	
 ; Left.R = V1->R + prestep * Left.dR;
 ; Left.G = V1->G + prestep * Left.dG;
 ; Left.B = V1->B + prestep * Left.dB;
 ; Left.A = V1->A + prestep * Left.dA;
 ; xmm5 = V1 Light	xmm6 - prestep	xmm4 - RGBA deltas
-	mulps		xmm6,	xmm4
+	vmulps		xmm6,	xmm4
 ; xmm5 = prestepped RGBA
-	addps		xmm5,	xmm6
+	vaddps		xmm5,	xmm6
 
 ; late storing of XUVZ and deltas (yesh)
-	movaps	[Left_RZ],	xmm0
-	movaps	[Left_dRZ],	xmm3
+	vmovaps	[Left_RZ],	ymm0
+	vmovaps	[Left_dRZ],	ymm3
 
-	movaps	[Left_R],	xmm5
-	movaps	[Left_dR],	xmm4
+	vmovaps	[Left_R],	xmm5
+	vmovaps	[Left_dR],	xmm4
 ; multiply RGBA(xmm5), dRGBA(xmm4) by 65536.0 for fixed point
 ; and store as RGBA(mm0, mm1) and dRGBA(mm2, mm3)
 ;	movaps  xmm0,	[f65536]
@@ -612,7 +580,7 @@ JmpRet:
 	pop ebx
 	ret
 
-TGZM_CalcLeftSection		endp
+TGZTTAM_CalcLeftSection		endp
 
 
 ;	Summery: Span loop Input
@@ -622,7 +590,7 @@ TGZM_CalcLeftSection		endp
 ;	esi:		Zbuffer ptr
 ;	xmm0:		ZUVX initial left
 ;	xmm2:		ZUVX constant d/dx
-TGZM_SpanLoop			proc	near
+TGZTTAM_SpanLoop			proc	near
 
 	; Flat inner
 comment &
@@ -636,10 +604,9 @@ comment &
 	; so we use esp as a replacement.
 	; why? because we can.
 	; DOS INCOMPATIBLE
-
 	mov [save_esp],esp
 	mov esp,edi
-;	mov [t_edi], edi
+	;mov [t_edi], edi
 
 	; releases ebx.
 	mov [SubspanCounter], ebx
@@ -653,28 +620,28 @@ comment &
 	; eax = Z, edx = dZdx
 	mov			eax,	0ff80h
 
-	rcpss		xmm1,	xmm0
+	vrcpss		xmm1,	xmm0
 ;	movss		xmm1,	[f1]
 ;	divss		xmm1,	xmm0
 
-	movss		xmm4,	xmm1
-	mulss		xmm1,	_g_zscale
-	cvtss2si	ebx,	xmm1
+	vmovss		xmm4,	xmm1
+	vmulss		xmm1,	_g_zscale
+	vcvtss2si	ebx,	xmm1
 	sub			eax,	ebx
 
-	; xmm4, xmm7 = UV affine (14bit fractional)
-	movss		xmm5,	[pf16384]
-	mulss		xmm4,	xmm5
-	shufps		xmm4,	xmm4,	00000000b
-	mulps		xmm4,	xmm0
-	shufps		xmm4,	xmm4,	00001001b
-	movaps		xmm7,	xmm4
+	; xmm4, xmm7 = UV affine (16bit fractional)
+	vmovss		xmm5,	[pf65536]
+	vmulss		xmm4,	xmm5
+	vshufps		xmm4,	xmm4,	00000000b
+	vmulps		xmm4,	xmm0
+	vshufps		xmm4,	xmm4,	00001001b
+	vmovaps		xmm7,	xmm4
 
 	; mm2 = [Ui:Uf]        [Vi:Vf] (frees xmm4)
 	; ebp = [Ui:Uf], edi = [Vi:Vf] (frees mm2)
 	cvtps2pi	mm2,	xmm4
 
-
+	; TODO: Extract U2, V2, SRC/DST Alpha
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; placeholder: ebp/edi init
 	; ebp = u wwww ww00 0000 00ww 0fff ffff ffff ffff
@@ -691,9 +658,9 @@ comment &
 	movd		ebp,	mm2
 	movd		ebx,	mm2
 	shr			ebp,	1
-	and			ebx,	00003000h
+	and			ebx,	000030000h
 	or			ebx,	edi
-	and			ebp,	07ffh
+	and			ebp,	07fffh
 	or			ebp,	ebx	
 
 	pshufw		mm2,	mm2,	01001110b
@@ -710,7 +677,7 @@ comment &
 	add			ebx,	ebx
 	add			ebx,	ebx
 	
-	and			edi,	07ffh
+	and			edi,	07fffh
 	or			edi,	ebx
 
 	pshufw		mm2,	mm2,	01001110b
@@ -748,7 +715,7 @@ Outer:
 	sub			edx,	ecx
 
 	; xmm4 = UV affine (16bit fractional)
-	movss		xmm5,	[pf16384]
+	movss		xmm5,	[pf65536]
 	mulss		xmm4,	xmm5
 	shufps		xmm4,	xmm4,	00000000b
 	mulps		xmm4,	xmm0
@@ -804,7 +771,7 @@ Outer:
 	org			$ - 1
 	smc_Hb1		db		8
 
-	and			ebx,	000003000h
+	and			ebx,	000030000h
 
 	or			ebx,	003fc8000h	;	TB1(logHeight)
 	org			$-4
@@ -815,7 +782,7 @@ Outer:
 	movd		ecx,	mm3
 	shr			ecx,	1
 
-	and			ecx,	07ffh
+	and			ecx,	07fffh
 	or			ebx,	ecx
 	mov			[dudx],	ebx
 
@@ -838,7 +805,7 @@ Outer:
 ;	or			ecx,	0ffff8000h
 ;	and			ecx,	ebx
 
-	and			ecx,	07ffh
+	and			ecx,	07fffh
 
 	or			ebx,	0fc038000h	;	T2_22(logHeight)
 	org			$-4
@@ -900,17 +867,13 @@ Outer:
 ;align 16
 	Inner:
 		cmp ax, word ptr [esi+ecx]
-		jbe nodraw ; remark to disable zbuffer
+		jbe nodraw
 
 		; get texture
 		lea		ebx,	[edi+ebp]
-		shr		ebx,	12
+		shr		ebx,	16
 
-
-;		cmp [update_zbuffer], 1
-;		jne no_zbuffer_update
-		mov  word ptr [esi+ecx], ax
-;		no_zbuffer_update:
+;		mov  word ptr [esi+ecx], ax
 
 		pxor	mm4,	mm4
 		
@@ -918,23 +881,41 @@ Outer:
 		org $ - 4
 		SMC_Texture dd 0
 
-;		movd		mm5,	[whitecolor]
-
+		;movq [mmspill], mm2
 		punpcklbw	mm5,	mm4
+		pshufw		mm2,	mm5, 11111111b ; alpha channel
+		;psllw		mm2,	8
+		pmullw		mm5,	mm2
+		;psrlw		mm2,	8
+		;psrlw		mm5,	8
+
+		pxor		mm2,	[_255x4] ; mm2 = 255 - mm2 (in words) 
+		;psllw		mm2,	8
+
 		pmulhuw		mm5,	mm0
-		psllw		mm5,	1
+		;psllw		mm5,	1
+
+		movd mm6,	dword ptr [esp+ecx*2]
+
+		punpcklbw	mm6,	mm4
+		pmullw		mm6,	mm2
+		;movq mm2, [mmspill]
+		paddw		mm5,	mm6
+		psrlw		mm5,	8
+
 		packuswb	mm5,	mm5
-		
 		; write to screen
-		movd dword ptr [esp+ecx*2], mm5
+		movd		dword ptr [esp+ecx*2],	mm5
+
+		;xchg	edi, [t_edi]
+		;movd [edi+ecx*2], mm5
+		;xchg	edi, [t_edi]
 
 ;		xor [t_edi] , edi
 ;		xor edi,  [t_edi]
 ;		xor [t_edi] , edi
 
-;		xchg	edi, [t_edi]
 ;		movd [edi+ecx*2], mm5
-;		xchg	edi, [t_edi]
 
 ;		xor [t_edi] , edi
 ;		xor edi,  [t_edi]
@@ -984,22 +965,21 @@ Terminate:
 	; restore esp, so procedure pointers won't fuck up and shit.
 	mov esp,[save_esp]
 	ret
-TGZM_SpanLoop		endp
+TGZTTAM_SpanLoop		endp
 
 ;;;;;;;;;;;;;;;;
-_IX_TGZM_AsmFiller	proc	near
+_IX_TGZTTAM_AsmFiller	proc	near
 
 
 ;static void IXAsmFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page, dword logWidth, dword logHeight)
 
 ;;; ARGUMENTS ;;;
-	Arg_Verts			equ		esp + 4h
-	Arg_NumVerts		equ		esp + 8h
-	Arg_Texture			equ		esp + 0Ch
-	Arg_Page			equ		esp + 10h
-	Arg_LogWidth		equ		esp + 14h
-	Arg_LogHeight		equ		esp + 18h
-;	Arg_ZBufferUpdate	equ		esp + 1Ch
+	Arg_Verts		equ		esp + 4h
+	Arg_NumVerts	equ		esp + 8h
+	Arg_Texture		equ		esp + 0Ch
+	Arg_Page		equ		esp + 10h
+	Arg_LogWidth	equ		esp + 14h
+	Arg_LogHeight	equ		esp + 18h
 	
 ;IX.Texture = Texture;
 	mov	eax,		[Arg_Texture]
@@ -1010,9 +990,6 @@ _IX_TGZM_AsmFiller	proc	near
 ;IX.L2Size = logWidth; // Change this to "LogSize" when changing filler arguments
 	mov	eax,		[Arg_LogWidth]
 	mov	[_L2Size], eax
-
-;	mov	eax,		[Arg_ZBufferUpdate]
-;	mov	[update_zbuffer],	eax
 
 ;IX.Page = Page;
 	mov eax,		[Arg_Page]
@@ -1037,8 +1014,8 @@ SMC_update:
 	mov	[LastLogWidth],		eax
 	mov [LastLogHeight],	ecx
 
-	mov	ebx,	[_TB0 + eax * 4]	; TB0[Arg_LogWidth]
-	mov	edx,	[_TB0 + ecx * 4]	; TB0[Arg_LogHeight]
+	mov	ebx,	[_TB0 + eax * 4 - 4]	; TB0[Arg_LogWidth]
+	mov	edx,	[_TB0 + ecx * 4 - 4]	; TB0[Arg_LogHeight]
 
 	mov	ds:[smc_TB0Wd0],	ebx
 	mov ds:[smc_TB0Wd1],	ebx
@@ -1046,19 +1023,19 @@ SMC_update:
 	mov ds:[smc_Hb1],		cl
 
 
-	mov	edx,	[_T0 + ecx * 4]		; T0[Arg_LogHeight]
+	mov	edx,	[_T0 + ecx * 4 - 4]	; T0[Arg_LogHeight]
 	mov ds:[smc_T0Hd0],	edx
 	mov ds:[smc_T0Hd2],	edx
 
-	mov	edx,	[_TB1 + ecx * 4]	; TB1[Arg_LogHeight]
+	mov	edx,	[_TB1 + ecx * 4 - 4]	; TB1[Arg_LogHeight]
 	mov ds:[smc_TB1Hd1],	edx
 	sub	edx,	1
 	mov	ds:[smc_TB1Hd4],	edx
 
 	mov edi,	1
-	mov	edx,	[_TB2 + ecx * 4]	; TB2[Arg_LogHeight]
+	mov	edx,	[_TB2 + ecx * 4 - 4]	; TB2[Arg_LogHeight]
 	add cl,		al
-	add	cl,		11
+	add	cl,		15
 	shl edi,	cl
 	add edi,	edi
 	mov ds:[smc_TB2Hd3],	edx
@@ -1076,8 +1053,8 @@ comment &
 	mov ds:[smc_T0Hd2],	edi
 	mov ds:[smc_T0Wd3],	esi
 
-	mov	ebx,	[_T1 + eax * 4]	; T1[Arg_LogWidth]
-	mov	edx,	[_T1 + ecx * 4]	; T1[Arg_LogHeight]
+	mov	ebx,	[_T1 + eax * 4 - 4]	; T1[Arg_LogWidth]
+	mov	edx,	[_T1 + ecx * 4 - 4]	; T1[Arg_LogHeight]
 
 	mov ds:[_Wb1],		al
 
@@ -1116,7 +1093,7 @@ after_SMC_update:
 
 ;CalcLeftSection (Verts, Verts + 1);
 
-	call	TGZM_CalcLeftSection
+	call	TGZTTAM_CalcLeftSection
 
 ;	while (IX.Left.ScanLines == 0)
 ;	{
@@ -1138,7 +1115,7 @@ CalcLeftLoop:
 
 		mov esi,	edi
 		add edi,	VertexSize
-		call TGZM_CalcLeftSection
+		call TGZTTAM_CalcLeftSection
 
 
 	jmp CalcLeftLoop
@@ -1152,7 +1129,7 @@ LeftCalculated:
 
 	mov esi,	[Arg_Verts]
 	mov edi,	ebx
-	call TGZM_CalcRightSection
+	call TGZTTAM_CalcRightSection
 
 
 ;	while (IX.Right.ScanLines == 0)
@@ -1168,7 +1145,7 @@ CalcRightLoop:
 
 		mov esi, edi
 		sub edi, VertexSize
-		call TGZM_CalcRightSection
+		call TGZTTAM_CalcRightSection
 
 	jmp CalcRightLoop
 
@@ -1187,50 +1164,50 @@ RightCalculated:
 ;	ddx.dRZdx = invArea * ((Verts[1].RZ - Verts[0].RZ) * dy02 - (Verts[2].RZ - Verts[0].RZ) * dy01);
 
 	; make sure that ebx points to first vertex
-	mov			ebx,		[Arg_Verts]
+	mov		ebx,		[Arg_Verts]
 	; xmm0 = Verts[0].Y
-	movss	xmm0,	dword ptr [ebx + Vertex_Y]
+	vmovss	ymm0,	dword ptr [ebx + Vertex_Y]
 	; xmm1 = Verts[1].Y
-	movss	xmm1,	dword ptr [ebx + VertexSize + Vertex_Y]
+	vmovss	ymm1,	dword ptr [ebx + VertexSize + Vertex_Y]
 	; xmm2 = Verts[2].Y
-	movss	xmm2,	dword ptr [ebx + VertexSize * 2 + Vertex_Y]
+	vmovss	ymm2,	dword ptr [ebx + VertexSize * 2 + Vertex_Y]
 
 	; xmm3 = V[1] - V[0]	xmm4 = V[2] - V[0]	xmm5 = V[0]
-	movaps	xmm5,	dword ptr [ebx + Vertex_RZ]
+	movaps	ymm5,	[ebx + Vertex_RZ]
 	; xmm1 = dy01
-	subss	xmm1,	xmm0
-	movaps	xmm3,	dword ptr [ebx + VertexSize + Vertex_RZ]
-	shufps	xmm1,	xmm1,	00000000b
+	vsubss	ymm1,	ymm0
+	vmovaps	ymm3,	[ebx + VertexSize + Vertex_RZ]
+	vshufps	ymm1,	ymm1,	00000000b
 	; xmm2 = dy02
-	subss	xmm2,	xmm0
-	movaps	xmm4,	dword ptr [ebx + VertexSize * 2 + Vertex_RZ]
-	shufps	xmm2,	xmm2,	00000000b
-	subps	xmm3,	xmm5
-	subps	xmm4,	xmm5
+	vsubss	ymm2,	ymm0
+	vmovaps	ymm4,	[ebx + VertexSize * 2 + Vertex_RZ]
+	vshufps	ymm2,	ymm2,	00000000b
+	vsubps	ymm3,	ymm5
+	vsubps	ymm4,	ymm5
 
 	; xmm3 = (V[1] - V[0]) * dy02
-	mulps	xmm3,	xmm2
+	vmulps	ymm3,	ymm2
 	; xmm4 = (V[2] - V[0]) * dy01
-	mulps	xmm4,	xmm1
+	vmulps	ymm4,	ymm1
 
 	; xmm3 = (V[1] - V[0]) * dy02 - (V[2] - V[0]) * dy01 (xmm3 - xmm4)
-	subps	xmm3,	xmm4
+	vsubps	ymm3,	ymm4
 	
 	; store Area in xmm0
-	movaps	xmm7,	xmm3
-	shufps	xmm7,   xmm7, 11111111b
+	vmovaps	ymm7,	ymm3
+	vshufps	ymm7,   ymm7, 11111111b
 	; xmm1[0] = invArea
 	; could use rcpps
-	rcpss	xmm0,	xmm7
+	vrcpss	ymm0,	ymm7
 ;	movss	xmm0,   [f1]
 ;	divss	xmm0,	xmm7
 
 	; fill xmm0 with invArea
-	shufps	xmm0,   xmm0, 00000000b
+	vshufps	ymm0,   ymm0, 00000000b
 	; xmm1 = Constant texture deltas
-	mulps	xmm0,	xmm3
+	vmulps	ymm0,	ymm3
 	; store constant deltas
-	movaps	[_dRZdx],	xmm0
+	vmovaps	[_dRZdx],	ymm0
 	; multiply constant deltas by span size
 ;	mulps	xmm0,	[_pfSPANSIZE]
 	; store constant deltas * Span Size
@@ -1241,8 +1218,8 @@ RightCalculated:
 ;	word *ZBuffer = (word *)((dword)Page + PageSize + sizeof(word) * XRes * y);
 
 	; edi = _Page
-	movss		xmm0,		dword ptr [ebx + Vertex_Y]
-	cvtss2si	eax,		xmm0
+	vmovss		xmm0,		dword ptr [ebx + Vertex_Y]
+	vcvtss2si	eax,		xmm0
 	mov			ecx,		[_VESA_BPSL]
 	mov			edi,		[_Page]
 	mov			esi,		eax
@@ -1278,9 +1255,9 @@ ScanLineLoop:
 			;lx = Fist(Left.X);
 			;dword *LinePagePtr = Page + lx;
 			;word *LineZPtr = ZBuffer + lx;
-			movss		xmm0,	[Left_X]
+			vmovss		xmm0,	[Left_X]
 			; eax = lx, xmm0 = Left_X
-			cvtss2si	eax,	xmm0
+			vcvtss2si	eax,	xmm0
 			; esi = LineZPtr
 			mov			esi,	[_ZBuffer]
 			lea			ebx,	[eax + eax]
@@ -1293,8 +1270,8 @@ ScanLineLoop:
 ;			// Calculate scan-line width	
 ;			rx = Fist(Right.X);
 ;			Width = rx - lx;
-			movss		xmm1,	[Right_X]
-			cvtss2si	ebx,	xmm1
+			vmovss		xmm1,	[Right_X]
+			vcvtss2si	ebx,	xmm1
 			; ebx = Width, xmm1 = Right_X
 			sub			ebx,	eax	
 ;			if (Width <= 0)
@@ -1305,17 +1282,17 @@ ScanLineLoop:
 ;			xmm7 used as temporary.
 
 			; forward loading 
-			movaps		xmm2, [_dRZdx]
+			vmovaps		ymm2, [_dRZdx]
 ;			movaps		xmm3, [_sdRZdx]
-			movaps		xmm6, [Left_RZ]
+			vmovaps		ymm6, [Left_RZ]
 
 			; xmm1 = Scan Line Width
-			subss		xmm1,	xmm0
+			vsubss		xmm1,	xmm0
 
 			; xmm0 = span prestep
-			cvtsi2ss	xmm7, eax
-			subss		xmm7, xmm0
-			shufps	xmm7,	xmm7,	00000000b
+			vcvtsi2ss	xmm7, eax
+			vsubss		xmm7, xmm0
+			vshufps	    ymm7,	ymm7,	00000000b
 
 			; xmm7 = prestep * deltas
 			; xmm2 = constant d/dx
@@ -1323,12 +1300,12 @@ ScanLineLoop:
 			; xmm0 = left before prestep
 ;			movaps		xmm2, [pf0]
 ;			movaps		xmm3, [pf0]
-			movaps		xmm0, xmm6
-			mulps		xmm7, xmm2
+			vmovaps		ymm0, ymm6
+			vmulps		ymm7, ymm2
 			
 			
 			; xmm0 = initial left
-			addps		xmm0, xmm7
+			vaddps		ymm0, ymm7
 
 
 ;			Gouraud delta calculation
@@ -1351,26 +1328,27 @@ ScanLineLoop:
 ;				dRdx = dGdx = dBdx = 0;
 ;			}
 
-
-			movaps		xmm6,	[Left_R]
+			vpxor		ymm7,ymm7
+			vpxor		ymm6,ymm6
+			vmovaps		xmm6,	[Left_R]
 			cmp	ebx,1
 			je	ZeroDeltas
 ;			this section places RGBA 8:8 deltas into mm0
 			; xmm1 = 1.0 / Scan Line Width
-			rcpss		xmm1,	xmm1		
-			movaps		xmm7,	[Right_R]
-			shufps		xmm1,	xmm1,	0000000b
+			vrcpss		xmm1,	xmm1		
+			vmovaps		xmm7,	[Right_R]
+			vshufps		xmm1,	xmm1,	0000000b
 			; xmm4 = Right_RGBA - Left_RGBA
-			subps		xmm7,	xmm6
+			vsubps		xmm7,	xmm6
 			; xmm4 = RGBA deltas
-			mulps		xmm7,	xmm1			
+			vmulps		xmm7,	xmm1			
 
 			; Convert deltas to 8.8 fixed point in mm1
-			mulps		xmm7,	[pf256]
+			vmulps		xmm7,	[pf256]
 			cvtps2pi	mm1,	xmm7
-			movhlps		xmm7,	xmm7
+			vmovhlps		xmm7,	xmm7
 			cvtps2pi	mm0,	xmm7
-			packssdw	mm1,	mm0
+			vpackssdw	mm1,	mm0
 ;			psllw		mm1,	1
 
 			jmp			CallSpanLoop
@@ -1380,12 +1358,12 @@ ZeroDeltas:
 CallSpanLoop:
 
 ;   prepare left RGB (mm1)
-			mulps		xmm6,	[pf128]
+			vmulps		xmm6,	[pf128]
 			cvtps2pi	mm0,	xmm6
-			movhlps		xmm6,	xmm6
+			vmovhlps		xmm6,	xmm6
 			cvtps2pi	mm2,	xmm6
-			packssdw	mm0,	mm2
-			psllw		mm0,	1
+			vpackssdw	mm0,	mm2
+			vpsllw		mm0,	1
 
 ;	Summery: Span loop Input
 ;	mm1, mm0:	RGB, delta
@@ -1397,16 +1375,16 @@ CallSpanLoop:
 ;	xmm3:		ZUVX scaled d/dx
 
 ;			push edi
-			Call		TGZM_SpanLoop
+			Call		TGZTTAM_SpanLoop
 ;			pop edi
 ;			mov dword ptr [edi], 0FFFFFFFFh
 
 AfterScanConv:
 ;			forward loading : left Edge values
-			movaps		xmm0,		[Left_RZ]
-			movaps		xmm4,		[Left_dRZ]
-			movaps		xmm1,		[Left_R]
-			movaps		xmm5,		[Left_dR]
+			vmovaps		ymm0,		[Left_RZ]
+			vmovaps		ymm4,		[Left_dRZ]
+			vmovaps		xmm1,		[Left_R]
+			vmovaps		xmm5,		[Left_dR]
 
 ;			_Page(eax) += VESA_BPSL(ecx);
 ;			_ZBuffer(ebx) += XRes(edx);
@@ -1427,16 +1405,16 @@ AfterScanConv:
 			movss		xmm7,		[Right_dX]
 
 ;			Update Edge Values
-			addps		xmm0,		xmm4
-			addps		xmm1,		xmm5
+			vaddps		ymm0,		ymm4
+			vaddps		xmm1,		xmm5
 
-			addps		xmm2,		xmm6
-			addss		xmm3,		xmm7
+			vaddps		xmm2,		xmm6
+			vaddss		xmm3,		xmm7
 
-			movaps		[Left_RZ],	xmm0
-			movaps		[Left_R],	xmm1
-			movaps		[Right_R],	xmm2
-			movss		[Right_X],	xmm3
+			vmovaps		[Left_RZ],	ymm0
+			vmovaps		[Left_R],	xmm1
+			vmovaps		[Right_R],	xmm2
+			vmovss		[Right_X],	xmm3
 
 			; Decrease section height and jump to next iterate if needed
 			mov			ecx,	[_HeightCounter]
@@ -1475,7 +1453,7 @@ LeftAgain:
 
 		mov esi,	 edi
 		add edi,	 VertexSize
-		call TGZM_CalcLeftSection
+		call TGZTTAM_CalcLeftSection
 
 		test eax, eax
 		jz LeftAgain
@@ -1500,7 +1478,7 @@ ReCalcRight:
 RightAgain:
 		mov esi,	edi
 		sub edi,	VertexSize
-		call TGZM_CalcRightSection
+		call TGZTTAM_CalcRightSection
 
 		
 		test eax, eax
@@ -1524,7 +1502,7 @@ CalcSectionHeight:
 JmpRet:
 	emms
 	ret
-_IX_TGZM_AsmFiller				endp
+_IX_TGZTTAM_AsmFiller				endp
 ;;;;;;;;;;;;;;;;
 
 ASM_FILE_END	equ	$

@@ -1187,10 +1187,13 @@ void IX_Prefiller_TGZTM(Vertex **V, dword numVerts)
 		}
 	}
 
+	//dword updateZBuffer = DoFace->Txtr->ZBufferWrite ? 1 : 0;
+
 //	IXAsmFiller(l_IXArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 	__asm
 	{
 		pushad
+	//	push updateZBuffer
 		push LogHeight
 		push LogWidth
 		push VPage

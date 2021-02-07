@@ -1004,6 +1004,7 @@ void Assign_Fillers(Scene *Sc)
 			if (F->Txtr->Flags & Mat_Transparent) rasterFlags += 4;
 			if (F->Txtr->Flags & Mat_SrcAlpha) rasterFlags = 8;
 			if (F->Txtr->Flags & Mat_Additive) rasterFlags = 9;
+//			F->Txtr->ZBufferWrite = !(F->Txtr->Flags & Mat_SkipZ);
 
 			//if (F->Txtr->Flags & Mat_UseTextureAlpha) rasterFlags += 8;
 			RasterFunc stdFillers[10] = {

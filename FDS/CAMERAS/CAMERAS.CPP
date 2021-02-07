@@ -18,13 +18,15 @@ Vertex **ColVtx_Stack = new Vertex * [30],**CVS;
 Edge **ColEdge_Stack = new Edge * [50],**CES;
 static Face **ColFace_Stack = new Face * [15],**CFS;
 static Vector *ColNorm_Stack = new Vector[50],*CVV;
+float AspectRatio = 4.0 / 3.0;
+
 
 void CalcPersp(Camera *Cm)
 {
-	const float AspectRatio = (float)(YRes*4)/(float)(XRes*3);
-	float TanFOV = tan((Cm->IFOV/2.0)/180.0*PI);
+	const float screenAR = (float)(YRes) / (float)(XRes);
+	const float TanFOV = tan((Cm->IFOV/2.0)/180.0*PI);
 	Cm->PerspX = CntrX / TanFOV;
-	Cm->PerspY = Cm->PerspX * AspectRatio;
+	Cm->PerspY = Cm->PerspX * AspectRatio * screenAR;
 }
 
 float LensToFOV(float lens)

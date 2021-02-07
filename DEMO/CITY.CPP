@@ -358,12 +358,6 @@ static void Reflective_Surface_Setup()
 
 		IID++;
 	}
-	Omni *Om;
-	for(Om=CitySc->OmniHead;Om;Om=Om->Next)
-	{
-//		printf("City Flare Range was %f\n",Om->Range.Keys[0].Pos.x);
-		//Om->Range.Keys[0].Pos.x *= 5.0f;
-	}
 }
 
 
@@ -1019,7 +1013,6 @@ void Reflective_AnimateTexture()
 		F->U3 += dTime * 0.0007 * 2;
 		F->V3 += dTime * 0.0003 * 2;
 	}
-
 }
 
 // this fixes an omnilight to follow the camera and light things up a bit.
@@ -1412,13 +1405,81 @@ static dword V_Create(VESA_Surface* VS)
 
 	dword ZBufferSize = sizeof(word) * VS->X * VS->Y;
 	if (!(VS->Data = (byte*)malloc(VS->PageSize + ZBufferSize))) return 1;
-	memset(VS->Data, 0x7f, VS->PageSize + ZBufferSize);
+	memset(VS->Data, 0, VS->PageSize + ZBufferSize);
 
 	//	VS->Flags = VSurf_Exists;
 	
 	VS->Handle = 0;
 
 	return 0;
+}
+
+struct CubeMapCoord {
+	uint32_t textureIdx : 3;
+	uint32_t u : 10;
+	uint32_t v : 10;
+
+	void set(uint32_t textureIdx, float u, float v) {
+		this->textureIdx = textureIdx;
+		this->u = uint32_t(u * 1023.999);
+		this->v = uint32_t(v * 1023.999);
+	}
+
+	uint32_t getTextureIdx() const {
+		return textureIdx;
+	}
+	float getU() const {
+		return u / 1023.999;
+	}
+	float getV() const {
+		return v / 1023.999;
+	}
+};
+
+using std::min;
+using std::max;
+
+std::vector<CubeMapCoord> CalcEquirectangularPanoramaTable(int xRes, int yRes) {
+	std::vector<CubeMapCoord> res(xRes * yRes);
+	auto it = res.begin();
+	for (int y = 0; y != yRes; ++y) {
+		const float lat = PI * (float(y) / yRes) - PI / 2.0f;
+		XMMVector d;
+		d.y = sin(lat);
+		const float xzFactor = cos(lat);
+		for (int x = 0; x != xRes; ++x, ++it) {
+			const float lon = 2.0 * PI * (float(x) / xRes);
+			d.x = xzFactor * sin(lon);
+			d.z = xzFactor * cos(lon);
+			const int ROT = 2;
+			if (d.z > max(fabs(d.x), fabs(d.y))) {
+				const float u = ((d.x / d.z) + 1.0) / 2.0;
+				const float v = ((d.y / d.z) + 1.0) / 2.0;
+				it->set(ROT % 4,1-u, v);
+			} else if (d.x > max(fabs(d.y), fabs(d.z))) {
+				const float u = ((d.z / d.x) + 1.0) / 2.0;
+				const float v = ((d.y / d.x) + 1.0) / 2.0;
+				it->set((ROT + 1) % 4, u, v);
+			} else if (d.z < -max(fabs(d.x), fabs(d.y))) {
+				const float u = ((d.x / d.z) + 1.0) / 2.0;
+				const float v = ((d.y / d.z) + 1.0) / 2.0;
+				it->set((ROT + 2) % 4,1-u,1-v);
+			} else if (d.x < -max(fabs(d.y), fabs(d.z))) {
+				const float u = ((d.z / d.x) + 1.0) / 2.0;
+				const float v = ((d.y / d.x) + 1.0) / 2.0;
+				it->set((ROT + 3) % 4,u,1-v);
+			} else if (d.y > max(fabs(d.x), fabs(d.z))) {
+				const float u = ((d.x / d.y) + 1.0) / 2.0;
+				const float v = ((d.z / d.y) + 1.0) / 2.0;
+				it->set(4, u, v);
+			} else if (d.y < -max(fabs(d.x), fabs(d.z))) {
+				const float u = ((d.x / d.y) + 1.0) / 2.0;
+				const float v = ((d.z / d.y) + 1.0) / 2.0;
+				it->set(5, 1 - u, v);
+			}
+		}
+	}
+	return res;
 }
 
 
@@ -1449,7 +1510,7 @@ void Initialize_City()
 	Reflective_Surface_Setup();
 	AddCameraOmni(); 
 
-//	SceneCorrections();
+	//SceneCorrections();
 
 
 	Preprocess_Scene(CitySc);
@@ -1459,6 +1520,11 @@ void Initialize_City()
 	//	if (M->RelScene != CitySc) continue;
 	//	if (!M->Txtr) continue;
 	//}
+
+	const auto PANORAMA_XRES = 1024;
+	const auto PANORAMA_YRES = 1024;
+
+	auto cubeMapper = CalcEquirectangularPanoramaTable(PANORAMA_XRES, PANORAMA_YRES);
 	
 	//	printf("Scene-Proc MEM = %d\n",DPMI_Free_Memory());
 	// also make the appropriate Layer 2 fillers,
@@ -1470,31 +1536,49 @@ void Initialize_City()
 	// TODO: should animate the object to the frame where the camera is nearest to it
 	CurFrame = 0;
 	View = CitySc->CameraHead;
-	Animate_Objects(CitySc);
-	Lighting(CitySc);
+
+	const auto CUBE_MAP_XRES = 1024;
+	const auto CUBE_MAP_YRES = 1024;
 
 	// render env maps for a few select objects
 	FList_Allocate(CitySc);
+	auto oldAspectRatio = AspectRatio;
+	// HACK: using exactly 1 triggers frustrum clipper bugs
+	AspectRatio = 0.999;
 	Camera EnvCam = { 0 };
 	View = &EnvCam;
 	EnvCam.IFOV = 90.0;
-	EnvCam.PerspX = 512.0;
-	EnvCam.PerspY = 512.0;
+	CalcPersp(&EnvCam);
+	//EnvCam.PerspX = CUBE_MAP_XRES / 2;
+	//EnvCam.PerspY = CUBE_MAP_YRES / 2;
+	FOVX = View->PerspX;
+	FOVY = View->PerspY;
+
+	Animate_Objects(CitySc, true);
+	Lighting(CitySc);
 
 	VESA_Surface* PrevMainSurf = MainSurf;
 	VESA_Surface TmpSurf = { 0 };
 	MainSurf = &TmpSurf;
-	TmpSurf.X = 1024;
-	TmpSurf.Y = 1024;
+	TmpSurf.X = CUBE_MAP_XRES;
+	TmpSurf.Y = CUBE_MAP_YRES;
 	TmpSurf.BPP = 32;
 	TmpSurf.Flip = PrevMainSurf->Flip;
-	VESA_BPSL = 4096;
+	VESA_BPSL = CUBE_MAP_XRES * 4;
 	V_Create(&TmpSurf);
 	VESA_VPageExternal(&TmpSurf);
 
 	SetCurrentScene(CitySc);
 	int building_count = 0;
 	bool bailout = false;
+
+	std::vector<uint32_t> cubeMaps[6];
+	for (auto& cubeMap : cubeMaps) {
+		cubeMap.resize(CUBE_MAP_XRES * CUBE_MAP_YRES);
+	}
+
+	std::vector<uint32_t> panorama(PANORAMA_XRES * PANORAMA_YRES);
+
 	for (Object* Obj = CitySc->ObjectHead; Obj != nullptr; Obj = Obj->Next) {
 		if (Obj->Type != Obj_TriMesh) { continue; }
 		if (Obj->Name == nullptr) { continue; }
@@ -1502,6 +1586,8 @@ void Initialize_City()
 
 		building_count++;
 		auto T = (TriMesh*)(Obj->Data);
+		auto flags = T->Flags;
+		T->Flags &= ~HTrack_Visible;
 		EnvCam.ISource = T->IPos + T->BSphereCtr;
 		for (int i = 0; i != 6; ++i) {
 			FastWrite(VPage, 0, (PageSize + XRes * YRes * sizeof(word)) >> 2);
@@ -1518,15 +1604,50 @@ void Initialize_City()
 				Radix_SortingASM(FList, SList, CAll);
 				Render();
 			}
-			/*Flip(&TmpSurf);
 			if (!bailout) {
-				SysSleep(500);
 				if (Keyboard[ScESC]) {
 					bailout = true;
 				}
-			}*/
+				Flip(&TmpSurf);
+				while (!Keyboard[ScSpace]) {
+				}
+				while (Keyboard[ScSpace]) {
+				}
+				if (Keyboard[ScESC]) {
+					bailout = true;
+				}
+			}
+			memcpy(cubeMaps[i].data(), TmpSurf.Data, CUBE_MAP_XRES * CUBE_MAP_YRES * 4);
+		}
+		T->Flags = flags;
+
+		auto outputIt = panorama.begin();
+		auto mapperIt = cubeMapper.begin();
+		for (int y = 0; y != PANORAMA_YRES; ++y) {
+			for (int x = 0; x != PANORAMA_XRES; ++x, ++mapperIt, ++outputIt) {
+				const int u = int(mapperIt->getU() * CUBE_MAP_XRES);
+				const int v = int(mapperIt->getV() * CUBE_MAP_YRES);
+				*outputIt = cubeMaps[mapperIt->getTextureIdx()][u + v * CUBE_MAP_XRES];
+			}
+		}
+
+		// HACK: works because panorma size = cube
+		memcpy(TmpSurf.Data, panorama.data(), CUBE_MAP_XRES * CUBE_MAP_YRES * 4);
+		if (!bailout) {
+			if (Keyboard[ScESC]) {
+				bailout = true;
+			}
+			Flip(&TmpSurf);
+			while (!Keyboard[ScSpace]) {
+			}
+			while (Keyboard[ScSpace]) {
+			}
+			if (Keyboard[ScESC]) {
+				bailout = true;
+			}
 		}
 	}
+	AspectRatio = oldAspectRatio;
 
 	MainSurf = PrevMainSurf;
 	VESA_Surface2Global(MainSurf);
@@ -1773,6 +1894,7 @@ void Run_City()
 		//memset(VPage,0,PageSize + XRes*YRes*sizeof(word));
 		FastWrite(VPage, 0, (PageSize + XRes * YRes * sizeof(word)) >> 2);
 		RenderSkyCube(SkySc, View, false);
+//		FastWrite(VPage + PageSize, 0, (XRes * YRes * sizeof(word)) >> 2);
 
 		Profiler[PROF_ZCLR] += Timer;
 		Profiler[PROF_ANIM] -= Timer;
@@ -1830,8 +1952,12 @@ void Run_City()
 			memcpy(backBuffer.data(), VPage, PageSize);
 			int ii = 0;
 			dword* ptr = (dword*)VPage;
+			uint16_t* zbuffer_ptr = (uint16_t*)(VPage + PageSize);
 			for (auto displacement : dispMap) {
-				*ptr++ = backBuffer[displacement];
+				if (*zbuffer_ptr++ != 0) {
+					*ptr = backBuffer[displacement];
+				}
+				ptr++;
 			}
 		}
 

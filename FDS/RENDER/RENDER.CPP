@@ -249,17 +249,18 @@ void Animate_Objects(Scene *Sc, bool SkipCameraAnimation)
 		Spline_Calc_3D(&View->Target,CurFrame,&View->ITarget);
 		Spline_Calc_1D(&View->Roll,CurFrame,&View->IRoll);
 		Spline_Calc_1D(&View->FOV,CurFrame,&View->IFOV);
-		if (View->Flags&Cam_Euler)
+		if (View->Flags & Cam_Euler) {
 			//Euler_Angles(View->Mat,View->ITarget.x,View->ITarget.y,View->ITarget.z);
-			Euler_Angles(View->Mat,View->ITarget.y,View->ITarget.x,-View->ITarget.z);
-		else
-			Kick_Camera(&View->ISource,&View->ITarget,View->IRoll,View->Mat);
+			Euler_Angles(View->Mat, View->ITarget.y, View->ITarget.x, -View->ITarget.z);
+		} else {
+			Kick_Camera(&View->ISource, &View->ITarget, View->IRoll, View->Mat);
+		}
 	}
 	
 	CalcPersp(View);
-	
 	FOVX = View->PerspX;
 	FOVY = View->PerspY;
+	
 	
 	// lalala, HARARCHIA , Ver 3, it now rulati
 	for (Obj=Sc->ObjectHead;Obj;Obj=Obj->Next)
@@ -818,7 +819,7 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 #else
 			O->F.SortZ.F = fzp-dz;
 #endif			
-			*Ins++ = &O->F;
+			//*Ins++ = &O->F;
 		}
 	}
 
@@ -1993,7 +1994,7 @@ Away:Tot = Timer-TTrd;
 	}
 	//	printf("FPS == %f\n",100.0*(float)Frames/(float)Timer);
 	while (Keyboard[ScESC]) DO_NOP();
-	Exec_FPS = 100.0*(float)Frames/(float)Par5;
+	//Exec_FPS = 100.0*(float)Frames/(float)Par5;
 	/*  sprintf(Str,"Inst. FPS = %3.2f (%3.2f)",FPGS,100.0*(float)Frames/(float)Par4);
 	OutTextXY(VGAPtr,0,0,Str,63);
 	while (!Keyboard[ScESC]) DO_NOP();
