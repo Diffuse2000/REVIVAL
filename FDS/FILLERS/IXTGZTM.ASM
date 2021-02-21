@@ -135,7 +135,7 @@ align 16
 	Right_X			dd		0.0
 	Right_dX		dd		0.0
 	save_esp		dd		0
-	align32			dd		0
+	update_zbuffer	dd		0
 
 ; innerloop variables (cacheline 1)
 
@@ -175,59 +175,82 @@ align 16
 ; Float tables
 align	16
 
+; Float tables
 ;	mask tables for standard textures (1x1 blocks)
-	_T0		dd		000010000h,
-					000030000h,
-					000070000h,
-					0000f0000h,
-					0001f0000h,
-					0003f0000h,
-					0007f0000h,
-					000ff0000h,
 
-	_T1		dd		0fffe8000h,
-					0fffc8000h,
-					0fff88000h,
-					0fff08000h,
-					0ffe08000h,
-					0ffc08000h,
-					0ff808000h,
-					0ff008000h
+;					 3         2         1         0
+;                   21098765432109876543210987654321
+	_T0		dd		00000000000000000000000000000000b,
+					00000000000000000001000000000000b,
+					00000000000000000011000000000000b,
+					00000000000000000111000000000000b,
+					00000000000000001111000000000000b,
+					00000000000000011111000000000000b,
+					00000000000000111111000000000000b,
+					00000000000001111111000000000000b,
+					00000000000011111111000000000000b,
+					00000000000111111111000000000000b,
+					00000000001111111111000000000000b
 
+;					 3         2         1         0
+;                   21098765432109876543210987654321
+	_T1		dd		11111111111111111111100000000000b,
+					11111111111111111110100000000000b,
+					11111111111111111100100000000000b,
+					11111111111111111000100000000000b,
+					11111111111111110000100000000000b,
+					11111111111111100000100000000000b,
+					11111111111111000000100000000000b,
+					11111111111110000000100000000000b,
+					11111111111100000000100000000000b,
+					11111111111000000000100000000000b,
+					11111111110000000000100000000000b
 
 ;	mask tables for tiled textures (4x4 blocks - 2 bits for inner tile position)
+;					 3         2         1         0
+;                   21098765432109876543210987654321
 	_TB0	dd		00000000000000000000000000000000b,
 					00000000000000000000000000000000b,
-					00000000000001000000000000000000b,
-					00000000000011000000000000000000b,
-					00000000000111000000000000000000b,
-					00000000001111000000000000000000b,
-					00000000011111000000000000000000b,
-					00000000111111000000000000000000b
+					00000000000000000000000000000000b,
+					00000000000000000100000000000000b,
+					00000000000000001100000000000000b,
+					00000000000000011100000000000000b,
+					00000000000000111100000000000000b,
+					00000000000001111100000000000000b,
+					00000000000011111100000000000000b,
+					00000000000111111100000000000000b,
+					00000000001111111100000000000000b
 
 
-	_TB1 	dd		00000000000000001000000000000000b,
-					00000000000011001000000000000000b,
-					00000000000111001000000000000000b,
-					00000000001111001000000000000000b,
-					00000000011111001000000000000000b,
-					00000000111111001000000000000000b,
-					00000001111111001000000000000000b,
-					00000011111111001000000000000000b
+	_TB1 	dd		00000000000000001100100000000000b,
+					00000000000000001100100000000000b,
+					00000000000000001100100000000000b,
+					00000000000000011100100000000000b,
+					00000000000000111100100000000000b,
+					00000000000001111100100000000000b,
+					00000000000011111100100000000000b,
+					00000000000111111100100000000000b,
+					00000000001111111100100000000000b,
+					00000000011111111100100000000000b,
+					00000000111111111100100000000000b
 
-	_TB2	dd		00000000000000001000000000000000b,
-					11111111111100111000000000000000b,
-					11111111111000111000000000000000b,
-					11111111110000111000000000000000b,
-					11111111100000111000000000000000b,
-					11111111000000111000000000000000b,
-					11111110000000111000000000000000b,
-					11111100000000111000000000000000b
+	_TB2	dd		11111111111111110011100000000000b,
+					11111111111111110011100000000000b,
+					11111111111111110011100000000000b,
+					11111111111111100011100000000000b,
+					11111111111111000011100000000000b,
+					11111111111110000011100000000000b,
+					11111111111100000011100000000000b,
+					11111111111000000011100000000000b,
+					11111111110000000011100000000000b,
+					11111111100000000011100000000000b,
+					11111111000000000011100000000000b
 
-
+align	16
 	f65536	equ		pf65536
 	pf65536	dd		65536.0, 65536.0, 65536.0, 65536.0
 	pf32768	dd		32768.0, 32768.0, 32768.0, 32768.0
+	pf4096	dd		4096.0, 4096.0, 4096.0, 4096.0
 	f256	equ		pf256
 	pf256	dd		256.0, 256.0, 256.0, 256.0
 	pf128	dd		128.0, 128.0, 128.0, 128.0
@@ -257,22 +280,22 @@ align 16
 	rf14	dd		0.071429,0.071429,0.071429,0.071429
 	rf15	dd		0.06666667,0.06666667,0.06666667,0.06666667
 	rf16	dd		0.0625,0.0625,0.0625,0.0625
-	rf17	dd		0.0588235,0.0588235,0.0588235,0.0588235
-	rf18	dd		0.055556,0.055556,0.055556,0.055556
-	rf19	dd		0.052632,0.052632,0.052632,0.052632
-	rf20	dd		0.05,0.05,0.05,0.05
-	rf21	dd		0.0476190485,0.0476190485,0.0476190485,0.0476190485
-	rf22	dd		0.0454545468,0.0454545468,0.0454545468,0.0454545468
-	rf23	dd		0.0434782617,0.0434782617,0.0434782617,0.0434782617
-	rf24	dd		0.0416666679,0.0416666679,0.0416666679,0.0416666679
-	rf25	dd		0.0399999991,0.0399999991,0.0399999991,0.0399999991
-	rf26	dd		0.0384615399,0.0384615399,0.0384615399,0.0384615399
-	rf27	dd		0.0370370373,0.0370370373,0.0370370373,0.0370370373
-	rf28	dd		0.0357142873,0.0357142873,0.0357142873,0.0357142873
-	rf29	dd		0.0344827585,0.0344827585,0.0344827585,0.0344827585
-	rf30	dd		0.0333333351,0.0333333351,0.0333333351,0.0333333351
-	rf31	dd		0.0322580636,0.0322580636,0.0322580636,0.0322580636
-	rf32	dd		0.0312500000,0.0312500000,0.0312500000,0.0312500000
+;	rf17	dd		0.0588235,0.0588235,0.0588235,0.0588235
+;	rf18	dd		0.055556,0.055556,0.055556,0.055556
+;	rf19	dd		0.052632,0.052632,0.052632,0.052632
+;	rf20	dd		0.05,0.05,0.05,0.05
+;	rf21	dd		0.0476190485,0.0476190485,0.0476190485,0.0476190485
+;	rf22	dd		0.0454545468,0.0454545468,0.0454545468,0.0454545468
+;	rf23	dd		0.0434782617,0.0434782617,0.0434782617,0.0434782617
+;	rf24	dd		0.0416666679,0.0416666679,0.0416666679,0.0416666679
+;	rf25	dd		0.0399999991,0.0399999991,0.0399999991,0.0399999991
+;	rf26	dd		0.0384615399,0.0384615399,0.0384615399,0.0384615399
+;	rf27	dd		0.0370370373,0.0370370373,0.0370370373,0.0370370373
+;	rf28	dd		0.0357142873,0.0357142873,0.0357142873,0.0357142873
+;	rf29	dd		0.0344827585,0.0344827585,0.0344827585,0.0344827585
+;	rf30	dd		0.0333333351,0.0333333351,0.0333333351,0.0333333351
+;	rf31	dd		0.0322580636,0.0322580636,0.0322580636,0.0322580636
+;	rf32	dd		0.0312500000,0.0312500000,0.0312500000,0.0312500000
  
 	; Integer division table (lock and load)
 	RITable equ		ri1 - 4
@@ -292,22 +315,22 @@ align 16
 	ri14	dd		012492492h
 	ri15	dd		011111111h
 	ri16	dd		010000000h
-	ri17	dd		0F0F0F0Fh
-	ri18	dd		0E38E38Eh
-	ri19	dd		0D79435Eh
-	ri20	dd		0CCCCCCCh
-	ri21	dd		0C30C30Ch
-	ri22	dd		0BA2E8BAh
-	ri23	dd		0B21642Ch
-	ri24	dd		0AAAAAAAh
-	ri25	dd		0A3D70A3h
-	ri26	dd		09D89D89h
-	ri27	dd		097B425Eh
-	ri28	dd		09249249h
-	ri29	dd		08D3DCB0h
-	ri30	dd		08888888h
-	ri31	dd		08421084h
-	ri32	dd		08000000h
+;	ri17	dd		0F0F0F0Fh
+;	ri18	dd		0E38E38Eh
+;	ri19	dd		0D79435Eh
+;	ri20	dd		0CCCCCCCh
+;	ri21	dd		0C30C30Ch
+;	ri22	dd		0BA2E8BAh
+;	ri23	dd		0B21642Ch
+;	ri24	dd		0AAAAAAAh
+;	ri25	dd		0A3D70A3h
+;	ri26	dd		09D89D89h
+;	ri27	dd		097B425Eh
+;	ri28	dd		09249249h
+;	ri29	dd		08D3DCB0h
+;	ri30	dd		08888888h
+;	ri31	dd		08421084h
+;	ri32	dd		08000000h
 
 
 	; assorted values (debug)
@@ -639,8 +662,8 @@ comment &
 	cvtss2si	ebx,	xmm1
 	sub			eax,	ebx
 
-	; xmm4, xmm7 = UV affine (16bit fractional)
-	movss		xmm5,	[pf65536]
+	; xmm4, xmm7 = UV affine (12bit fractional)
+	movss		xmm5,	[pf4096]
 	mulss		xmm4,	xmm5
 	shufps		xmm4,	xmm4,	00000000b
 	mulps		xmm4,	xmm0
@@ -668,9 +691,9 @@ comment &
 	movd		ebp,	mm2
 	movd		ebx,	mm2
 	shr			ebp,	1
-	and			ebx,	000030000h
+	and			ebx,	000003000h
 	or			ebx,	edi
-	and			ebp,	07fffh
+	and			ebp,	07ffh
 	or			ebp,	ebx	
 
 	pshufw		mm2,	mm2,	01001110b
@@ -687,7 +710,7 @@ comment &
 	add			ebx,	ebx
 	add			ebx,	ebx
 	
-	and			edi,	07fffh
+	and			edi,	07ffh
 	or			edi,	ebx
 
 	pshufw		mm2,	mm2,	01001110b
@@ -724,8 +747,8 @@ Outer:
 	cvtss2si	ecx,	xmm5
 	sub			edx,	ecx
 
-	; xmm4 = UV affine (16bit fractional)
-	movss		xmm5,	[pf65536]
+	; xmm4 = UV affine (12bit fractional)
+	movss		xmm5,	[pf4096]
 	mulss		xmm4,	xmm5
 	shufps		xmm4,	xmm4,	00000000b
 	mulps		xmm4,	xmm0
@@ -781,7 +804,7 @@ Outer:
 	org			$ - 1
 	smc_Hb1		db		8
 
-	and			ebx,	000030000h
+	and			ebx,	00003000h
 
 	or			ebx,	003fc8000h	;	TB1(logHeight)
 	org			$-4
@@ -792,7 +815,7 @@ Outer:
 	movd		ecx,	mm3
 	shr			ecx,	1
 
-	and			ecx,	07fffh
+	and			ecx,	07ffh
 	or			ebx,	ecx
 	mov			[dudx],	ebx
 
@@ -815,7 +838,7 @@ Outer:
 ;	or			ecx,	0ffff8000h
 ;	and			ecx,	ebx
 
-	and			ecx,	07fffh
+	and			ecx,	07ffh
 
 	or			ebx,	0fc038000h	;	T2_22(logHeight)
 	org			$-4
@@ -881,7 +904,12 @@ Outer:
 
 		; get texture
 		lea		ebx,	[edi+ebp]
-		shr		ebx,	16
+		shr		ebx,	12
+
+		cmp [update_zbuffer], 1
+		jne no_zbuffer_update
+		mov  word ptr [esi+ecx], ax
+		no_zbuffer_update:
 
 ;		mov  word ptr [esi+ecx], ax
 
@@ -895,7 +923,7 @@ Outer:
 		pmulhuw		mm5,	mm0
 		psllw		mm5,	1
 		
-		movd mm6,	dword ptr [esp+ecx*2]
+		movd		mm6,	dword ptr [esp+ecx*2]
 
 		punpcklbw	mm6,	mm4
 		psrlw		mm5,	1
@@ -973,12 +1001,13 @@ _IX_TGZTM_AsmFiller	proc	near
 ;static void IXAsmFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page, dword logWidth, dword logHeight)
 
 ;;; ARGUMENTS ;;;
-	Arg_Verts		equ		esp + 4h
-	Arg_NumVerts	equ		esp + 8h
-	Arg_Texture		equ		esp + 0Ch
-	Arg_Page		equ		esp + 10h
-	Arg_LogWidth	equ		esp + 14h
-	Arg_LogHeight	equ		esp + 18h
+	Arg_Verts			equ		esp + 4h
+	Arg_NumVerts		equ		esp + 8h
+	Arg_Texture			equ		esp + 0Ch
+	Arg_Page			equ		esp + 10h
+	Arg_LogWidth		equ		esp + 14h
+	Arg_LogHeight		equ		esp + 18h
+	Arg_ZBufferUpdate	equ		esp + 1Ch
 	
 ;IX.Texture = Texture;
 	mov	eax,		[Arg_Texture]
@@ -989,6 +1018,9 @@ _IX_TGZTM_AsmFiller	proc	near
 ;IX.L2Size = logWidth; // Change this to "LogSize" when changing filler arguments
 	mov	eax,		[Arg_LogWidth]
 	mov	[_L2Size], eax
+
+	mov	eax,		[Arg_ZBufferUpdate]
+	mov	[update_zbuffer],	eax
 
 ;IX.Page = Page;
 	mov eax,		[Arg_Page]
@@ -1013,8 +1045,8 @@ SMC_update:
 	mov	[LastLogWidth],		eax
 	mov [LastLogHeight],	ecx
 
-	mov	ebx,	[_TB0 + eax * 4 - 4]	; TB0[Arg_LogWidth]
-	mov	edx,	[_TB0 + ecx * 4 - 4]	; TB0[Arg_LogHeight]
+	mov	ebx,	[_TB0 + eax * 4]	; TB0[Arg_LogWidth]
+	mov	edx,	[_TB0 + ecx * 4]	; TB0[Arg_LogHeight]
 
 	mov	ds:[smc_TB0Wd0],	ebx
 	mov ds:[smc_TB0Wd1],	ebx
@@ -1022,19 +1054,19 @@ SMC_update:
 	mov ds:[smc_Hb1],		cl
 
 
-	mov	edx,	[_T0 + ecx * 4 - 4]	; T0[Arg_LogHeight]
+	mov	edx,	[_T0 + ecx * 4]	; T0[Arg_LogHeight]
 	mov ds:[smc_T0Hd0],	edx
 	mov ds:[smc_T0Hd2],	edx
 
-	mov	edx,	[_TB1 + ecx * 4 - 4]	; TB1[Arg_LogHeight]
+	mov	edx,	[_TB1 + ecx * 4]	; TB1[Arg_LogHeight]
 	mov ds:[smc_TB1Hd1],	edx
 	sub	edx,	1
 	mov	ds:[smc_TB1Hd4],	edx
 
 	mov edi,	1
-	mov	edx,	[_TB2 + ecx * 4 - 4]	; TB2[Arg_LogHeight]
+	mov	edx,	[_TB2 + ecx * 4]	; TB2[Arg_LogHeight]
 	add cl,		al
-	add	cl,		15
+	add	cl,		11
 	shl edi,	cl
 	add edi,	edi
 	mov ds:[smc_TB2Hd3],	edx
@@ -1052,8 +1084,8 @@ comment &
 	mov ds:[smc_T0Hd2],	edi
 	mov ds:[smc_T0Wd3],	esi
 
-	mov	ebx,	[_T1 + eax * 4 - 4]	; T1[Arg_LogWidth]
-	mov	edx,	[_T1 + ecx * 4 - 4]	; T1[Arg_LogHeight]
+	mov	ebx,	[_T1 + eax * 4]	; T1[Arg_LogWidth]
+	mov	edx,	[_T1 + ecx * 4]	; T1[Arg_LogHeight]
 
 	mov ds:[_Wb1],		al
 

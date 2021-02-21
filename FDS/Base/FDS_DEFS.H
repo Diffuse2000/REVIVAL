@@ -188,6 +188,7 @@ enum SortPriority
 #define Face_TwoSided    0x0008
 #define Face_Transparent 0x0010
 #define Face_PointZTest  0x0020
+#define Face_Reflective  0x0040
 
 // Camera Flags.
 #define Cam_Euler        0x0001

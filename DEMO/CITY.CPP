@@ -1444,7 +1444,7 @@ std::vector<CubeMapCoord> CalcEquirectangularPanoramaTable(int xRes, int yRes) {
 	auto it = res.begin();
 	for (int y = 0; y != yRes; ++y) {
 		const float lat = PI * (float(y) / yRes) - PI / 2.0f;
-		XMMVector d;
+		Vector d;
 		d.y = sin(lat);
 		const float xzFactor = cos(lat);
 		for (int x = 0; x != xRes; ++x, ++it) {
@@ -1481,6 +1481,39 @@ std::vector<CubeMapCoord> CalcEquirectangularPanoramaTable(int xRes, int yRes) {
 	}
 	return res;
 }
+
+int32_t iLog2(int32_t x)
+{
+	union fi {
+		uint32_t i;
+		float f;
+	};
+
+	fi u{.f =(float)x};
+
+	return ((u.i >> 23) - 127);
+}
+
+Material* Materialize(void* data, int x, int y) {
+	Material* M = getAlignedType<Material>(16); //(Material*)getAlignedBlock(sizeof(Material), 16);
+	// whatever that means
+	M->Txtr = new Texture;
+	memset(M->Txtr, 0, sizeof(Texture));
+	M->Txtr->Flags = Txtr_Nomip | Txtr_Tiled;
+	M->Txtr->Data = (byte *)_aligned_malloc(x * y * 4, 16);
+	memcpy(M->Txtr->Data, data, x * y * 4);
+
+	M->Txtr->BPP = 32;
+	M->Txtr->SizeX = x; M->Txtr->LSizeX = iLog2(x);
+	M->Txtr->SizeY = y; M->Txtr->LSizeY = iLog2(y);
+
+	Sachletz((dword*)(M->Txtr->Data), x, y);
+	M->Txtr->Mipmap[0] = M->Txtr->Data;
+	M->Txtr->numMipmaps = 1;
+
+	return M;
+}
+
 
 
 void Initialize_City()
@@ -1537,8 +1570,8 @@ void Initialize_City()
 	CurFrame = 0;
 	View = CitySc->CameraHead;
 
-	const auto CUBE_MAP_XRES = 1024;
-	const auto CUBE_MAP_YRES = 1024;
+	const auto CUBE_MAP_XRES = 512 * 2;
+	const auto CUBE_MAP_YRES = 512 * 2;
 
 	// render env maps for a few select objects
 	FList_Allocate(CitySc);
@@ -1569,6 +1602,11 @@ void Initialize_City()
 	VESA_VPageExternal(&TmpSurf);
 
 	SetCurrentScene(CitySc);
+
+	for (auto O = CitySc->OmniHead; O; O = O->Next) {
+		O->ISize *= 0.25;
+	}
+
 	int building_count = 0;
 	bool bailout = false;
 
@@ -1588,6 +1626,7 @@ void Initialize_City()
 		auto T = (TriMesh*)(Obj->Data);
 		auto flags = T->Flags;
 		T->Flags &= ~HTrack_Visible;
+
 		EnvCam.ISource = T->IPos + T->BSphereCtr;
 		for (int i = 0; i != 6; ++i) {
 			FastWrite(VPage, 0, (PageSize + XRes * YRes * sizeof(word)) >> 2);
@@ -1604,19 +1643,19 @@ void Initialize_City()
 				Radix_SortingASM(FList, SList, CAll);
 				Render();
 			}
-			if (!bailout) {
-				if (Keyboard[ScESC]) {
-					bailout = true;
-				}
-				Flip(&TmpSurf);
-				while (!Keyboard[ScSpace]) {
-				}
-				while (Keyboard[ScSpace]) {
-				}
-				if (Keyboard[ScESC]) {
-					bailout = true;
-				}
-			}
+			//if (!bailout) {
+			//	if (Keyboard[ScESC]) {
+			//		bailout = true;
+			//	}
+			//	Flip(&TmpSurf);
+			//	while (!Keyboard[ScSpace]) {
+			//	}
+			//	while (Keyboard[ScSpace]) {
+			//	}
+			//	if (Keyboard[ScESC]) {
+			//		bailout = true;
+			//	}
+			//}
 			memcpy(cubeMaps[i].data(), TmpSurf.Data, CUBE_MAP_XRES * CUBE_MAP_YRES * 4);
 		}
 		T->Flags = flags;
@@ -1631,23 +1670,43 @@ void Initialize_City()
 			}
 		}
 
+		Obj->Reflection = Materialize(panorama.data(), PANORAMA_XRES, PANORAMA_YRES);
 		// HACK: works because panorma size = cube
-		memcpy(TmpSurf.Data, panorama.data(), CUBE_MAP_XRES * CUBE_MAP_YRES * 4);
-		if (!bailout) {
-			if (Keyboard[ScESC]) {
-				bailout = true;
-			}
-			Flip(&TmpSurf);
-			while (!Keyboard[ScSpace]) {
-			}
-			while (Keyboard[ScSpace]) {
-			}
-			if (Keyboard[ScESC]) {
-				bailout = true;
+		//memcpy(TmpSurf.Data, panorama.data(), PANORAMA_XRES * PANORAMA_YRES * 4);
+		//		
+		//if (!bailout) {
+		//	if (Keyboard[ScESC]) {
+		//		bailout = true;
+		//	}
+		//	Flip(&TmpSurf);
+		//	while (!Keyboard[ScSpace]) {
+		//	}
+		//	while (Keyboard[ScSpace]) {
+		//	}
+		//	if (Keyboard[ScESC]) {
+		//		bailout = true;
+		//	}
+		//}
+	}
+
+	for (Object* Obj = CitySc->ObjectHead; Obj != nullptr; Obj = Obj->Next) {
+		if (Obj->Type != Obj_TriMesh) { continue; }
+		if (Obj->Name == nullptr) { continue; }
+		if (!(Obj->Name[0] == 'b' && '0' <= Obj->Name[1] && Obj->Name[1] <= '9' && 0 == strcmp(Obj->Name + 2, ".lwo"))) { continue; }
+
+		auto T = (TriMesh*)(Obj->Data);
+		for (Face* F = T->Faces, *FE = T->Faces + T->FIndex; F != FE; ++F) {
+			if (strstr(F->Txtr->Name, "windows")) {
+				F->Flags |= Face_Reflective;
+				F->ReflectionTexture = Obj->Reflection->Txtr;
 			}
 		}
 	}
 	AspectRatio = oldAspectRatio;
+	
+	for (auto O = CitySc->OmniHead; O; O = O->Next) {
+		O->ISize *= 4.0;
+	}
 
 	MainSurf = PrevMainSurf;
 	VESA_Surface2Global(MainSurf);

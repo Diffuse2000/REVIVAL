@@ -418,6 +418,7 @@ void IX_Prefiller_TGZM(Vertex **V, dword numVerts);
 void IX_Prefiller_TGZTM(Vertex **V, dword numVerts);
 void IX_Prefiller_TGZTAM(Vertex **V, dword numVerts);
 void IX_Prefiller_TGZSAM(Vertex** V, dword numVerts);
+void IX_Prefiller_Reflective(Vertex** V, dword numVerts);
 
 
 // Tile based rendering

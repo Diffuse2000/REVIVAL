@@ -250,7 +250,7 @@ align	16
 	f65536	equ		pf65536
 	pf65536	dd		65536.0, 65536.0, 65536.0, 65536.0
 	pf32768	dd		32768.0, 32768.0, 32768.0, 32768.0
-	pf16384	dd		4096.0, 4096.0, 4096.0, 4096.0
+	pf4096	dd		4096.0, 4096.0, 4096.0, 4096.0
 	f256	equ		pf256
 	pf256	dd		256.0, 256.0, 256.0, 256.0
 	pf128	dd		128.0, 128.0, 128.0, 128.0
@@ -662,8 +662,8 @@ comment &
 	cvtss2si	ebx,	xmm1
 	sub			eax,	ebx
 
-	; xmm4, xmm7 = UV affine (14bit fractional)
-	movss		xmm5,	[pf16384]
+	; xmm4, xmm7 = UV affine (12bit fractional)
+	movss		xmm5,	[pf4096]
 	mulss		xmm4,	xmm5
 	shufps		xmm4,	xmm4,	00000000b
 	mulps		xmm4,	xmm0
@@ -747,8 +747,8 @@ Outer:
 	cvtss2si	ecx,	xmm5
 	sub			edx,	ecx
 
-	; xmm4 = UV affine (16bit fractional)
-	movss		xmm5,	[pf16384]
+	; xmm4 = UV affine (12bit fractional)
+	movss		xmm5,	[pf4096]
 	mulss		xmm4,	xmm5
 	shufps		xmm4,	xmm4,	00000000b
 	mulps		xmm4,	xmm0
@@ -907,10 +907,10 @@ Outer:
 		shr		ebx,	12
 
 
-;		cmp [update_zbuffer], 1
-;		jne no_zbuffer_update
+		cmp [update_zbuffer], 1
+		jne no_zbuffer_update
 		mov  word ptr [esi+ecx], ax
-;		no_zbuffer_update:
+		no_zbuffer_update:
 
 		pxor	mm4,	mm4
 		
@@ -999,7 +999,7 @@ _IX_TGZM_AsmFiller	proc	near
 	Arg_Page			equ		esp + 10h
 	Arg_LogWidth		equ		esp + 14h
 	Arg_LogHeight		equ		esp + 18h
-;	Arg_ZBufferUpdate	equ		esp + 1Ch
+	Arg_ZBufferUpdate	equ		esp + 1Ch
 	
 ;IX.Texture = Texture;
 	mov	eax,		[Arg_Texture]
@@ -1011,8 +1011,8 @@ _IX_TGZM_AsmFiller	proc	near
 	mov	eax,		[Arg_LogWidth]
 	mov	[_L2Size], eax
 
-;	mov	eax,		[Arg_ZBufferUpdate]
-;	mov	[update_zbuffer],	eax
+	mov	eax,		[Arg_ZBufferUpdate]
+	mov	[update_zbuffer],	eax
 
 ;IX.Page = Page;
 	mov eax,		[Arg_Page]

@@ -8,6 +8,7 @@
 #include <Base/Vector.h>
 #include <memory>
 #include <vector>
+#include <algorithm>
 
 #ifdef _C_WATCOM
 #include <i86.H>
@@ -215,6 +216,7 @@ void Animate_Objects(Scene *Sc, bool SkipCameraAnimation)
 			Matrix_Copy(T->RotMat,tmp);
 		}
 		
+		memcpy(T->UnscaledRotMat, T->RotMat, sizeof(T->RotMat));
 		W = (Vector *)T->RotMat;
 		Vector_SelfScale(W,T->IScale.x); W++;
 		Vector_SelfScale(W,T->IScale.y); W++;
@@ -433,6 +435,7 @@ void Transform_Objects(Scene *Sc)
 		// postrioric Offset Vector.
 		Vector_Sub(&T->IPos,&View->ISource,&U);
 		MatrixXVector(View->Mat,&U,&S);
+
 		V.x = CntrEX*S.z+PX*S.x;
 		V.y = CntrEY*S.z-PY*S.y;
 		V.z = S.z;
@@ -735,6 +738,70 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 			//||(1) // no backface culling
 			))
 		{
+			if (0 != (F->Flags & Face_Reflective)) {
+				// clobber U1, V1, etc. with the equilateral-whatever coordinates matching
+				// the direction from camera to the specific vertex, reflected on the face's plane
+				float eu[3];
+				float ev[3];
+				size_t i = 0;
+				Vector wsPos[3];
+				for (Vertex* v : { F->A, F->B, F->C }) {
+					wsPos[i] = T->RotMat * v->Pos + T->IPos;
+					++i;
+				}
+
+				// auto cv = (T->BSphereCtr - View->ISource) * 0.9 + View->ISource;
+				auto cv = View->ISource;
+				float optimalDistFromPlane = fabs(T->BSphereCtr * F->N - F->NormProd);
+				float viewDistFromPlane = fabs(AP * F->N - F->NormProd);
+				if (viewDistFromPlane > optimalDistFromPlane) {
+					float hackDistFromPlane = pow(viewDistFromPlane - optimalDistFromPlane, 0.8) + optimalDistFromPlane;
+					Vector bsWorldPos;
+					MatrixXVector(T->RotMat, &T->BSphereCtr, &bsWorldPos);
+					bsWorldPos += T->IPos;
+
+					auto pullDir = bsWorldPos - View->ISource;
+					float step = pullDir * F->N;
+					cv += (hackDistFromPlane - viewDistFromPlane) / step * pullDir;
+				}
+				auto n = (wsPos[0] - wsPos[1]).cross(wsPos[2] - wsPos[1]);
+				Vector_Norm(&n);
+				i = 0;
+				for (Vertex* v : { F->A, F->B, F->C }) {
+					auto d = wsPos[i] - cv;
+					d -= (d * n) * 2.0f * n;
+					Vector_Norm(&d);
+					float lat = asin(d.y);
+					float lon = atan2(-d.z, -d.x);
+
+					eu[i] = 0.5 + 0.5 * (lon + PI / 2.0) / PI;
+					ev[i] = 0.5 - 0.5 * lat / (PI / 2.0);
+					++i;
+				}
+
+				if (std::max({ eu[0], eu[1], eu[2] }) - std::min({ eu[0], eu[1], eu[2] }) > 0.8) {
+					for (int i = 0; i < 3; ++i) {
+						if (eu[i] < 0.5) {
+							eu[i] += 1;
+						}
+					}
+				}
+
+				F->EU1 = eu[0];
+				F->EV1 = ev[0];
+				F->EU2 = eu[1];
+				F->EV2 = ev[1];
+				F->EU3 = eu[2];
+				F->EV3 = ev[2];
+
+				//F->EU1 = 0;
+				//F->EV1 = 0;
+				//F->EU2 = 0;
+				//F->EV2 = 0;
+				//F->EU3 = 0;
+				//F->EV3 = 0;
+				//F->ReflectionTexture = Obj->Reflection->Txtr;
+			}
 			*Ins++ = F;
 
 #ifdef FRONT_TO_BACK_SORTING
@@ -819,7 +886,7 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 #else
 			O->F.SortZ.F = fzp-dz;
 #endif			
-			//*Ins++ = &O->F;
+			*Ins++ = &O->F;
 		}
 	}
 
@@ -1342,11 +1409,11 @@ void Lighting(Scene *Sc)
 	static CurLight *LA = (CurLight *)getAlignedBlock(sizeof(CurLight) * 128, 16);
 	static CurLight *L, *LE;
 
-	//if (!(Sc->Flags & Scn_StaticLighting))
-	//{
-	//	Sc->Flags |= Scn_StaticLighting;
+	if (!(Sc->Flags & Scn_StaticLighting))
+	{
+		Sc->Flags |= Scn_StaticLighting;
 		StaticLighting(Sc);
-	//}
+	}
 
 	for(T=Sc->TriMeshHead;T;T=T->Next)
 	{
@@ -1689,7 +1756,23 @@ void Render()
 			C->UZ = C->U * C->RZ; C->VZ = C->V * C->RZ;
 
 			if ((A->Flags&B->Flags&C->Flags)&Vtx_Visible) continue;
+			if (DoFace->Flags & Face_Reflective) {
+				DoFace->Filler = IX_Prefiller_TGZM;
+			}
 			FrustrumClipper();
+			if (DoFace->Flags & Face_Reflective) {
+				//DoFace->Txtr->Txtr->Flags |= Txtr_Nomip;
+				//std::swap(DoFace->Txtr->Txtr, DoFace->ReflectionTexture);
+				A->U = DoFace->EU1; A->V = DoFace->EV1;
+				B->U = DoFace->EU2; B->V = DoFace->EV2;
+				C->U = DoFace->EU3; C->V = DoFace->EV3;
+				A->UZ = A->U * A->RZ; A->VZ = A->V * A->RZ;
+				B->UZ = B->U * B->RZ; B->VZ = B->V * B->RZ;
+				C->UZ = C->U * C->RZ; C->VZ = C->V * C->RZ;
+				DoFace->Filler = IX_Prefiller_Reflective;
+				FrustrumClipper();
+				//std::swap(DoFace->Txtr->Txtr, DoFace->ReflectionTexture);
+			}
 		}
 	}
 

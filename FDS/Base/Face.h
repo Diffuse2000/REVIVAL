@@ -36,12 +36,16 @@ struct Face
 	Vector          N;
 	FDW             SortZ;
 
-	float           U1 = 0.0f, V1 = 0.0f;
-	float           U2 = 0.0f, V2 = 0.0f;
-	float           U3 = 0.0f, V3 = 0.0f;
+	float           U1  = 0.0f, V1  = 0.0f;
+	float           U2  = 0.0f, V2  = 0.0f;
+	float           U3  = 0.0f, V3  = 0.0f;
+	float           EU1 = 0.0f, EV1 = 0.0f;
+	float           EU2 = 0.0f, EV2 = 0.0f;
+	float           EU3 = 0.0f, EV3 = 0.0f;
 
 	RasterFunc		Filler = nullptr;
 	Material      * Txtr = nullptr;
+	Texture		  *	ReflectionTexture = nullptr;
 	//	Surface       * Surf; // For T-Caching. (what??!)
 
 	void uvFromVertices() {

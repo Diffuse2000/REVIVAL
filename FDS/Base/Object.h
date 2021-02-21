@@ -16,6 +16,7 @@ struct ObjectStatus
     ObjectStatus * Prev		= nullptr;
 };
 
+struct Material;
 
 // [36 Bytes]
 struct  Object
@@ -31,6 +32,7 @@ struct  Object
 	Object		   * Parent		= nullptr;
 	signed short	 ParentID	= 0;
 	char           * Name		= nullptr;
+	Material	   * Reflection = nullptr;
 };
 
 #pragma pack(pop)
