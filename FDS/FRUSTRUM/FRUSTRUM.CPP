@@ -703,8 +703,15 @@ void FrustrumClipper()
 	C_Prim[1] = DoFace->B;
 	C_Prim[2] = DoFace->C;
 	C_Prim[3] = DoFace->A;
+	C_Flags = C_Prim[0]->Flags | C_Prim[1]->Flags | C_Prim[2]->Flags;
+
+	if (DoFace->D != nullptr) {
+		C_Prim[3] = DoFace->D;
+		C_Prim[4] = DoFace->A;
+		C_Flags |= C_Prim[3]->Flags;
+		C_numVerts++;
+	}
 		
-	C_Flags = C_Prim[0]->Flags|C_Prim[1]->Flags|C_Prim[2]->Flags;
 
 	if (C_Flags&Vtx_VisNear)  FClipper_Near(); 
 	if (C_Flags&Vtx_VisFar)   FClipper_Far();

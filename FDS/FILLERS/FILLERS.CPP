@@ -13,7 +13,7 @@
 float CParticle_ISize;
 float ImageSize = 1000.0;
 
-float FillerPixelcount;
+double FillerPixelcount;
 
 #define ENABLE_PIXELCOUNT
 #define _A V[0]

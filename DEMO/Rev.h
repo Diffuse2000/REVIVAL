@@ -34,6 +34,7 @@ void Run_Credits();
 
 void Initialize_Glato();
 void Initialize_City();
+static void TextureBlockTest();
 void Run_City();
 
 void Initialize_Chase();

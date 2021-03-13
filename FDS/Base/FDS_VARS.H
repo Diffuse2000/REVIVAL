@@ -459,7 +459,7 @@ extern Material Flare;
 
 // Frustrum variables
 extern float FOVX,FOVY;
-extern float FillerPixelcount;
+extern double FillerPixelcount;
 extern float AspectRatio;
 
 // Filler externals

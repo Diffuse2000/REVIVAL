@@ -5,6 +5,7 @@
 #include <vector>
 #include "FRUSTRUM.H"
 #include "Gradient.h"
+#include <map>
 
 #define FRONT_TO_BACK_SORTING
 #define CITY_RAIN
@@ -732,23 +733,24 @@ ERegular:
 			
 		}
 OUT:FEnd=T->Faces+T->FIndex;
-    for (F=T->Faces;F<FEnd;F++)
-		if ((!(F->A->Flags&F->B->Flags&F->C->Flags&Vtx_Visible))
-			&&((F->Txtr->Flags&Mat_TwoSided)||
-			//(1)
-			(AP.x*F->N.x + AP.y*F->N.y + AP.z*F->N.z<F->NormProd) //backface culling
-			
-			))
-		{
-			*Ins++ = F;
-			dz = F->A->TPos.z;
-			if (F->B->TPos.z>dz) dz=F->B->TPos.z;
-			if (F->C->TPos.z>dz) dz=F->C->TPos.z;
+		for (F = T->Faces; F < FEnd; F++) {
+			if (!F->VisibilityFlagsAll()
+				&& ((F->Txtr->Flags & Mat_TwoSided) ||
+					//(1)
+					(AP.x * F->N.x + AP.y * F->N.y + AP.z * F->N.z < F->NormProd) //backface culling
+
+					)) {
+				*Ins++ = F;
+				dz = F->A->TPos.z;
+				if (F->B->TPos.z > dz) dz = F->B->TPos.z;
+				if (F->C->TPos.z > dz) dz = F->C->TPos.z;
+				if (F->D != nullptr && F->D->TPos.z > dz) dz = F->D->TPos.z;
 #ifdef FRONT_TO_BACK_SORTING
-			F->SortZ.F = dz;
+				F->SortZ.F = dz;
 #else
-			F->SortZ.F = fzp-dz;
+				F->SortZ.F = fzp - dz;
 #endif
+			}
 		}
 	}
 	CPolys = Ins-FList;
@@ -1514,6 +1516,34 @@ Material* Materialize(void* data, int x, int y) {
 	return M;
 }
 
+using std::pair;
+using std::vector;
+using std::map;
+
+pair <Vertex*, Vertex*> make_vertex_pair(Vertex *A, Vertex *B) {
+	return (A < B) ? std::make_pair(A, B) : std::make_pair(B, A);
+}
+
+Vertex* get_non_edge_vertex(pair <Vertex*, Vertex*> E, Face* F) {
+	if (F->A != E.first && F->A != E.second) {
+		return F->A;
+	}
+	if (F->B != E.first && F->B != E.second) {
+		return F->B;
+	}
+	return F->C;
+}
+
+Vector ComputeFaceNormal(Vertex *A, Vertex* B, Vertex *C) {
+	Vector U, V, N;
+	U = B->Pos - A->Pos;
+	V = C->Pos - A->Pos;
+	N = V.cross(U);
+	N.normalize();
+
+	return N;
+}
+
 
 
 void Initialize_City()
@@ -1570,8 +1600,8 @@ void Initialize_City()
 	CurFrame = 0;
 	View = CitySc->CameraHead;
 
-	const auto CUBE_MAP_XRES = 512 * 2;
-	const auto CUBE_MAP_YRES = 512 * 2;
+	const auto CUBE_MAP_XRES = 1024;
+	const auto CUBE_MAP_YRES = 1024;
 
 	// render env maps for a few select objects
 	FList_Allocate(CitySc);
@@ -1603,8 +1633,10 @@ void Initialize_City()
 
 	SetCurrentScene(CitySc);
 
+	const auto OmniFactor = 4.0;
+
 	for (auto O = CitySc->OmniHead; O; O = O->Next) {
-		O->ISize *= 0.25;
+		O->ISize /= OmniFactor;
 	}
 
 	int building_count = 0;
@@ -1703,10 +1735,61 @@ void Initialize_City()
 		}
 	}
 	AspectRatio = oldAspectRatio;
-	
+
 	for (auto O = CitySc->OmniHead; O; O = O->Next) {
-		O->ISize *= 4.0;
+		O->ISize *= OmniFactor;
 	}
+
+	using edge_list_t = map<pair<Vertex*, Vertex*>, vector<Face*>>;
+
+
+	/*for (Object* Obj = CitySc->ObjectHead; Obj != nullptr; Obj = Obj->Next) {
+		if (Obj->Type != Obj_TriMesh) { continue; }
+		if (Obj->Name == nullptr) { continue; }
+		if (!(Obj->Name[0] == 'b' && '0' <= Obj->Name[1] && Obj->Name[1] <= '9' && 0 == strcmp(Obj->Name + 2, ".lwo"))) { continue; }
+
+		edge_list_t edge_list;
+
+		auto T = (TriMesh*)(Obj->Data);
+		for (Face* F = T->Faces, *FE = T->Faces + T->FIndex; F != FE; ++F) {
+			if (!(F->Flags & Face_Reflective)) { continue; }
+			edge_list[make_vertex_pair(F->A, F->B)].push_back(F);
+			edge_list[make_vertex_pair(F->B, F->C)].push_back(F);
+			edge_list[make_vertex_pair(F->C, F->A)].push_back(F);
+		}
+
+		Face* NewFaces = new Face[T->FIndex];
+		Face* NewFacePtr = NewFaces;
+
+
+		for (const auto& [edge, faces] : edge_list) {
+			if (faces.size() != 2 ||
+				faces[0]->A == nullptr || faces[0]->D != nullptr ||
+				faces[1]->A == nullptr || faces[1]->D != nullptr) {
+				continue;
+			}
+
+			if (faces[0]->N * faces[1]->N >= 0.9999) {
+				// We have a winner!
+				Vertex* v[4] = { get_non_edge_vertex(edge, faces[0]), edge.first, get_non_edge_vertex(edge, faces[1]), edge.second };
+				auto N = ComputeFaceNormal(v[0], v[1], v[2]);
+				if (N * faces[0]->N < 0.0) {
+					std::swap(v[0], v[2]);
+				}
+
+				faces[0]->uvToVertices();
+				faces[1]->uvToVertices();
+
+				faces[0]->A = v[0];
+				faces[0]->B = v[1];
+				faces[0]->C = v[2];
+				faces[0]->D = v[3];
+				faces[0]->uvFromVertices();
+				faces[1]->A = nullptr;
+			}
+		}
+		T->FIndex = std::remove_if(T->Faces, T->Faces + T->FIndex, [](const auto &F) {return !F.A; }) - T->Faces;
+	}*/
 
 	MainSurf = PrevMainSurf;
 	VESA_Surface2Global(MainSurf);
@@ -2059,16 +2142,16 @@ void Run_City()
 			else {
 				sprintf(MSGStr, "%f FPS", 2000.0 / (float)(timerStack[timerIndex - 1] - timerStack[timerIndex]));
 			}
-			scroll = OutTextXY(VPage, 0, 0, MSGStr, 255);
+			scroll = OutTextXY(VPage, 0, scroll, MSGStr, 255);
 
 			sprintf(MSGStr, "%f frame", CurFrame);
 			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
-			sprintf(MSGStr, "%dK pixels/frame", (int32_t)(FillerPixelcount / (1000.0 * numFrames)));
+			sprintf(MSGStr, "%.3lfM pixels/frame", (FillerPixelcount / (1000000.0 * numFrames)));
 			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
-			sprintf(MSGStr, "%dK pixels/second", (int32_t)(FillerPixelcount / 1000.0 * 100.0 / Profiler[PROF_RNDR]));
+			sprintf(MSGStr, "%.3lfM pixels/second", (FillerPixelcount / 1000000.0 * 100.0 / Profiler[PROF_RNDR]));
 			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
 			sprintf(MSGStr, "%d polys/frame", (int32_t)(g_renderedPolys / numFrames));
-			OutTextXY(VPage, 0, 45, MSGStr, 255);
+			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
 			//		numDropsRendered=0;
 			//		sprintf(MSGStr, "%d raindrops" , (long)(numDropsRendered) );
 			//		OutTextXY(VPage,0,60,MSGStr,255);

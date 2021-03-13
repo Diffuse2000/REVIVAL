@@ -1193,8 +1193,12 @@ void Spline_Subdivide_Bezier(Spline *S,float Frame,Quaternion *Out)
 			Out->W = NK->Pos.W;
 			return;
 		}
-		t=(Frame - SK->Frame)/(NK->Frame - SK->Frame);
-		t=BKS_Ease(t,SK->EaseFrom,NK->EaseTo);
+		if (Frame == SK->Frame) {
+			t = 0;
+		} else {
+			t = (Frame - SK->Frame) / (NK->Frame - SK->Frame);
+			t = BKS_Ease(t, SK->EaseFrom, NK->EaseTo);
+		}
 		if (NK->AA.W>2.0*PI)
 		{
 			SLERP_Axis(&SK->Pos,&NK->AA,t,Out);
@@ -1368,6 +1372,16 @@ void BKS_QuatDeriviate(SplineKey *KeyP,SplineKey *Key,SplineKey *KeyN)
 	Quaternion_Mul(&P,&Key->Pos,&Key->DD);
 }
 
+void Spline_Remove_Duplicates(Spline* S) {
+		
+	for (int i = 0; i != S->NumKeys; ++i) {
+		if (S->Keys[i].Frame > 0) {
+			return;
+		}
+	}
+	S->NumKeys = 1;
+}
+
 // Initializes a 3D/Pos spline. Must always be executed before the spline can
 // be correctly Interpolated.
 void Spline_Init_3D(Spline *S)
@@ -1375,6 +1389,7 @@ void Spline_Init_3D(Spline *S)
 	long I;
 	
 	S->CurKey = 0;
+	Spline_Remove_Duplicates(S);
 	if (S->NumKeys < 2) return;
 	if (S->NumKeys > 2)
 	{
@@ -1402,6 +1417,7 @@ void Spline_Init_4D(Spline *S)
 {
 	long I;
 	S->CurKey = 0;
+	Spline_Remove_Duplicates(S);
 	if (S->NumKeys < 2) return;
 	if (S->NumKeys > 2)
 	{

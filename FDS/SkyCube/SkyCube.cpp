@@ -245,6 +245,8 @@ Scene * CreateSkyCube(dword skyType)
 		F->A = T->Verts + ii*4;
 		F->B = T->Verts + ii*4 + 1;
 		F->C = T->Verts + ii*4 + 2;
+		F->N = N[i];
+		F->NormProd = -Dot_Product(&F->A->Pos, &F->N);
 		F->Txtr = M[ii];
 		F->U1 = F->A->U;
 		F->U2 = F->B->U;
@@ -257,6 +259,8 @@ Scene * CreateSkyCube(dword skyType)
 		F->A = T->Verts + ii*4;
 		F->B = T->Verts + ii*4 + 2;
 		F->C = T->Verts + ii*4 + 3;
+		F->N = N[i];
+		F->NormProd = -Dot_Product(&F->A->Pos, &F->N);
 		F->Txtr = M[ii];
 		F->U1 = F->A->U;
 		F->U2 = F->B->U;
