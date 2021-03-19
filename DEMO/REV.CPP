@@ -479,6 +479,7 @@ material global ID or ptr
 #include <float.h>
 #include <Base/TriMesh.h>
 #include "Config.h"
+#include "Fillers/IX.h"
 //#include "FModWrapper.h"
 #include "../Modplayer/Modplayer.h"
 
@@ -493,6 +494,10 @@ long g_demoYRes;
 long g_fullScreenMode;
 long g_displayType;
 
+
+struct ThreadLocalFillerInitializer;
+
+ThreadLocalFillerInitializer* filler_initializer = nullptr;
 
 char *ModuleBuf;
 //dword g_RevModuleHandle;
@@ -1121,6 +1126,36 @@ void VolTrace(Image &Im)
 #include <CoffReader/CoffReader.h>
 extern "C" {	void IX_TGZSAM_AsmFiller(); }
 
+
+struct ThreadLocalFillerInitializer {
+	ThreadLocalFillerInitializer() :
+		global_symbols({
+			{"_g_zscale",		(uintptr_t)&g_zscale},
+			{"_g_zscale256",	(uintptr_t)&g_zscale256},
+			{"_VESA_BPSL",		(uintptr_t)&VESA_BPSL},
+			{"_PageSize",		(uintptr_t)&PageSize},
+			{"_XRes",			(uintptr_t)&XRes},
+		}),
+		IXTGZM("C:\\Projects\\REVIVAL\\FDS\\IXTGZM.obj", global_symbols),
+		IXTGZSAM("C:\\Projects\\REVIVAL\\FDS\\IXTGZSAM.obj", global_symbols),
+		IXTGZTAM("C:\\Projects\\REVIVAL\\FDS\\IXTGZTAM.obj", global_symbols),
+		IXTGZTM("C:\\Projects\\REVIVAL\\FDS\\IXTGZTM.obj", global_symbols)
+	{}
+
+	void Apply() {
+		p_IXTGZM_AsmFiller = (AsmFiller)IXTGZM.MapCode(VirtualProtect, PAGE_EXECUTE_READWRITE);
+		p_IXTGZSAM_AsmFiller = (AsmFiller)IXTGZSAM.MapCode(VirtualProtect, PAGE_EXECUTE_READWRITE);
+		p_IXTGZTAM_AsmFiller = (AsmFiller)IXTGZTAM.MapCode(VirtualProtect, PAGE_EXECUTE_READWRITE);
+		p_IXTGZTM_AsmFiller = (AsmFiller)IXTGZTM.MapCode(VirtualProtect, PAGE_EXECUTE_READWRITE);
+	}
+ private:
+	std::map<std::string, uintptr_t, std::less<>> global_symbols; 
+	CoffReader IXTGZM;
+	CoffReader IXTGZSAM;
+	CoffReader IXTGZTAM;
+	CoffReader IXTGZTM;
+};
+
 void CodeEntry(void *var)
 {
 	_controlfp(_EM_INEXACT, _MCW_EM);
@@ -1198,6 +1233,10 @@ void CodeEntry(void *var)
 	}
 	g_RevModuleHandle = sh;
 
+	filler_initializer = new ThreadLocalFillerInitializer();
+	filler_initializer->Apply();
+
+
 	Initialize_Glato(); //9.3
 	Initialize_City(); //9.3
 	Initialize_Chase();
@@ -1217,20 +1256,7 @@ void CodeEntry(void *var)
 		//module.Start();
 	}
 	Timer = 0;
-	std::map<std::string, uintptr_t, std::less<>> global_symbols{
-		{"_g_zscale",		(uintptr_t)&g_zscale},
-		{"_g_zscale256",	(uintptr_t)&g_zscale256},
-		{"_VESA_BPSL",		(uintptr_t)&VESA_BPSL},
-		{"_PageSize",		(uintptr_t)&PageSize},
-		{"_XRes",			(uintptr_t)&XRes},
-	};
-
-	CoffReader coff("C:\\Projects\\REVIVAL\\FDS\\IXTGZSAM.obj", global_symbols);
-	void *filler = coff.MapCode(VirtualProtect, PAGE_EXECUTE_READWRITE);
-
-	extern void* TGZSAM_filler;
-//	TGZSAM_filler = filler;
-	TGZSAM_filler = IX_TGZSAM_AsmFiller;
+		
 	//FillerTest();
 	//return;
 

@@ -1056,7 +1056,7 @@ static void getRadialRandomHeight(Vector& c, Vector& v)
 
 
 static dword numDropsRendered;
-static void drawRainDrop(Vertex **VA, mword numVerts)
+static void drawRainDrop(Face* F, Vertex **VA, mword numVerts, dword miplevel)
 {
 	Vertex *V = VA[0];
 

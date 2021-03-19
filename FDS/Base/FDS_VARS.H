@@ -3,6 +3,7 @@
 #include "FDS_DEFS.H"
 #include "BaseDefs.h"
 #include <stdexcept>
+#include <atomic>
 
 // _data must be allocated
 class mmreg
@@ -247,7 +248,7 @@ extern char *TxtrBuf,*TxtrAlign;
 extern Face **FList;
 extern Face **SList;
 extern float FOVX,FOVY;
-extern Face *DoFace; //Currently rendered face. Used for further mapper info.
+//extern Face *DoFace; //Currently rendered face. Used for further mapper info.
 extern float dTime;
 extern float Exec_FPS;
 extern long Polys,Frames;
@@ -257,7 +258,7 @@ extern long Bytes2[257];
 extern long Bytes3[257];
 extern long Bytes4[257];
 extern float C_rFZP,C_FZP, C_rNZP, C_NZP;
-extern dword g_renderedPolys, g_MipLevel;
+extern std::atomic<dword> g_renderedPolys;
 
 extern "C" float g_zscale;
 extern "C" float g_zscale256;

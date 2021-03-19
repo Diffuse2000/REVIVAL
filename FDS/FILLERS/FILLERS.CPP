@@ -213,129 +213,129 @@ void Draw_Line_32Bit_ForKids(Vertex *V1,Vertex *V2)
 // Also used slightly Improved Space optimizations.
 // about 100 lines of code.
 // not very slow,actually quite ok.
-void Flat_Poly_8Bit(Vertex **V, dword numVerts)
-{
-	long X1,Y1,X2,Y2,X3,Y3; //Pixelled projected vertex position
-	long dX12,dX13,dX23;    //Fixed point Slopes. (16:16)
-	long dx12,dx13,dx23;    //X-deltas.
-	long dy12,dy13,dy23;    //Y-deltas.
-	long X,Y;               //Loop and generic variables.
-	long x1,x2;
-  long EX1,EX2;           //Edge interpolation rate.
-  long dX1,dX2;           //Edge interpolation differencial.
-  byte *Pen;              //Viewport Scanning Pointer
-  char Col=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32; //Average Color.
-  char EndAtMiddle=0;     //Flag: End drawing in the middle(ignore Y2->y3).
-  long Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
-
-  X1 = _A->PX+0.5; Y1 = _A->PY+0.5;
-  X2 = _B->PX+0.5; Y2 = _B->PY+0.5;
-  X3 = _C->PX+0.5; Y3 = _C->PY+0.5;
-
-  dx12 = X2-X1; dy12=Y2-Y1;
-  dx13 = X3-X1; dy13=Y3-Y1;
-  dx23 = X3-X2; dy23=Y3-Y2;
-
-  if (Y1==Y3)
-  {
-    if (X1<=X2)
-		{
-      Pen = VPage+YOffs[Y1]+X1;
-      memset(Pen,Col,dx12+1);
-      if (X3<X1) memset(Pen+dx13,Col,1-dx13); else if (X2<X3) memset(Pen+dx12,Col,dx23+1);
-    } else {
-      Pen = VPage+YOffs[Y1]+X2;
-      memset(Pen,Col,1-dx12);
-      Pen-=dx12;
-      if (X3<X2) memset(Pen+dx13,Col,1-dx13); else if (X1<X3) memset(Pen-dx12,Col,dx13+1);
-    }
-    goto END_POLY;
-  }
-  dX13 = (dx13<<16)/dy13;
-  if (Y1==Y2)
-  {
-    if (X1<=X2)
-    {
-      Pen = VPage+YOffs[Y1]+X1;
-      X = dx12+1;
-			memset(Pen,Col,X);
-
-      EX1 = X1<<16;
-      EX2 = X2<<16;
-      Pen+=XRes-X1;
-      goto MIDDLE_POLY;
-    } else {
-      Pen = VPage+YOffs[Y1]+X2;
-      X = 1-dx12;
-      memset(Pen,Col,X);
-
-      EX1 = X2<<16;
-      EX2 = X1<<16;
-      Pen+=XRes-X2;
-      goto MIDDLE_POLY;
-    }
-  }
-  dX12 = (dx12<<16)/dy12;
-  if (Y2==Y3) EndAtMiddle=1;
-	// Scan conv Poly BEGINS.
-  // Initialization...
-  EX1 = EX2 = X1<<16;
-  EX2 += 65536;
-
-  if (dX12<=dX13)
-  {
-    dX1 = dX12;
-    dX2 = dX13;
-  } else {
-    dX1 = dX13;
-    dX2 = dX12;
-  }
-
-  Y = dy12;
-  Pen = VPage+YOffs[Y1];
-  EX1-=dX1;
-  EX2-=dX2;
-  do
-	{
-    EX1+=dX1;
-    EX2+=dX2;
-    x1=EX1>>16;
-    x2=EX2>>16;
-/*    if (x2==XRes_1)
-    {
-      Pen=NULL;
-      return;
-    }*/
-    memset(Pen+x1,Col,x2-x1+1);
-    Pen+=XRes;
-  } while (Y--);
-  MIDDLE_POLY: if (EndAtMiddle) goto END_POLY;
-  dX23 = (dx23<<16)/dy23;
-  if (dX13<=dX23)
-  {
-    dX1 = dX23;
-    dX2 = dX13;
-	} else {
-    dX1 = dX13;
-    dX2 = dX23;
-  }
-  Y = dy23-1;
-  do
-  {
-    EX1+=dX1;
-    EX2+=dX2;
-    x1 = EX1>>16;
-    x2 = EX2>>16;
-/*    if (x2==XRes_1)
-    {
-      Pen=NULL;
-      return;
-    }*/
-    memset(Pen+x1,Col,x2-x1+1);
-    Pen+=XRes;
-  } while (Y--);
-	END_POLY:;
-}
+//void Flat_Poly_8Bit(Vertex **V, dword numVerts)
+//{
+//	long X1,Y1,X2,Y2,X3,Y3; //Pixelled projected vertex position
+//	long dX12,dX13,dX23;    //Fixed point Slopes. (16:16)
+//	long dx12,dx13,dx23;    //X-deltas.
+//	long dy12,dy13,dy23;    //Y-deltas.
+//	long X,Y;               //Loop and generic variables.
+//	long x1,x2;
+//  long EX1,EX2;           //Edge interpolation rate.
+//  long dX1,dX2;           //Edge interpolation differencial.
+//  byte *Pen;              //Viewport Scanning Pointer
+//  char Col=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32; //Average Color.
+//  char EndAtMiddle=0;     //Flag: End drawing in the middle(ignore Y2->y3).
+//  long Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
+//
+//  X1 = _A->PX+0.5; Y1 = _A->PY+0.5;
+//  X2 = _B->PX+0.5; Y2 = _B->PY+0.5;
+//  X3 = _C->PX+0.5; Y3 = _C->PY+0.5;
+//
+//  dx12 = X2-X1; dy12=Y2-Y1;
+//  dx13 = X3-X1; dy13=Y3-Y1;
+//  dx23 = X3-X2; dy23=Y3-Y2;
+//
+//  if (Y1==Y3)
+//  {
+//    if (X1<=X2)
+//		{
+//      Pen = VPage+YOffs[Y1]+X1;
+//      memset(Pen,Col,dx12+1);
+//      if (X3<X1) memset(Pen+dx13,Col,1-dx13); else if (X2<X3) memset(Pen+dx12,Col,dx23+1);
+//    } else {
+//      Pen = VPage+YOffs[Y1]+X2;
+//      memset(Pen,Col,1-dx12);
+//      Pen-=dx12;
+//      if (X3<X2) memset(Pen+dx13,Col,1-dx13); else if (X1<X3) memset(Pen-dx12,Col,dx13+1);
+//    }
+//    goto END_POLY;
+//  }
+//  dX13 = (dx13<<16)/dy13;
+//  if (Y1==Y2)
+//  {
+//    if (X1<=X2)
+//    {
+//      Pen = VPage+YOffs[Y1]+X1;
+//      X = dx12+1;
+//			memset(Pen,Col,X);
+//
+//      EX1 = X1<<16;
+//      EX2 = X2<<16;
+//      Pen+=XRes-X1;
+//      goto MIDDLE_POLY;
+//    } else {
+//      Pen = VPage+YOffs[Y1]+X2;
+//      X = 1-dx12;
+//      memset(Pen,Col,X);
+//
+//      EX1 = X2<<16;
+//      EX2 = X1<<16;
+//      Pen+=XRes-X2;
+//      goto MIDDLE_POLY;
+//    }
+//  }
+//  dX12 = (dx12<<16)/dy12;
+//  if (Y2==Y3) EndAtMiddle=1;
+//	// Scan conv Poly BEGINS.
+//  // Initialization...
+//  EX1 = EX2 = X1<<16;
+//  EX2 += 65536;
+//
+//  if (dX12<=dX13)
+//  {
+//    dX1 = dX12;
+//    dX2 = dX13;
+//  } else {
+//    dX1 = dX13;
+//    dX2 = dX12;
+//  }
+//
+//  Y = dy12;
+//  Pen = VPage+YOffs[Y1];
+//  EX1-=dX1;
+//  EX2-=dX2;
+//  do
+//	{
+//    EX1+=dX1;
+//    EX2+=dX2;
+//    x1=EX1>>16;
+//    x2=EX2>>16;
+///*    if (x2==XRes_1)
+//    {
+//      Pen=NULL;
+//      return;
+//    }*/
+//    memset(Pen+x1,Col,x2-x1+1);
+//    Pen+=XRes;
+//  } while (Y--);
+//  MIDDLE_POLY: if (EndAtMiddle) goto END_POLY;
+//  dX23 = (dx23<<16)/dy23;
+//  if (dX13<=dX23)
+//  {
+//    dX1 = dX23;
+//    dX2 = dX13;
+//	} else {
+//    dX1 = dX13;
+//    dX2 = dX23;
+//  }
+//  Y = dy23-1;
+//  do
+//  {
+//    EX1+=dX1;
+//    EX2+=dX2;
+//    x1 = EX1>>16;
+//    x2 = EX2>>16;
+///*    if (x2==XRes_1)
+//    {
+//      Pen=NULL;
+//      return;
+//    }*/
+//    memset(Pen+x1,Col,x2-x1+1);
+//    Pen+=XRes;
+//  } while (Y--);
+//	END_POLY:;
+//}
 
 
 //void Flat_Poly_ManyBits(Vertex **V, dword numVerts)
@@ -492,7 +492,7 @@ void Flat_Poly_8Bit(Vertex **V, dword numVerts)
 //END_POLY:;
 //}
 
-
+/*
 void FlatV2_Poly_8Bit(Vertex **V, dword numVerts)
 {
   char Col=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32;
@@ -622,7 +622,7 @@ void FlatV2_Poly_8Bit(Vertex **V, dword numVerts)
 	}
 	end:; //After Y2->y3
 }
-
+*/
 // Calls THE Bilinear mapper
 /*
 #pragma pack(1)
@@ -1358,7 +1358,7 @@ void The_BiMMXTTrue_Fogged(Vertex **V, dword numVerts)
   Cx = _A->PX+0.5; Cy = _A->PY+0.5;
   if (Cx>=0&&Cy>=0&&Cx<=XRes_1&&Cy<=YRes_1) VPage[Cx+YOffs[Cy]]=64;
 }*/
-
+/*
 void Dark_Sprite(Vertex **V, dword numVerts)
 {
   byte *OmniTxtr = DoFace->Txtr->Txtr->Data;
@@ -1412,7 +1412,7 @@ void Dark_Sprite(Vertex **V, dword numVerts)
   ECY1+=EDY1;   // Interpolate Y
   }
 }
-
+*/
 // Zol,this shit does *NOTHING* , just to make filler pointers shut
 // that bouzenki up
 void Spirit_16(Vertex **V, dword numVerts)
@@ -1601,16 +1601,16 @@ void Seven_UP_MMXV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page, dwor
 }
 
 
-void The_MMX_Scalar(Vertex **V, dword numVerts)
+void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel)
 {
 //	long Size = ImageSize*_A->RZ;
 	float Size = ImageSize*_A->RZ*View->PerspX;
 
 	// flare image size is written as a floating pt.
-	Size *= DoFace->FlareSize;
+	Size *= F->FlareSize;
 
 	if (Size<=0) return;
-	if (DoFace->Txtr&&DoFace->Txtr->Txtr)
+	if (F->Txtr&&F->Txtr->Txtr)
 	{
 		int edgeLen;
 		if (Size==0)
@@ -1637,7 +1637,7 @@ void The_MMX_Scalar(Vertex **V, dword numVerts)
 			Z = 1;
 
 		// Z compare on center only.
-		if (DoFace->Flags & Face_PointZTest)
+		if (F->Flags & Face_PointZTest)
 		{
 			long x = _A->PX;
 			if (x<0) x=0;
@@ -1647,8 +1647,8 @@ void The_MMX_Scalar(Vertex **V, dword numVerts)
 			if (y>YRes-1) y=YRes-1;
 			if (Z <= ((word *)VPage) [(PageSize>>1)+XRes*y+x]) return;
 		}
-		CSeven_UP_MMX(_A->PX,_A->PY,edgeLen,edgeLen,DoFace->Txtr->Txtr->Data,VPage, Col, Z);
-		//CSeven_UP(_A->PX,_A->PY,Size<<1,Size<<1,DoFace->Txtr->Txtr->Data,VPage);
+		CSeven_UP_MMX(_A->PX,_A->PY,edgeLen,edgeLen,F->Txtr->Txtr->Data,VPage, Col, Z);
+		//CSeven_UP(_A->PX,_A->PY,Size<<1,Size<<1,F->Txtr->Txtr->Data,VPage);
 	}
 
 
@@ -2000,15 +2000,15 @@ void InsertSpriteToTBR(Face *F, float y, float Height)
 	}	
 }
 
-void TBR_Sprite(Vertex **V, dword numVerts)
+void TBR_Sprite(Face* F, Vertex **V, dword numVerts, dword miplevel)
 {
 	float Size = ImageSize*_A->RZ*View->PerspX;
 
 	// flare image size is written as a floating pt.
-	Size *= DoFace->FlareSize;
+	Size *= F->FlareSize;
 	
 	if (Size<=0) return;
-	if (DoFace->Txtr&&DoFace->Txtr->Txtr)
+	if (F->Txtr&&F->Txtr->Txtr)
 	{
 		float edgeLen=2.0*Size;
 
@@ -2036,8 +2036,8 @@ void TBR_Sprite(Vertex **V, dword numVerts)
 			// Insertion routine - Add 'spans' to TBR data structure
 //			spriteClipY1 = 0;
 //			spriteClipY2 = YRes;
-//			Spriter32(_A->PX,_A->PY,edgeLen,edgeLen,DoFace->Txtr->Txtr->Data,VPage, Color);
-			InsertSpriteToTBR(DoFace, _A->PY, edgeLen);
+//			Spriter32(_A->PX,_A->PY,edgeLen,edgeLen,F->Txtr->Txtr->Data,VPage, Color);
+			InsertSpriteToTBR(F, _A->PY, edgeLen);
 		}
 
 	}

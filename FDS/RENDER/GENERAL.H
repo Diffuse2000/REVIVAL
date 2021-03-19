@@ -354,7 +354,7 @@ char FDS_Init(unsigned short x,unsigned short y,unsigned char bpp)
 
 	Init_FreeCamera();
 
-	InitFrustrumClipper();
+	//InitFrustrumClipper();
 
 	return Res;
 }

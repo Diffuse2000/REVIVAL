@@ -384,9 +384,9 @@ void Render();
 #define FrustrumIncluded
 
 // Third generation Frustrum clipper
-void InitFrustrumClipper();
-void InitClipperViewport(Scene *Sc);
-void FrustrumClipper();
+//void InitFrustrumClipper();
+//void InitClipperViewport(Scene *Sc);
+//void FrustrumClipper();
 
 
 #endif
@@ -401,29 +401,29 @@ void GridRendererTG(GridPointTG *GP, Image *Img, dword *page, dword XRes, dword 
 // Sprite scalers
 void The_Seven_UP(Vertex **V, dword numVerts);
 void The_Seven_UP_64(long X,long Y,long SX,long SY,dword *Bitmap,byte *Page);
-void The_MMX_Scalar(Vertex **V, dword numVerts);
+void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel);
 
 // House IX technology
 void InitPolyStats(long cells);
 void SavePolyStats(const char *fileName);
-void IX_Prefiller_FZ(Vertex **V, dword numVerts);
-void IX_Prefiller_FAcZ(Vertex **V, dword numVerts);
-void IX_Prefiller_GZ(Vertex **V, dword numVerts);
-void IX_Prefiller_GAcZ(Vertex **V, dword numVerts);
-void IX_Prefiller_TZ(Vertex **V, dword numVerts);
-void IX_Prefiller_TAcZ(Vertex **V, dword numVerts);
-void IX_Prefiller_TGZ(Vertex **V, dword numVerts);
-void IX_Prefiller_TGAcZ(Vertex **V, dword numVerts);
-void IX_Prefiller_TGZM(Vertex **V, dword numVerts);
-void IX_Prefiller_TGZTM(Vertex **V, dword numVerts);
-void IX_Prefiller_TGZTAM(Vertex **V, dword numVerts);
-void IX_Prefiller_TGZSAM(Vertex** V, dword numVerts);
-void IX_Prefiller_Reflective(Vertex** V, dword numVerts);
+void IX_Prefiller_FZ(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_FAcZ(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_GZ(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_GAcZ(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_TZ(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_TAcZ(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_TGZ(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_TGAcZ(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_TGZM(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_TGZTM(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_TGZTAM(Face* F, Vertex **V, dword numVerts, dword miplevel);
+void IX_Prefiller_TGZSAM(Face* F, Vertex** V, dword numVerts, dword miplevel);
+void IX_Prefiller_Reflective(Face* F, Vertex** V, dword numVerts, dword miplevel);
 
 
 // Tile based rendering
 void TBR_Init(Scene *Sc, mword size);
-void TBR_Sprite(Vertex **V, dword numVerts);
+void TBR_Sprite(Face* F, Vertex **V, dword numVerts, dword miplevel);
 void TBR_Render(Scene *Sc);
 
 #ifdef WIN32

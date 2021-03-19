@@ -24,6 +24,8 @@
 
 //#define TRACE_OBJECTS
 
+thread_local FrustumClipper clipper;
+
 
 float frand() {
 	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -32,28 +34,28 @@ float frand() {
 // Front-to-back sorting used together with ZBuffer.
 #define FRONT_TO_BACK_SORTING
 
-struct SceneContext {
-	std::unique_ptr<Scene>  CurScene;
-	std::vector<Face *>     FList;
-	std::vector<Face *>     SList;
-	Face                    *DoFace;
-	long CPolys,COmnies,CPcls,CAll,Polys;
-	char Cam_HeadLight;
-	float CurFrame;
-	float g_zscale;
-	float g_zscale256;
-	int32_t g_FrameTime;
-	float Ambient_Factor;
-	float Diffusive_Factor;
-	float Specular_Factor;
-	float Range_Factor;
-};
+//struct SceneContext {
+//	std::unique_ptr<Scene>  CurScene;
+//	std::vector<Face *>     FList;
+//	std::vector<Face *>     SList;
+//	Face                    *DoFace;
+//	long CPolys,COmnies,CPcls,CAll,Polys;
+//	char Cam_HeadLight;
+//	float CurFrame;
+//	float g_zscale;
+//	float g_zscale256;
+//	int32_t g_FrameTime;
+//	float Ambient_Factor;
+//	float Diffusive_Factor;
+//	float Specular_Factor;
+//	float Range_Factor;
+//};
 
 
 Scene *CurScene;
 Face **FList = nullptr;
 Face **SList = nullptr;
-Face *DoFace; // mar gamish, ta'ase partsuf!
+//Face *DoFace; // mar gamish, ta'ase partsuf!
 long CPolys,COmnies,CPcls,CAll,Polys;
 //char *TxtrBuf,*TxtrAlign;
 //float Exec_FPS;
@@ -1760,10 +1762,10 @@ void Render()
 	
 	while (I--)
 	{
-		DoFace=*FLS++;
+		Face *F = *FLS++;
 		
 		// Get Mapping Coordinates from the rendered face.
-		A=DoFace->A; B=DoFace->B; 
+		A=F->A; B=F->B; 
 				
 		// TODO: change this into a flag check
 		if (A == B)
@@ -1771,49 +1773,46 @@ void Render()
 			// Particle/Sprite - no far-Z clipping
 			if (A->TPos.z < C_NZP) continue;
 			V[0] = A;
-			DoFace->Filler(V, 1);
+			F->Filler(F, V, 1, 0);
 		} else {
 			// Polygon - can further check the expression
 			// (A->Flags|B->Flags|C->Flags)&Vtx_Visible
 			// if it is zero, we can use something lighter than
 			// the frustrum clipper.
-			C=DoFace->C;
-			D = DoFace->D;
-			A->U = DoFace->U1; A->V = DoFace->V1;
-			B->U = DoFace->U2; B->V = DoFace->V2;
-			C->U = DoFace->U3; C->V = DoFace->V3;
+			C=F->C;
+			D = F->D;
+			A->U = F->U1; A->V = F->V1;
+			B->U = F->U2; B->V = F->V2;
+			C->U = F->U3; C->V = F->V3;
 			A->UZ = A->U * A->RZ; A->VZ = A->V * A->RZ;
 			B->UZ = B->U * B->RZ; B->VZ = B->V * B->RZ;
 			C->UZ = C->U * C->RZ; C->VZ = C->V * C->RZ;
 
 			auto flags = A->Flags & B->Flags & C->Flags;
 			if (D != nullptr) {
-				D->U = DoFace->U4; D->V = DoFace->V4;
+				D->U = F->U4; D->V = F->V4;
 				D->UZ = D->U * D->RZ; D->VZ = D->V * D->RZ;
 				flags &= D->Flags;
 			}
 
 			if (flags&Vtx_Visible) continue;
-			if (DoFace->Flags & Face_Reflective) {
-				DoFace->Filler = IX_Prefiller_TGZM;
+			if (F->Flags & Face_Reflective) {
+				F->Filler = IX_Prefiller_TGZM;
 			}
-			FrustrumClipper();
-			if (DoFace->Flags & Face_Reflective) {
-				//DoFace->Txtr->Txtr->Flags |= Txtr_Nomip;
-				//std::swap(DoFace->Txtr->Txtr, DoFace->ReflectionTexture);
-				A->U = DoFace->EU1; A->V = DoFace->EV1;
-				B->U = DoFace->EU2; B->V = DoFace->EV2;
-				C->U = DoFace->EU3; C->V = DoFace->EV3;
+			clipper.Clip(F);
+			if (F->Flags & Face_Reflective) {
+				A->U = F->EU1; A->V = F->EV1;
+				B->U = F->EU2; B->V = F->EV2;
+				C->U = F->EU3; C->V = F->EV3;
 				A->UZ = A->U * A->RZ; A->VZ = A->V * A->RZ;
 				B->UZ = B->U * B->RZ; B->VZ = B->V * B->RZ;
 				C->UZ = C->U * C->RZ; C->VZ = C->V * C->RZ;
-				DoFace->Filler = IX_Prefiller_Reflective;
+				F->Filler = IX_Prefiller_Reflective;
 				if (D != nullptr) {
-					D->U = DoFace->EU4; D->V = DoFace->EV4;
+					D->U = F->EU4; D->V = F->EV4;
 					D->UZ = D->U * D->RZ; D->VZ = D->V * D->RZ;
 				}
-				FrustrumClipper();
-				//std::swap(DoFace->Txtr->Txtr, DoFace->ReflectionTexture);
+				clipper.Clip(F);
 			}
 		}
 	}
@@ -1904,7 +1903,7 @@ char Check_Texture_Memory_Range(Scene *Sc)
 
 void SetCurrentScene(Scene *Sc)
 {
-	InitClipperViewport(Sc);
+	clipper.InitViewport(Sc);
 	CurScene = Sc;
 	g_zscale = (float)0xff00 / (CurScene->FZP * 1.1);
 	g_zscale256 = g_zscale / 256.0f;

@@ -731,14 +731,14 @@ static Material DummyMat;
 static Texture DummyTex;
 
 
-static void PrefillerCommon(Vertex **V, dword numVerts)
+static void PrefillerCommon(Face *F, Vertex **V, dword numVerts, dword miplevel)
 {
 	dword i;
 
-	long LogWidth = DoFace->Txtr->Txtr->LSizeX - g_MipLevel;
-	long LogHeight = DoFace->Txtr->Txtr->LSizeY - g_MipLevel;
+	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
+	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 	
-	dword TextureAddr = (dword)DoFace->Txtr->Txtr->Mipmap[g_MipLevel];
+	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[miplevel];
 
 	
 	float UScaleFactor = (1<<LogWidth);
@@ -756,16 +756,16 @@ static void PrefillerCommon(Vertex **V, dword numVerts)
 	IXFiller(l_IXArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 }
 
-void IX_Prefiller_TZ(Vertex **V, dword numVerts)
+void IX_Prefiller_TZ(Face* F, Vertex **V, dword numVerts, dword miplevel)
 {
 	SubInnerPtr = SubInnerLoop;
-	PrefillerCommon(V, numVerts);
+	PrefillerCommon(F, V, numVerts, miplevel);
 }
 
-void IX_Prefiller_TAcZ(Vertex **V, dword numVerts)
+void IX_Prefiller_TAcZ(Face* F, Vertex **V, dword numVerts, dword miplevel)
 {
 	SubInnerPtr = SubInnerLoopT;
-	PrefillerCommon(V, numVerts);
+	PrefillerCommon(F, V, numVerts, miplevel);
 }
 
 

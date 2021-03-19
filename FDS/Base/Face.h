@@ -9,10 +9,9 @@
 
 #pragma pack(push, 1)
 
-// [72 Bytes]
-// [48 w/o U/V shit]
-// [+12 for L.maps]
-typedef void (*RasterFunc)(Vertex **V, dword numVerts);
+struct Face;
+
+typedef void (*RasterFunc)(Face* F, Vertex** V, dword numVerts, dword miplevel);
 
 // [4 Bytes]
 union FDW

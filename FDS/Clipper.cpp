@@ -2,7 +2,6 @@
 
 // TODO: thread-local
 static _2DClipper _2DClipperInst;
-extern Face* DoFace;
 
 _2DClipper::_2DClipper() {
 	C_Prim = C_Ptr[0];
@@ -30,9 +29,8 @@ void _2DClipper::clip(const Viewport& vp, Face& f) {
 
 	ySort(C_Prim, C_Scnd, C_numVerts);
 
-	DoFace = &f;
-	g_MipLevel = 0;
-	f.Filler(C_Prim, C_numVerts);
+	//DoFace = &f;
+	f.Filler(&f, C_Prim, C_numVerts, 0);
 }
 void _2DClipper::left() {
 	dword i, j = 0;

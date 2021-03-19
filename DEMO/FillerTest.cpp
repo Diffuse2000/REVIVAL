@@ -903,7 +903,7 @@ static Texture DummyTex;
 
 
 #define ENABLE_PIXELCOUNT
-static void PrefillerCommon(Vertex **V, dword numVerts)
+static void PrefillerCommon(Face *F, Vertex **V, dword numVerts)
 {
 	dword i;
 
@@ -932,10 +932,10 @@ static void PrefillerCommon(Vertex **V, dword numVerts)
 	//long MipLevel = 0;
 	// [Shirman98]	
 
-	long LogWidth = DoFace->Txtr->Txtr->LSizeX - g_MipLevel;
-	long LogHeight = DoFace->Txtr->Txtr->LSizeY - g_MipLevel;
+	long LogWidth = F->Txtr->Txtr->LSizeX;
+	long LogHeight = F->Txtr->Txtr->LSizeY;
 	
-	dword TextureAddr = (dword)DoFace->Txtr->Txtr->Mipmap[g_MipLevel];
+	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[0];
 
 //	dword TextureAddr =
 		//(dword)l_TestTexture; 
@@ -999,16 +999,16 @@ static void PrefillerCommon(Vertex **V, dword numVerts)
 	IXFiller(l_IXArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 }
 
-void Prefiller(Vertex **V, dword numVerts)
+void Prefiller(Face *F, Vertex **V, dword numVerts)
 {
 	SubInnerPtr = SubInnerLoop;
-	PrefillerCommon(V, numVerts);
+	PrefillerCommon(F, V, numVerts);
 }
 
-void Prefiller_T(Vertex **V, dword numVerts)
+void Prefiller_T(Face *F, Vertex **V, dword numVerts)
 {
 	SubInnerPtr = SubInnerLoopT;
-	PrefillerCommon(V, numVerts);
+	PrefillerCommon(F, V, numVerts);
 }
 
 extern "C"
@@ -1083,28 +1083,27 @@ static void drawPoly(float DT)
 		V[i].LR = V[i].LG = V[i].LB = V[i].LA = 255;
 	}
 
-	DoFace = &F;
 	F.Txtr = &DummyMat;
 	DummyMat.Txtr = &DummyTex;
 	DummyTex.Data = (byte *)l_TestTexture;
 	DummyTex.Mipmap[0] = DummyTex.Data;
-	DoFace->Txtr->Txtr->LSizeX = 8;
-	DoFace->Txtr->Txtr->LSizeY = 8;
+	F.Txtr->Txtr->LSizeX = 8;
+	F.Txtr->Txtr->LSizeY = 8;
 
-	Viewport vp;
+	/*Viewport vp;
 	vp.ClipX1 = 0;
 	vp.ClipX2 = XRes;
 	vp.ClipY1 = 0;
-	vp.ClipY2 = YRes_1;
+	vp.ClipY2 = YRes_1;*/
 			
 	for(i=0; i<4; i++)
 	{
 		V[i].RZ = 1.0 / V[i].TPos.z;
 		V[i].UZ = V[i].U * V[i].RZ;
 		V[i].VZ = V[i].V * V[i].RZ;		
-		viewportCalcFlags(vp, &V[i]);
+		// viewportCalcFlags(vp, &V[i]);
 	}
-	F.A = &V[0];
+	/*F.A = &V[0];
 	F.B = &V[1];
 	F.C = &V[2];
 	F.Filler = IX_Prefiller_TGZTAM;
@@ -1113,9 +1112,7 @@ static void drawPoly(float DT)
 	F.A = &V[0];
 	F.B = &V[2];
 	F.C = &V[3];
-	_2DClipper::getInstance()->clip(vp, F);
-
-	/*
+	_2DClipper::getInstance()->clip(vp, F);*/
 
 	long my=0;
 	float minY = V[0].PY;
@@ -1164,9 +1161,10 @@ static void drawPoly(float DT)
 		fld dword ptr [fl]
 		fistp dword ptr [ifl]
 	}
-	IX_Prefiller_TGZSAM(VP, 4);
+	F.Txtr->ZBufferWrite = 0;
+	IX_Prefiller_TGZSAM(&F, VP, 4, 0);
 //	VPage -= 800;
-//	IX_Prefiller_TGZ(VP, 4);
+//	IX_Prefiller_TGZ(&F, VP, 4);
 //	VPage += 800;*/
 
 /*	while (!Keyboard[ScSpace])
@@ -1182,7 +1180,6 @@ void FillerTest()
 	Sc.Flags = 0;
 	Sc.NZP = 1.0;
 	Sc.FZP = 1000.0;
-	g_MipLevel = 0;
 
 //	Texture Tx;
 //	Tx.FileName = strdup("Textures/PBRK34.JPG");
@@ -1215,12 +1212,12 @@ void FillerTest()
 	//endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.20 });
 	//endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.0 });
 
-	endpoints.emplace_back(0, Color{ 0.0, 0.0, 0.0, 0.5 });
-	endpoints.emplace_back(0.5, Color{ 0.3, 0.0, 0.1, 0.50 });
-	endpoints.emplace_back(0.6, Color{ 1.0, 0.0, 0.1, 0.50 });
-	endpoints.emplace_back(0.75, Color{ 1.0, 0.4, 0.8, 0.50 });
-	endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.50 });
-	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, .50 });
+	endpoints.emplace_back(0, Color{ 0.0, 0.0, 0.0, 0.2 });
+	endpoints.emplace_back(0.5, Color{ 0.3, 0.0, 0.1, 0.2 });
+	endpoints.emplace_back(0.6, Color{ 1.0, 0.0, 0.1, 0.2 });
+	endpoints.emplace_back(0.75, Color{ 1.0, 0.4, 0.8, 0.2 });
+	endpoints.emplace_back(0.8, Color{ 1.0, 1.0, 1.0, 0.2 });
+	endpoints.emplace_back(1.0, Color{ 1.0, 1.0, 1.0, 0.2 });
 
 	auto M = Generate_Gradient(endpoints, 256, 0.2, false);
 
@@ -1274,7 +1271,7 @@ void FillerTest()
 		//}
 
 		drawPoly(0);
-		//drawPoly(500);
+		drawPoly(500);
 
 		DWord pSrc = 0x80808080;
 		DWord pDst = 0x8C8C8C8C;

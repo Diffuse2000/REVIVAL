@@ -615,13 +615,13 @@ static void PrefillerCommon(Vertex **V, dword numVerts)
 	IXFiller(l_IXArray, numVerts, VPage);
 }
 
-void IX_Prefiller_GZ(Vertex **V, dword numVerts)
+void IX_Prefiller_GZ(Face* F, Vertex **V, dword numVerts, dword miplevel)
 {
 	SubInnerPtr = SubInnerLoop;
 	PrefillerCommon(V, numVerts);
 }
 
-void IX_Prefiller_GAcZ(Vertex **V, dword numVerts)
+void IX_Prefiller_GAcZ(Face* F, Vertex **V, dword numVerts, dword miplevel)
 {
 	SubInnerPtr = SubInnerLoopT;
 	PrefillerCommon(V, numVerts);
