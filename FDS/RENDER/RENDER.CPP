@@ -743,13 +743,12 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 			if (0 != (F->Flags & Face_Reflective)) {
 				// clobber U1, V1, etc. with the equilateral-whatever coordinates matching
 				// the direction from camera to the specific vertex, reflected on the face's plane
-				float eu[4];
-				float ev[4];
+				float eu[3];
+				float ev[3];
 				size_t i = 0;
-				Vector wsPos[4];
+				Vector wsPos[3];
 
-				for (Vertex* v : { F->A, F->B, F->C, F->D }) {
-					if (v == nullptr) break;
+				for (Vertex* v : { F->A, F->B, F->C }) {
 					wsPos[i] = T->RotMat * v->Pos + T->IPos;
 					++i;
 				}
@@ -772,7 +771,6 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 				Vector_Norm(&n);
 				i = 0;
 				for (Vertex* v : { F->A, F->B, F->C }) {
-					if (v == nullptr) break;
 					auto d = wsPos[i] - cv;
 					d -= (d * n) * 2.0f * n;
 					Vector_Norm(&d);
@@ -799,38 +797,6 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 				F->EV2 = ev[1];
 				F->EU3 = eu[2];
 				F->EV3 = ev[2];
-				if (F->D != nullptr) {
-					float m00, m01, m10, m11, u0, u1;
-					if (std::max({ wsPos[0].z, wsPos[1].z, wsPos[2].z }) - std::min({ wsPos[0].z, wsPos[1].z, wsPos[2].z }) > 0.001) {
-						m00 = wsPos[1].z - wsPos[0].z; m01 = wsPos[2].z - wsPos[0].z;
-						u0 = wsPos[3].z - wsPos[0].z;
-					} else {
-						m00 = wsPos[1].x - wsPos[0].x; m01 = wsPos[2].x - wsPos[0].x;
-						u0 = wsPos[3].x - wsPos[0].x;
-					}
-					m10 = wsPos[1].y - wsPos[0].y; m11 = wsPos[2].y - wsPos[0].y;
-					u1 = wsPos[3].y - wsPos[0].y;
-
-					float idet = 1.0 / (m00 * m11 - m01 * m10);
-					float im00 = idet * m11;
-					float im01 = -idet * m01;
-					float im10 = -idet * m10;
-					float im11 = idet * m00;
-
-					float a = im00 * u0 + im01 * u1;
-					float b = im10 * u0 + im11 * u1;
-
-					F->EU4 = eu[0] + (eu[1] - eu[0]) * a + (eu[2] - eu[0]) * b;
-					F->EV4 = ev[0] + (ev[1] - ev[0]) * a + (ev[2] - ev[0]) * b;
-				}
-
-				//F->EU1 = 0;
-				//F->EV1 = 0;
-				//F->EU2 = 0;
-				//F->EV2 = 0;
-				//F->EU3 = 0;
-				//F->EV3 = 0;
-				//F->ReflectionTexture = Obj->Reflection->Txtr;
 			}
 			*Ins++ = F;
 
@@ -847,7 +813,6 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 				dz = F->A->TPos.z;
 				if (F->B->TPos.z>dz) dz=F->B->TPos.z;
 				if (F->C->TPos.z>dz) dz=F->C->TPos.z;
-				if (F->D != nullptr && F->D->TPos.z > dz) dz = F->D->TPos.z;
 				if (dz > fzp)
 					F->SortZ.F = fzp;
 				else
@@ -859,7 +824,6 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 				dz = F->A->TPos.z;
 				if (F->B->TPos.z>dz) dz=F->B->TPos.z;
 				if (F->C->TPos.z>dz) dz=F->C->TPos.z;
-				if (F->D != nullptr && F->D->TPos.z > dz) dz = F->D->TPos.z;
 				F->SortZ.F = dz;
 
 //				F->SortZ.DW >>= 8;
@@ -1780,39 +1744,18 @@ void Render()
 			// if it is zero, we can use something lighter than
 			// the frustrum clipper.
 			C=F->C;
-			D = F->D;
-			A->U = F->U1; A->V = F->V1;
-			B->U = F->U2; B->V = F->V2;
-			C->U = F->U3; C->V = F->V3;
-			A->UZ = A->U * A->RZ; A->VZ = A->V * A->RZ;
-			B->UZ = B->U * B->RZ; B->VZ = B->V * B->RZ;
-			C->UZ = C->U * C->RZ; C->VZ = C->V * C->RZ;
 
 			auto flags = A->Flags & B->Flags & C->Flags;
-			if (D != nullptr) {
-				D->U = F->U4; D->V = F->V4;
-				D->UZ = D->U * D->RZ; D->VZ = D->V * D->RZ;
-				flags &= D->Flags;
-			}
-
 			if (flags&Vtx_Visible) continue;
+			RasterFunc filler;
 			if (F->Flags & Face_Reflective) {
-				F->Filler = IX_Prefiller_TGZM;
+				filler = IX_Prefiller_TGZM;
+			} else {
+				filler = F->Filler;
 			}
-			clipper.Clip(F);
+			clipper.Render(F, filler, false);
 			if (F->Flags & Face_Reflective) {
-				A->U = F->EU1; A->V = F->EV1;
-				B->U = F->EU2; B->V = F->EV2;
-				C->U = F->EU3; C->V = F->EV3;
-				A->UZ = A->U * A->RZ; A->VZ = A->V * A->RZ;
-				B->UZ = B->U * B->RZ; B->VZ = B->V * B->RZ;
-				C->UZ = C->U * C->RZ; C->VZ = C->V * C->RZ;
-				F->Filler = IX_Prefiller_Reflective;
-				if (D != nullptr) {
-					D->U = F->EU4; D->V = F->EV4;
-					D->UZ = D->U * D->RZ; D->VZ = D->V * D->RZ;
-				}
-				clipper.Clip(F);
+				clipper.Render(F, IX_Prefiller_Reflective, true);
 			}
 		}
 	}

@@ -744,7 +744,6 @@ OUT:FEnd=T->Faces+T->FIndex;
 				dz = F->A->TPos.z;
 				if (F->B->TPos.z > dz) dz = F->B->TPos.z;
 				if (F->C->TPos.z > dz) dz = F->C->TPos.z;
-				if (F->D != nullptr && F->D->TPos.z > dz) dz = F->D->TPos.z;
 #ifdef FRONT_TO_BACK_SORTING
 				F->SortZ.F = dz;
 #else

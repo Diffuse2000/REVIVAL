@@ -12,7 +12,7 @@
 
 #define ClipAccurate
 #define COUNT_POLYS
-//#define NO_MIPMAPS
+#define NO_MIPMAPS
 
 float FOVX,FOVY;
 float C_FZP,C_rFZP, C_NZP, C_rNZP;
@@ -187,7 +187,7 @@ void FrustumClipper::Near()
 	_IB = C_Prim[0];
 
 	float t;
-	Vertex *newVert = C_Verts;
+//	newVert = C_Verts + 0;
 	for(i=0; i<C_numVerts;i++)
 	{
 		_IA = _IB;
@@ -230,7 +230,7 @@ void FrustumClipper::Far()
 	_IB = C_Prim[0];
 
 	float t;
-	Vertex *newVert = C_Verts+2;
+	//newVert = C_Verts + 2;
 	for(i=0;i<C_numVerts;i++)
 	{
 		_IA = _IB;
@@ -286,7 +286,7 @@ void FrustumClipper::Left()
 	dword i, j = 0;
 	_IB = C_Prim[0];
 
-	Vertex *newVert = C_Verts+4;
+//	newVert = C_Verts + 4;
 	for(i=0; i<C_numVerts; i++)
 	{
 		_IA = _IB;
@@ -313,7 +313,7 @@ void FrustumClipper::Right()
 	dword i, j = 0;
 	_IB = C_Prim[0];
 
-	Vertex *newVert = C_Verts+6;
+	//newVert = C_Verts + 6;
 	for(i=0; i<C_numVerts; i++)
 	{
 		_IA = _IB;
@@ -340,7 +340,8 @@ void FrustumClipper::Up()
 	dword i, j = 0;
 	_IB = C_Prim[0];
 
-	Vertex *newVert = C_Verts+8;
+	// WTFWTFWTF
+	newVert = C_Verts + 8 + 3;
 	for(i=0; i<C_numVerts; i++)
 	{
 		_IA = _IB;
@@ -366,7 +367,7 @@ void FrustumClipper::Down()
 	dword i, j = 0;
 	_IB = C_Prim[0];
 
-	Vertex *newVert = C_Verts+10;
+	//newVert = C_Verts + 10;
 	for(i=0; i<C_numVerts; i++)
 	{
 		_IA = _IB;
@@ -434,7 +435,7 @@ void FrustumClipper::YSort(Vertex **Prim, Vertex **Scnd, mword nVerts)
 
 }
 
-void FrustumClipper::MiplevelClipper(Face *F)
+void FrustumClipper::MiplevelClipper(Face *F, RasterFunc filler)
 {
 	const float mipBias = 0.5;
 
@@ -479,10 +480,7 @@ void FrustumClipper::MiplevelClipper(Face *F)
 #ifdef NO_MIPMAPS
 		g_MipLevel = 0;
 #endif
-//		CorrectCWOrder();
-
-		F->Filler(F, C_Prim, C_numVerts, g_MipLevel);
-		//IX_Prefiller_TGZSAM(DoFace, C_Prim, C_numVerts);
+		filler(F, C_Prim, C_numVerts, g_MipLevel);
 		return;
 	}
 
@@ -542,7 +540,7 @@ void FrustumClipper::MiplevelClipper(Face *F)
 #ifdef NO_MIPMAPS
 		g_MipLevel = 0;
 #endif
-		F->Filler(F, C_Prim, C_numVerts, g_MipLevel);
+		filler(F, C_Prim, C_numVerts, g_MipLevel);
 		return;
 	}
 
@@ -551,7 +549,8 @@ void FrustumClipper::MiplevelClipper(Face *F)
 
 	float t;
 	mword numSectionVerts;
-	Vertex *newVert = C_Verts + 12;
+//	newVert = C_Verts + 12;
+
 
 	left = right = mlindex;
 
@@ -618,7 +617,7 @@ void FrustumClipper::MiplevelClipper(Face *F)
 #ifdef NO_MIPMAPS
 		g_MipLevel = 0;
 #endif
-		F->Filler(F, C_Tetr, numSectionVerts, g_MipLevel);
+		filler(F, C_Tetr, numSectionVerts, g_MipLevel);
 
 		// prepare new section - add last two intersection points
 		numRight = 1; // vertex #0 is ignored
@@ -640,7 +639,7 @@ void FrustumClipper::MiplevelClipper(Face *F)
 #ifdef NO_MIPMAPS
 		g_MipLevel = 0;
 #endif
-		F->Filler(F, C_Prim, C_numVerts, g_MipLevel);
+		filler(F, C_Prim, C_numVerts, g_MipLevel);
 		return;
 	}
 	while (left != right)
@@ -657,7 +656,7 @@ void FrustumClipper::MiplevelClipper(Face *F)
 #ifdef NO_MIPMAPS
 		g_MipLevel = 0;
 #endif
-	F->Filler(F, C_Tetr, numSectionVerts, g_MipLevel);
+	filler(F, C_Tetr, numSectionVerts, g_MipLevel);
 }
 
 float FrustumClipper::PolyArea()
@@ -679,25 +678,39 @@ float FrustumClipper::PolyArea()
 }
 
 
-void FrustumClipper::Clip(Face *F)
+void FrustumClipper::Render(Face *F, RasterFunc filler, bool isEnvCoords)
 {
 	mword i, j;
 
+	Vertex* A = &C_Verts[0];
+	Vertex* B = &C_Verts[1];
+	Vertex* C = &C_Verts[2];
+
+	*A = *F->A;
+	*B = *F->B;
+	*C = *F->C;
+	newVert = &C_Verts[3];
+
+	if (isEnvCoords) {
+		A->U = F->EU1; A->V = F->EV1;
+		B->U = F->EU2; B->V = F->EV2;
+		C->U = F->EU3; C->V = F->EV3;
+	} else {
+		A->U = F->U1; A->V = F->V1;
+		B->U = F->U2; B->V = F->V2;
+		C->U = F->U3; C->V = F->V3;
+	}
+	A->UZ = A->U * A->RZ; A->VZ = A->V * A->RZ;
+	B->UZ = B->U * B->RZ; B->VZ = B->V * B->RZ;
+	C->UZ = C->U * C->RZ; C->VZ = C->V * C->RZ;
+
 	// Assign polygon
 	C_numVerts = 3;
-	C_Prim[0] = F->A;
-	C_Prim[1] = F->B;
-	C_Prim[2] = F->C;
-	C_Prim[3] = F->A;
+	C_Prim[0] = A;
+	C_Prim[1] = B;
+	C_Prim[2] = C;
+	C_Prim[3] = A;
 	C_Flags = C_Prim[0]->Flags | C_Prim[1]->Flags | C_Prim[2]->Flags;
-
-	if (F->D != nullptr) {
-		C_Prim[3] = F->D;
-		C_Prim[4] = F->A;
-		C_Flags |= C_Prim[3]->Flags;
-		C_numVerts++;
-	}
-		
 
 	if (C_Flags&Vtx_VisNear)  Near(); 
 	if (C_Flags&Vtx_VisFar)   Far();
@@ -727,7 +740,7 @@ void FrustumClipper::Clip(Face *F)
 	if (F->Txtr->Txtr)
 	{
 		Swap();
-		MiplevelClipper(F);
+		MiplevelClipper(F, filler);
 	} else {
 #ifdef ENABLE_PIXELCOUNT
 		FillerPixelcount += PolyArea();
@@ -735,13 +748,13 @@ void FrustumClipper::Clip(Face *F)
 #ifdef COUNT_POLYS
 		g_renderedPolys++;
 #endif		
-		F->Filler(F, C_Scnd, C_numVerts, g_MipLevel);
+		filler(F, C_Scnd, C_numVerts, g_MipLevel);
 	}
 	/*for(i=2; i<C_numVerts; i++)
 	{
 		if (C_Scnd[i-1]->PY < C_Scnd[i]->PY)
-			F->Filler(C_Scnd[0], C_Scnd[i-1], C_Scnd[i]);
+			filler(C_Scnd[0], C_Scnd[i-1], C_Scnd[i]);
 		else
-			F->Filler(C_Scnd[0], C_Scnd[i], C_Scnd[i-1]);
+			filler(C_Scnd[0], C_Scnd[i], C_Scnd[i-1]);
 	}*/
 }

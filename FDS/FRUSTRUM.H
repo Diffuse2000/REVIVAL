@@ -9,7 +9,7 @@ public:
 	}
 
 	void InitViewport(Scene* Sc);
-	void Clip(Face *F);
+	void Render(Face *F, RasterFunc filler, bool isEnvCoords);
 
 private:
 	void Init();
@@ -25,7 +25,7 @@ private:
 	void Down();
 	void CorrectCWOrder();
 	void YSort(Vertex** Prim, Vertex** Scnd, mword nVerts);
-	void MiplevelClipper(Face *F);
+	void MiplevelClipper(Face *F, RasterFunc filler);
 	float PolyArea();
 
 	dword g_MipLevel;
@@ -33,6 +33,7 @@ private:
 	Viewport C_VP;
 	mword C_numVerts;
 	Vertex C_Verts[CLIPPER_MAXVERTS];
+	Vertex* newVert = nullptr;
 	Vertex* C_Ptr[3][CLIPPER_MAXVERTS];
 	Vertex** C_Prim, ** C_Scnd, ** C_Tetr;
 

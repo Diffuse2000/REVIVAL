@@ -31,8 +31,6 @@ struct Face
 		float			FlareSize;
 	};
 
-	Vertex		  * D = nullptr;
-
 	dword           Flags = 0;
 	float           NormProd = 0.0f;
 	Vector          N;
@@ -41,11 +39,9 @@ struct Face
 	float           U1  = 0.0f, V1  = 0.0f;
 	float           U2  = 0.0f, V2  = 0.0f;
 	float           U3  = 0.0f, V3  = 0.0f;
-	float           U4  = 0.0f, V4  = 0.0f;
 	float           EU1 = 0.0f, EV1 = 0.0f;
 	float           EU2 = 0.0f, EV2 = 0.0f;
 	float           EU3 = 0.0f, EV3 = 0.0f;
-	float           EU4 = 0.0f, EV4 = 0.0f;
 
 	RasterFunc		Filler = nullptr;
 	Material      * Txtr = nullptr;
@@ -59,10 +55,6 @@ struct Face
 		V2 = B->V;
 		U3 = C->U;
 		V3 = C->V;
-		if (D) {
-			U4 = D->U;
-			V4 = D->V;
-		}
 	}
 
 	void uvToVertices() {
@@ -72,25 +64,15 @@ struct Face
 		B->V = V2;
 		C->U = U3;
 		C->V = V3;
-		if (D) {
-			D->U = U4;
-			D->V = V4;
-		}
 	}
 
 	DWord VisibilityFlagsAll() {
 		auto flags = A->Flags & B->Flags & C->Flags;
-		if (D != nullptr) {
-			flags &= D->Flags;
-		}
 		return flags & Vtx_Visible;
 	}
 
 	DWord VisibilityFlagsAny() {
 		auto flags = A->Flags | B->Flags | C->Flags;
-		if (D != nullptr) {
-			flags |= D->Flags;
-		}
 		return flags & Vtx_Visible;
 	}
 
