@@ -515,6 +515,7 @@ static Texture DummyTex;
 #define ENABLE_PIXELCOUNT
 static void PrefillerCommon(Vertex **V, dword numVerts)
 {
+	return;
 	dword i;
 
 	if (CurScene->Flags & Scn_Fogged)

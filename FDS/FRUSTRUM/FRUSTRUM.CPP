@@ -43,8 +43,8 @@ std::atomic<dword> g_renderedPolys;
 #define EXPTABLEPREC 8
 #define EXPTABLEMASK 0x000000FF
 
-static float LogTable[1<<LOGTABLEPREC];
-static float ExpTable[(1<<EXPTABLEPREC)+1];
+thread_local static float LogTable[1<<LOGTABLEPREC];
+thread_local static float ExpTable[(1<<EXPTABLEPREC)+1];
 
 float fastLog2(float x)
 {
@@ -58,7 +58,7 @@ float fastPow2(float x)
 {
 //	static const float b2 = log(2.0);
 //	return exp(b2*x);
-	static const float ETP = (1 << EXPTABLEPREC);
+	constexpr float ETP = (1 << EXPTABLEPREC);
 	// generate pow2 LUT
 	long i = Fist(x * ETP);
 	union {
@@ -88,7 +88,7 @@ static float invTable[32] = {0.0,
 void FrustumClipper::Init()
 {
 	dword i;
-	static const float rl2 = 1.0 / log(2.0);
+	const float rl2 = 1.0 / log(2.0);
 
 	memset(C_Verts, 0, sizeof(C_Verts));
 
@@ -108,8 +108,8 @@ void FrustumClipper::Init()
 		LogTable[i] = log(x) * rl2;
 	}
 
-	static const float b2 = log(2.0);
-	static const float rETP = 1.0f / (1 << EXPTABLEPREC);
+	const float b2 = log(2.0);
+	const float rETP = 1.0f / (1 << EXPTABLEPREC);
 	// generate pow2 LUT
 	for (i = 0; i <= 1 << EXPTABLEPREC; i++)
 	{
@@ -465,7 +465,7 @@ void FrustumClipper::MiplevelClipper(Face *F, RasterFunc filler)
 #endif
 	// Simple miplevel calculation
 	//if (!Keyboard[ScY])
-	static float MinSize = XRes*YRes * 0.02; // update if XRes and/or YRes changes...
+	static const float MinSize = XRes*YRes * 0.02; // update if XRes and/or YRes changes...
 
 	if ((Tx->Flags & Txtr_Nomip) ||  pixArea < MinSize)
 	{
@@ -708,13 +708,22 @@ void FrustumClipper::Render(Face *F, RasterFunc filler, bool isEnvCoords)
 	B->UZ = B->U * B->RZ; B->VZ = B->V * B->RZ;
 	C->UZ = C->U * C->RZ; C->VZ = C->V * C->RZ;
 
+	auto [Af, Bf, Cf] = std::tuple(A->Flags, B->Flags, C->Flags);
+	Calc_Flags(A);
+	Calc_Flags(B);
+	Calc_Flags(C);
+	A->Flags |= Af;
+	B->Flags |= Bf;
+	C->Flags |= Cf;
+
+	C_Flags = A->Flags | B->Flags | C->Flags;
+
 	// Assign polygon
 	C_numVerts = 3;
 	C_Prim[0] = A;
 	C_Prim[1] = B;
 	C_Prim[2] = C;
 	C_Prim[3] = A;
-	C_Flags = C_Prim[0]->Flags | C_Prim[1]->Flags | C_Prim[2]->Flags;
 
 	if (C_Flags&Vtx_VisNear)  Near(); 
 	if (C_Flags&Vtx_VisFar)   Far();

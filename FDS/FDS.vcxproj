@@ -480,6 +480,7 @@
     <ClInclude Include="RENDER\GENERAL.H" />
     <ClInclude Include="RENDER\SORTS.H" />
     <ClInclude Include="RENDER\SQRTTBL.H" />
+    <ClInclude Include="Threads.h" />
     <ClInclude Include="V3D\M_DEFS.H" />
     <ClInclude Include="V3D\OBJECTS.H" />
     <ClInclude Include="VESA\VESA.H" />

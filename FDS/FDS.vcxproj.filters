@@ -323,6 +323,9 @@
     <ClInclude Include="CoffReader\CoffReader.h">
       <Filter>CoffReader</Filter>
     </ClInclude>
+    <ClInclude Include="Threads.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="MISC\mmreg.inl">

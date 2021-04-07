@@ -480,6 +480,7 @@ material global ID or ptr
 #include <Base/TriMesh.h>
 #include "Config.h"
 #include "Fillers/IX.h"
+#include "threads.h"
 //#include "FModWrapper.h"
 #include "../Modplayer/Modplayer.h"
 
@@ -1128,7 +1129,7 @@ extern "C" {	void IX_TGZSAM_AsmFiller(); }
 
 
 struct ThreadLocalFillerInitializer {
-	ThreadLocalFillerInitializer() :
+	ThreadLocalFillerInitializer() noexcept:
 		global_symbols({
 			{"_g_zscale",		(uintptr_t)&g_zscale},
 			{"_g_zscale256",	(uintptr_t)&g_zscale256},
@@ -1196,7 +1197,7 @@ void CodeEntry(void *var)
 	
 	//if (g_playMusic)
 	//	FModInit();
-	InitFillers (VirtualProtect, PAGE_EXECUTE_READWRITE);
+	InitFillers(VirtualProtect, PAGE_EXECUTE_READWRITE);
 
 	// device init parameters
 	g_DIP.hInst = G_hInst;
@@ -1235,6 +1236,8 @@ void CodeEntry(void *var)
 
 	filler_initializer = new ThreadLocalFillerInitializer();
 	filler_initializer->Apply();
+
+	ThreadPool::instance().init([]() { filler_initializer->Apply(); });
 
 
 	Initialize_Glato(); //9.3
@@ -1294,6 +1297,8 @@ void CodeEntry(void *var)
 		//module.Stop();
 		if (sh) Modplayer_Stop(sh);
 	}
+
+	ThreadPool::instance().close();
 }
 
 static dword RemoveDisplayDevice(void)

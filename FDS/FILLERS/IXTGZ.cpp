@@ -960,6 +960,7 @@ static Texture DummyTex;
 
 static void PrefillerCommon(Face *F, Vertex **V, dword numVerts, dword miplevel)
 {
+	return;
 	dword i;
 
 	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;

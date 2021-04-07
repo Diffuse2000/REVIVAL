@@ -98,6 +98,7 @@ VESA_Surface Layer2;
 
 #include "GENERAL.H"
 #include "SORTS.H"
+#include <Threads.h>
 
 // RULEZ
 #ifdef _C_WATCOM
@@ -1714,15 +1715,87 @@ void Restore_Splines(Scene *Sc)
 	}
 }
 
+namespace renderns {
+	std::mutex					tileCounterMutex;
+	std::atomic<int>			tileCounter;
+	std::condition_variable		condition;
+};
+
+void RenderInner(float x1, float y1, float x2, float y2) {
+	FrustumClipper clipper;
+	clipper.InitViewport(CurScene);
+	clipper.SetClippingExtents(x1, y1, x2-1, y2);
+
+	long I = CAll;
+	Face** FLS = FList;//+CAll-1;
+	Vertex* A, * B, * C, * D, * T;
+	TriMesh* Tri;
+	Edge** EP;
+
+	Vertex* V[4];
+
+	while (I--) {
+		Face* F = *FLS++;
+
+		// Get Mapping Coordinates from the rendered face.
+		A = F->A; B = F->B;
+		if (A == B) {
+			continue;
+		} else {
+			// Polygon - can further check the expression
+			// (A->Flags|B->Flags|C->Flags)&Vtx_Visible
+			// if it is zero, we can use something lighter than
+			// the frustrum clipper.
+			C = F->C;
+
+			auto flags = A->Flags & B->Flags & C->Flags;
+			if (flags & Vtx_Visible) continue;
+			RasterFunc filler;
+			if (F->Flags & Face_Reflective) {
+				filler = IX_Prefiller_TGZM;
+			} else {
+				filler = F->Filler;
+			}
+			clipper.Render(F, filler, false);
+			if (F->Flags & Face_Reflective) {
+				clipper.Render(F, IX_Prefiller_Reflective, true);
+			}
+		}
+	}
+
+	std::unique_lock<std::mutex> lock(renderns::tileCounterMutex);
+	++renderns::tileCounter;
+	renderns::condition.notify_one();
+}
+
 void Render()
 {
+	constexpr auto		numTiles = 4;
+	const auto			tileSizeX = (XRes + (numTiles - 1)) / numTiles;
+	const auto			tileSizeY = (YRes + (numTiles - 1)) / numTiles;
+
+	renderns::tileCounter = 0;
+
+	for (auto j = 0; j < numTiles; ++j) {
+		auto y1 = tileSizeY * j;
+		auto y2 = std::min(y1 + tileSizeY, YRes);
+		for (auto i = 0; i < numTiles; ++i) {
+			auto x1 = tileSizeX * i;
+			auto x2 = std::min(x1 + tileSizeX, XRes);
+
+			ThreadPool::instance().enqueue([x1, y1, x2, y2]() { RenderInner(x1, y1, x2, y2); });
+			// RenderInner(x1, y1, x2, y2);
+		}
+	}
+
+	{
+		std::unique_lock<std::mutex> lock(renderns::tileCounterMutex);
+		renderns::condition.wait(lock, [] {return renderns::tileCounter == numTiles * numTiles; });
+	}
+
 	long I = CAll;
 	Face **FLS = FList;//+CAll-1;
-	Vertex *A,*B,*C,*D,*T;
-	TriMesh *Tri;
-	Edge **EP;
-
-	Vertex *V[4];
+	Vertex *A,*B;
 	
 	while (I--)
 	{
@@ -1736,27 +1809,7 @@ void Render()
 		{
 			// Particle/Sprite - no far-Z clipping
 			if (A->TPos.z < C_NZP) continue;
-			V[0] = A;
-			F->Filler(F, V, 1, 0);
-		} else {
-			// Polygon - can further check the expression
-			// (A->Flags|B->Flags|C->Flags)&Vtx_Visible
-			// if it is zero, we can use something lighter than
-			// the frustrum clipper.
-			C=F->C;
-
-			auto flags = A->Flags & B->Flags & C->Flags;
-			if (flags&Vtx_Visible) continue;
-			RasterFunc filler;
-			if (F->Flags & Face_Reflective) {
-				filler = IX_Prefiller_TGZM;
-			} else {
-				filler = F->Filler;
-			}
-			clipper.Render(F, filler, false);
-			if (F->Flags & Face_Reflective) {
-				clipper.Render(F, IX_Prefiller_Reflective, true);
-			}
+			F->Filler(F, &A, 1, 0);
 		}
 	}
 

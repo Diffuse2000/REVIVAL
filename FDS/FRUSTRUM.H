@@ -10,6 +10,12 @@ public:
 
 	void InitViewport(Scene* Sc);
 	void Render(Face *F, RasterFunc filler, bool isEnvCoords);
+	void SetClippingExtents(float x1, float y1, float x2, float y2) {
+		C_VP.ClipX1 = x1;
+		C_VP.ClipY1 = y1;
+		C_VP.ClipX2 = x2;
+		C_VP.ClipY2 = y2-1;
+	}
 
 private:
 	void Init();

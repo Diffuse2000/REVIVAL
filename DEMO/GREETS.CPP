@@ -108,6 +108,7 @@ struct GreetsGenerator
 	float scaley = 1.0;
 
 	static constexpr const char* greetingsRound1[] = {
+		" MRI",
 		" imr",
 		" Cycat",
 		" coolphat",
@@ -117,11 +118,13 @@ struct GreetsGenerator
 	};
 
 	static constexpr const char* greetingsRound2[] = {
+		" Doomsday",
 		" esteem",
 		" adept",
 		" kombat",
 		" rage",
 		" magic intros",
+		" calius"
 	};
 
 	static constexpr const char* greetingsRound3[] = {

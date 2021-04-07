@@ -460,7 +460,7 @@ extern Material Flare;
 
 // Frustrum variables
 extern float FOVX,FOVY;
-extern double FillerPixelcount;
+extern std::atomic<double> FillerPixelcount;
 extern float AspectRatio;
 
 // Filler externals
@@ -1008,7 +1008,7 @@ inline dword Fist(float x)
 	return (dword)_mm_cvtt_ss2si(_mm_load_ss(&x));
 	//return static_cast<dword>(ceilf(x));
 #else
-	static dword ceiled;
+	dword ceiled;
 	__asm
 	{
 		FLD   dword ptr [x]
