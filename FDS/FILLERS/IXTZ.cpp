@@ -14,7 +14,7 @@ struct TZLeft
 		Index; // Current Vertex index
 };
 
-static TZLeft Left;
+thread_local static TZLeft Left;
 
 struct TZRight
 {
@@ -27,12 +27,12 @@ struct TZRight
 		Index;  // Current Vertex index
 };
 
-static TZRight Right;
+thread_local static TZRight Right;
 
-static void *IX_Texture;
-static void *IX_Page;
-static word *IX_ZBuffer;
-static dword IX_L2X, IX_L2Y;
+thread_local static void *IX_Texture;
+thread_local static void *IX_Page;
+thread_local static word *IX_ZBuffer;
+thread_local static dword IX_L2X, IX_L2Y;
 
 
 union deltas
@@ -47,8 +47,8 @@ union deltas
 #define L2SPANSIZE 4
 #define SPANSIZE 16
 #define fSPANSIZE 16.0
-static deltas ddx;
-static deltas ddx32;
+thread_local static deltas ddx;
+thread_local static deltas ddx32;
 
 static void CalcRightSection (IXVertexT *V1, IXVertexT *V2)
 {
@@ -110,7 +110,7 @@ static void CalcLeftSection (IXVertexT *V1, IXVertexT *V2)
 	Left.RZ = V1->RZ + Left.dRZ * prestep;
 }
 
-static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep);
+thread_local static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep);
 /*
 static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr, float prestep)
 {
@@ -342,7 +342,7 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 		};
 	};*/
 	//static word B, G, R, Z;
-	static word Col[4];
+	word Col[4];
 
 	Col[0] = Left.B >> 8;
 	Col[1] = Left.G >> 8;
@@ -724,16 +724,15 @@ AfterScanConv:
 
 
 const dword maximalNgon = 16;
-static dword *l_TestTexture = NULL;
-static char l_IXMemBlock[sizeof(IXVertexT) * (maximalNgon+1)];
-static IXVertexT *l_IXArray = (IXVertexT *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
-static Material DummyMat;
-static Texture DummyTex;
+thread_local static dword *l_TestTexture = NULL;
+thread_local static char l_IXMemBlock[sizeof(IXVertexT) * (maximalNgon+1)];
+thread_local static IXVertexT *l_IXArray = (IXVertexT *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
+thread_local static Material DummyMat;
+thread_local static Texture DummyTex;
 
 
 static void PrefillerCommon(Face *F, Vertex **V, dword numVerts, dword miplevel)
 {
-	return;
 	dword i;
 
 	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;

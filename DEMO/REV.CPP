@@ -1157,6 +1157,12 @@ struct ThreadLocalFillerInitializer {
 	CoffReader IXTGZTM;
 };
 
+struct ThreadPoolCleanup {
+	~ThreadPoolCleanup() {
+		ThreadPool::instance().close();
+	}
+};
+
 void CodeEntry(void *var)
 {
 	_controlfp(_EM_INEXACT, _MCW_EM);
@@ -1237,8 +1243,13 @@ void CodeEntry(void *var)
 	filler_initializer = new ThreadLocalFillerInitializer();
 	filler_initializer->Apply();
 
-	ThreadPool::instance().init([]() { filler_initializer->Apply(); });
-
+	ThreadPool::instance().init([]() {
+		filler_initializer->Apply();
+		InitPolyStats(200);
+		_control87(_PC_24 | _RC_UP, _MCW_PC | _MCW_RC);
+		FPU_LPrecision();
+	});
+	ThreadPoolCleanup _guard;
 
 	Initialize_Glato(); //9.3
 	Initialize_City(); //9.3
@@ -1297,8 +1308,6 @@ void CodeEntry(void *var)
 		//module.Stop();
 		if (sh) Modplayer_Stop(sh);
 	}
-
-	ThreadPool::instance().close();
 }
 
 static dword RemoveDisplayDevice(void)

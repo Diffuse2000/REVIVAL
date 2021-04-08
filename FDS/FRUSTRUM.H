@@ -14,7 +14,7 @@ public:
 		C_VP.ClipX1 = x1;
 		C_VP.ClipY1 = y1;
 		C_VP.ClipX2 = x2;
-		C_VP.ClipY2 = y2-1;
+		C_VP.ClipY2 = y2;
 	}
 
 private:

@@ -117,16 +117,16 @@ void FrustumClipper::Init()
 		ExpTable[i] = exp(b2*x);
 	}
 	
-	for(i=0;i<10; i++)
-	{
-		x = rand() / 391.241;
+	//for(i=0;i<10; i++)
+	//{
+	//	x = rand() / 391.241;
 
-		float l_acc = log(x) * rl2;
-		float l_tbl = fastLog2(x);
+	//	float l_acc = log(x) * rl2;
+	//	float l_tbl = fastLog2(x);
 
-		l_acc = exp(x * b2);
-		l_tbl = fastPow2(x);
-	}
+	//	l_acc = exp(x * b2);
+	//	l_tbl = fastPow2(x);
+	//}
 }
 
 void viewportInit(Viewport& vp, const Scene* Sc) {
@@ -139,7 +139,7 @@ void viewportInit(Viewport& vp, const Scene* Sc) {
 	vp.ClipX1 = 0.0;
 	vp.ClipX2 = XRes;
 	vp.ClipY1 = 0.0;
-	vp.ClipY2 = YRes - 1;
+	vp.ClipY2 = YRes;
 }
 
 void viewportCalcFlags(const Viewport& vp, Vertex* v) {

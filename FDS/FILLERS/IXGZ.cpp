@@ -15,7 +15,7 @@ struct GZLeft
 		Index; // Current Vertex index
 };
 
-static GZLeft Left;
+thread_local static GZLeft Left;
 
 struct GZRight
 {
@@ -28,12 +28,12 @@ struct GZRight
 		Index;  // Current Vertex index
 };
 
-static GZRight Right;
+thread_local static GZRight Right;
 
-static void *IX_Texture;
-static void *IX_Page;
-static word *IX_ZBuffer;
-static dword IX_L2X, IX_L2Y;
+thread_local static void *IX_Texture;
+thread_local static void *IX_Page;
+thread_local static word *IX_ZBuffer;
+thread_local static dword IX_L2X, IX_L2Y;
 
 
 union deltas
@@ -48,13 +48,13 @@ union deltas
 #define L2SPANSIZE 4
 #define SPANSIZE 16
 #define fSPANSIZE 16.0
-static deltas ddx;
-static deltas ddx32;
+thread_local static deltas ddx;
+thread_local static deltas ddx32;
 
-static sword	dRdx;
-static sword	dGdx;
-static sword	dBdx;
-static sword	dZdx;
+thread_local static sword	dRdx;
+thread_local static sword	dGdx;
+thread_local static sword	dBdx;
+thread_local static sword	dZdx;
 
 static void CalcRightSection (IXVertexG *V1, IXVertexG *V2)
 {
@@ -163,7 +163,7 @@ static void CalcLeftSection (IXVertexG *V1, IXVertexG *V2)
 	Left.z = V1->z * 65536.0 + prestep * Left.dZ;//+ (((Left.dZ>>8) * iprestep)>>8);
 }
 
-static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep);
+thread_local static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep);
 
 
 static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep)
@@ -192,7 +192,7 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 		};
 	};*/
 	//static word B, G, R, Z;
-	static word Col[4];
+	word Col[4];
 
 	Col[0] = Left.B >> 8;
 	Col[1] = Left.G >> 8;
@@ -559,17 +559,16 @@ AfterScanConv:
 
 
 const dword maximalNgon = 16;
-static dword *l_TestTexture = NULL;
-static char l_IXMemBlock[sizeof(IXVertexG) * (maximalNgon+1)];
-static IXVertexG *l_IXArray = (IXVertexG *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
-static Material DummyMat;
-static Texture DummyTex;
+thread_local static dword *l_TestTexture = NULL;
+thread_local static char l_IXMemBlock[sizeof(IXVertexG) * (maximalNgon+1)];
+thread_local static IXVertexG *l_IXArray = (IXVertexG *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
+thread_local static Material DummyMat;
+thread_local static Texture DummyTex;
 
 
 #define ENABLE_PIXELCOUNT
 static void PrefillerCommon(Vertex **V, dword numVerts)
 {
-	return;
 	dword i;
 
 	if (CurScene->Flags & Scn_Fogged)

@@ -4,9 +4,11 @@
 #include "Gradient.h"
 #include "FRUSTRUM.H"
 #include "Clipper.h"
+#include "Threads.h"
 
 #include <VESA/VESA.H>
 
+#include <thread>
 
 struct IXVertex
 {
@@ -57,10 +59,10 @@ struct
 		Index;  // Current Vertex index
 } Right;
 
-static void *IX_Texture;
-static void *IX_Page;
-static word *IX_ZBuffer;
-static dword IX_L2X, IX_L2Y;
+thread_local static void *IX_Texture;
+thread_local static void *IX_Page;
+thread_local static word *IX_ZBuffer;
+thread_local static dword IX_L2X, IX_L2Y;
 
 
 union deltas
@@ -75,13 +77,13 @@ union deltas
 #define L2SPANSIZE 4
 #define SPANSIZE 16
 #define fSPANSIZE 16.0
-static deltas ddx;
-static deltas ddx32;
+thread_local static deltas ddx;
+thread_local static deltas ddx32;
 
-static sword	dRdx;
-static sword	dGdx;
-static sword	dBdx;
-static sword	dZdx;
+thread_local static sword	dRdx;
+thread_local static sword	dGdx;
+thread_local static sword	dBdx;
+thread_local static sword	dZdx;
 
 //dword zReject, zPass;
 
@@ -197,7 +199,7 @@ void CalcLeftSection (IXVertex *V1, IXVertex *V2)
 	Left.z = V1->z * 65536.0 + prestep * Left.dZ;//+ (((Left.dZ>>8) * iprestep)>>8);
 }
 
-static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep);
+thread_local static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep);
 /*
 static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr, float prestep)
 {
@@ -417,7 +419,7 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 		};
 	};*/
 	//static word B, G, R, Z;
-	static word Col[4];
+	word Col[4];
 
 	Col[0] = Left.B >> 8;
 	Col[1] = Left.G >> 8;
@@ -895,11 +897,11 @@ AfterScanConv:
 
 
 const dword maximalNgon = 16;
-static dword *l_TestTexture = NULL;
-static char l_IXMemBlock[sizeof(IXVertex) * (maximalNgon+1)];
-static IXVertex *l_IXArray = (IXVertex *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
-static Material DummyMat;
-static Texture DummyTex;
+thread_local static dword *l_TestTexture = NULL;
+thread_local static char l_IXMemBlock[sizeof(IXVertex) * (maximalNgon+1)];
+thread_local static IXVertex *l_IXArray = (IXVertex *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
+thread_local static Material DummyMat;
+thread_local static Texture DummyTex;
 
 
 #define ENABLE_PIXELCOUNT
@@ -1016,6 +1018,10 @@ extern "C"
 	void IXAsmFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page, dword logWidth, dword logHeight);
 }
 
+std::mutex mut;
+std::condition_variable cv;
+std::atomic<int> counter;
+
 static void drawPoly(float DT)
 {
 	Vertex V[4];
@@ -1030,8 +1036,8 @@ static void drawPoly(float DT)
 	T += 0.5;
 
 	i=0;
-	V[i].PX = 900.1 - 280 * c - 250 * s;
-	V[i].PY = 400.1 + 280 * s - 250 * c;
+	V[i].PX = 900.1 - 2800 * c - 250 * s;
+	V[i].PY = 400.1 + 2800 * s - 250 * c;
 //	V[i].PX = 200.0;
 //	V[i].PY = 100.0;
 	V[i].TPos.z = 1.0;
@@ -1043,8 +1049,8 @@ static void drawPoly(float DT)
 	V[i].LB = 253;
 
 	i=1;
-	V[i].PX = 900.1 + 280 * c - 250 * s;
-	V[i].PY = 400.1 - 280 * s - 250 * c;
+	V[i].PX = 900.1 + 2800 * c - 250 * s;
+	V[i].PY = 400.1 - 2800 * s - 250 * c;
 //	V[i].PX = 130.0;
 //	V[i].PY = 200.0;
 	V[i].TPos.z = 1.0;
@@ -1056,8 +1062,8 @@ static void drawPoly(float DT)
 	V[i].LB = 127;
 
 	i=2;
-	V[i].PX = 900.1 + 280 * c + 250 * s;
-	V[i].PY = 400.1 - 280 * s + 250 * c;
+	V[i].PX = 900.1 + 2800 * c + 250 * s;
+	V[i].PY = 400.1 - 2800 * s + 250 * c;
 //	V[i].PX = 100.0;
 //	V[i].PY = 100.0;
 	V[i].TPos.z = 1.0;
@@ -1069,8 +1075,8 @@ static void drawPoly(float DT)
 	V[i].LB = 2;
 
 	i=3;
-	V[i].PX = 900.1 - 280 * c + 250 * s;
-	V[i].PY = 400.1 + 280 * s + 250 * c;
+	V[i].PX = 900.1 - 2800 * c + 250 * s;
+	V[i].PY = 400.1 + 2800 * s + 250 * c;
 	V[i].TPos.z = 1.0;
 	V[i].U = 0;
 	V[i].V = 0.999;
@@ -1089,32 +1095,46 @@ static void drawPoly(float DT)
 	DummyTex.Mipmap[0] = DummyTex.Data;
 	F.Txtr->Txtr->LSizeX = 8;
 	F.Txtr->Txtr->LSizeY = 8;
+	F.Txtr->ZBufferWrite = 0;
+	F.Filler = IX_Prefiller_TGZSAM;
 
-	/*Viewport vp;
+	Viewport vp;
 	vp.ClipX1 = 0;
 	vp.ClipX2 = XRes;
 	vp.ClipY1 = 0;
-	vp.ClipY2 = YRes_1;*/
+	vp.ClipY2 = YRes_1;
 			
 	for(i=0; i<4; i++)
 	{
 		V[i].RZ = 1.0 / V[i].TPos.z;
 		V[i].UZ = V[i].U * V[i].RZ;
 		V[i].VZ = V[i].V * V[i].RZ;		
-		// viewportCalcFlags(vp, &V[i]);
+		viewportCalcFlags(vp, &V[i]);
 	}
-	/*F.A = &V[0];
-	F.B = &V[1];
-	F.C = &V[2];
-	F.Filler = IX_Prefiller_TGZTAM;
- 	_2DClipper::getInstance()->clip(vp, F);
 
-	F.A = &V[0];
-	F.B = &V[2];
-	F.C = &V[3];
-	_2DClipper::getInstance()->clip(vp, F);*/
+	counter = 0;
+	ThreadPool::instance().enqueue([&F, &vp, V = &V[0]]() {
+		F.A = &V[0];
+		F.B = &V[1];
+		F.C = &V[2];
+		_2DClipper::getInstance()->clip(vp, F);
 
-	long my=0;
+		F.A = &V[0];
+		F.B = &V[2];
+		F.C = &V[3];
+		_2DClipper::getInstance()->clip(vp, F);
+
+		std::unique_lock<std::mutex> lock(mut);
+		++counter;
+		cv.notify_one();
+	});
+
+	{
+		std::unique_lock<std::mutex> lock(mut);
+		cv.wait(lock, [] {return counter == 1; });
+	}
+
+	/*long my=0;
 	float minY = V[0].PY;
 
 	for(i=1; i<4; i++)
@@ -1162,7 +1182,19 @@ static void drawPoly(float DT)
 		fistp dword ptr [ifl]
 	}
 	F.Txtr->ZBufferWrite = 0;
-	IX_Prefiller_TGZSAM(&F, VP, 4, 0);
+	counter = 0;
+	ThreadPool::instance().enqueue([&F, VP=&VP[0]]() {
+		IX_Prefiller_TGZSAM(&F, VP, 4, 0);
+		std::unique_lock<std::mutex> lock(mut);
+		++counter;
+		cv.notify_one();
+	});
+
+	{
+		std::unique_lock<std::mutex> lock(mut);
+		cv.wait(lock, [] {return counter == 1; });
+	}*/
+
 //	VPage -= 800;
 //	IX_Prefiller_TGZ(&F, VP, 4);
 //	VPage += 800;*/

@@ -9,6 +9,7 @@
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
 #include "Base/FDS_DEFS.H"
+#include <Threads.h>
 
 float CParticle_ISize;
 float ImageSize = 1000.0;
@@ -1657,9 +1658,9 @@ void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel)
 
 #define PIG_VOMIT
 //void The_MMX_Spriter_32(Vertex **V, dword numVerts)
-float spriteClipY1;
-float spriteClipY2; 
-void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage, dword Color)
+
+ 
+void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage, dword Color, float spriteClipY1, float spriteClipY2)
 {
 	float x1, y1, x2, y2;
 	float du, dv;
@@ -2043,43 +2044,66 @@ void TBR_Sprite(Face* F, Vertex **V, dword numVerts, dword miplevel)
 	}
 }
 
+namespace tbr {
+	std::mutex					tileCounterMutex;
+	std::atomic<int>			tileCounter;
+	std::condition_variable		condition;
+}
+
 // Execute/Clear sprite buffer
 void TBR_Render(Scene *Sc)
 {
 	dword numTiles = Sc->NumTiles;
-	Face *F;
-	Vertex *V;
+
+	tbr::tileCounter = 0;
 
 	for (mword i = 0; i < numTiles; i++)
 	{
-		spriteClipY1 = i<<TILELOG;
-		spriteClipY2 = (i+1)<<TILELOG;
-		if (spriteClipY2 > YRes) spriteClipY2 = YRes;
-		sdword n = Sc->SBufferHead[i];
-		while(n != -1)
-		{
-			F = Sc->SBuffer[n].F;
-			V = F->A;
-			float edgeLen = ImageSize*V->RZ*View->PerspX * F->FlareSize * 2.0;
-			dword R,G,B;
-			R = V->LR;
-			G = V->LG;
-			B = V->LB;
-			dword Color = (R<<16)+(G<<8)+B;
 
-			Spriter32(V->PX,
-					  V->PY,
-					  edgeLen,
-					  edgeLen,
-					  F->Txtr->Txtr->Data,
-					  VPage,
-					  Color);
-			n = Sc->SBuffer[n].next;
-		}
-		Sc->SBufferHead[i] = -1;
+		ThreadPool::instance().enqueue([i, Sc]() {
+			Face* F;
+			Vertex* V;
+
+			float spriteClipY1 = i << TILELOG;
+			float spriteClipY2 = (i + 1) << TILELOG;
+			if (spriteClipY2 > YRes) spriteClipY2 = YRes;
+			sdword n = Sc->SBufferHead[i];
+			while (n != -1) {
+				F = Sc->SBuffer[n].F;
+				V = F->A;
+				float edgeLen = ImageSize * V->RZ * View->PerspX * F->FlareSize * 2.0;
+				dword R, G, B;
+				R = V->LR;
+				G = V->LG;
+				B = V->LB;
+				dword Color = (R << 16) + (G << 8) + B;
+
+				Spriter32(V->PX,
+					V->PY,
+					edgeLen,
+					edgeLen,
+					F->Txtr->Txtr->Data,
+					VPage,
+					Color, 
+					spriteClipY1,
+					spriteClipY2);
+				n = Sc->SBuffer[n].next;
+			}
+			Sc->SBufferHead[i] = -1;
+
+			std::unique_lock<std::mutex> lock(tbr::tileCounterMutex);
+			++tbr::tileCounter;
+			tbr::condition.notify_one();
+		});
 		// LEAAAAAAT LEAAAAAAAT
 //		Flip(MainSurf);
 	}
+
+	{
+		std::unique_lock<std::mutex> lock(tbr::tileCounterMutex);
+		tbr::condition.wait(lock, [numTiles] {return tbr::tileCounter == numTiles; });
+	}
+
 	Sc->SBufferCur = 0;	
 }
 

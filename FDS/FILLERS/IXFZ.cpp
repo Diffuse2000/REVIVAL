@@ -15,7 +15,7 @@ struct FZLeft
 		Index; // Current Vertex index
 };
 
-static FZLeft Left;
+thread_local static FZLeft Left;
 
 struct FZRight
 {
@@ -26,14 +26,14 @@ struct FZRight
 		Index;  // Current Vertex index
 };
 
-static FZRight Right;
+thread_local static FZRight Right;
 
-static void *IX_Texture;
-static void *IX_Page;
-static word *IX_ZBuffer;
-static dword IX_L2X, IX_L2Y;
-static dword IX_FlatColor;
-static dword IX_TFlatColor;
+thread_local static void *IX_Texture;
+thread_local static void *IX_Page;
+thread_local static word *IX_ZBuffer;
+thread_local static dword IX_L2X, IX_L2Y;
+thread_local static dword IX_FlatColor;
+thread_local static dword IX_TFlatColor;
 
 struct deltas
 {
@@ -43,8 +43,8 @@ struct deltas
 #define L2SPANSIZE 4
 #define SPANSIZE 16
 #define fSPANSIZE 16.0
-static deltas ddx;
-static deltas ddx32;
+thread_local static deltas ddx;
+thread_local static deltas ddx32;
 
 struct PolygonStats
 {
@@ -54,7 +54,7 @@ struct PolygonStats
 	dword *heightHist;
 };
 
-PolygonStats IX_PolyStats;
+thread_local PolygonStats IX_PolyStats;
 
 void InitPolyStats(long cells)
 {
@@ -169,7 +169,7 @@ static void CalcLeftSection (IXVertexG *V1, IXVertexG *V2)
 	Left.RZ = V1->RZ + Left.dRZ * prestep;
 }
 
-static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep);
+thread_local static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep);
 
 
 static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float prestep)
@@ -505,17 +505,16 @@ AfterScanConv:
 
 
 const dword maximalNgon = 16;
-static dword *l_TestTexture = NULL;
-static char l_IXMemBlock[sizeof(IXVertexG) * (maximalNgon+1)];
-static IXVertexG *l_IXArray = (IXVertexG *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
-static Material DummyMat;
-static Texture DummyTex;
+thread_local static dword *l_TestTexture = NULL;
+thread_local static char l_IXMemBlock[sizeof(IXVertexG) * (maximalNgon+1)];
+thread_local static IXVertexG *l_IXArray = (IXVertexG *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
+thread_local static Material DummyMat;
+thread_local static Texture DummyTex;
 
 
 #define ENABLE_PIXELCOUNT
 static void PrefillerCommon(Vertex **V, dword numVerts)
 {
-	return;
 	dword i;
 
 	if (CurScene->Flags & Scn_Fogged)

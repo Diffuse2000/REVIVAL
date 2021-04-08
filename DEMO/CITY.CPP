@@ -601,7 +601,7 @@ Ahead://Vertex_Loop1(T->Vertex,VEnd,M,&V);
 				if (Vtx->PX<0) Vtx->Flags|=Vtx_VisLeft;
 				if (Vtx->PX>=XRes) Vtx->Flags|=Vtx_VisRight;
 				if (Vtx->PY<0) Vtx->Flags|=Vtx_VisUp;
-				if (Vtx->PY>=YRes_1) Vtx->Flags|=Vtx_VisDown;
+				if (Vtx->PY>=YRes) Vtx->Flags|=Vtx_VisDown;
 				if (Vtx->TPos.z>Sc->FZP) Vtx->Flags|=Vtx_VisFar;
 			}
 			//    printf("Ahead VGA/Wizard.\n");
@@ -630,7 +630,7 @@ Regular:
 					if (Vtx->PX<0) Vtx->Flags|=Vtx_VisLeft;
 					if (Vtx->PX>=XRes) Vtx->Flags|=Vtx_VisRight;
 					if (Vtx->PY<0) Vtx->Flags|=Vtx_VisUp;
-					if (Vtx->PY>=YRes_1) Vtx->Flags|=Vtx_VisDown;
+					if (Vtx->PY>=YRes) Vtx->Flags|=Vtx_VisDown;
 					if (Vtx->TPos.z>Sc->FZP) Vtx->Flags|=Vtx_VisFar;
 				} else Vtx->Flags|=Vtx_VisNear;
 				
@@ -695,7 +695,7 @@ EAhead://Vertex_Loop1(T->Vertex,VEnd,M,&V);
 				if (Vtx->PX<0) Vtx->Flags=Vtx_VisLeft; else Vtx->Flags=0;
 				if (Vtx->PX>=XRes) Vtx->Flags+=Vtx_VisRight;
 				if (Vtx->PY<0) Vtx->Flags+=Vtx_VisUp;
-				if (Vtx->PY>=YRes_1) Vtx->Flags+=Vtx_VisDown;
+				if (Vtx->PY>=YRes) Vtx->Flags+=Vtx_VisDown;
 			}
 			//    printf("Ahead VGA/Wizard.\n");
 			goto OUT;
@@ -2030,6 +2030,14 @@ void Run_City()
 			Timer = TTrd;
 		}
 		g_FrameTime = TTrd = Timer;
+		CurFrame = CitySc->StartFrame + (CitySc->EndFrame - CitySc->StartFrame) * (float)g_FrameTime / (float)CTPartTime;
+		if (Keyboard[ScTab]) {
+			if (View == &FC)
+				View = CitySc->CameraHead;
+			else
+				View = &FC;
+		}
+		Dynamic_Camera();
 
 		// Clear framebuffer and Z-buffer
 		//memset(VPage,0,PageSize + XRes*YRes*sizeof(word));
@@ -2043,18 +2051,8 @@ void Run_City()
 		Reflective_AnimateTexture();
 		//		Water_Distort();
 
-		if (Keyboard[ScTab])
-		{
-			if (View == &FC)
-				View = CitySc->CameraHead;
-			else
-				View = &FC;
-		}
-
-		CurFrame = CitySc->StartFrame + (CitySc->EndFrame - CitySc->StartFrame) * (float)g_FrameTime / (float)CTPartTime;
 		//							 CitySc->StartFrame + 500 * (float)Timer / (float)CTPartTime;
 
-		Dynamic_Camera();
 		if (Keyboard[ScC]) { FC.ISource = View->ISource; Matrix_Copy(FC.Mat, View->Mat); FC.IFOV = View->IFOV; }
 
 		Animate_Objects(CitySc);

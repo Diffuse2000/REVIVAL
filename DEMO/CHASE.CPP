@@ -266,7 +266,7 @@ static void Reflected_Transform(Scene *Sc)
 				if (Vtx->PX < 0) Vtx->Flags |= Vtx_VisLeft;
 				if (Vtx->PX >= XRes) Vtx->Flags |= Vtx_VisRight;
 				if (Vtx->PY < 0) Vtx->Flags |= Vtx_VisUp;
-				if (Vtx->PY >= YRes_1) Vtx->Flags |= Vtx_VisDown;
+				if (Vtx->PY >= YRes) Vtx->Flags |= Vtx_VisDown;
 				if (Vtx->TPos.z > Sc->FZP) Vtx->Flags |= Vtx_VisFar;
 			}
 			//    printf("Ahead VGA/Wizard.\n");
@@ -295,7 +295,7 @@ static void Reflected_Transform(Scene *Sc)
 					if (Vtx->PX < 0) Vtx->Flags |= Vtx_VisLeft;
 					if (Vtx->PX >= XRes) Vtx->Flags |= Vtx_VisRight;
 					if (Vtx->PY < 0) Vtx->Flags |= Vtx_VisUp;
-					if (Vtx->PY >= YRes_1) Vtx->Flags |= Vtx_VisDown;
+					if (Vtx->PY >= YRes) Vtx->Flags |= Vtx_VisDown;
 					if (Vtx->TPos.z > Sc->FZP) Vtx->Flags |= Vtx_VisFar;
 				}
 				else Vtx->Flags |= Vtx_VisNear;
@@ -362,7 +362,7 @@ static void Reflected_Transform(Scene *Sc)
 				if (Vtx->PX < 0) Vtx->Flags = Vtx_VisLeft; else Vtx->Flags = 0;
 				if (Vtx->PX >= XRes) Vtx->Flags += Vtx_VisRight;
 				if (Vtx->PY < 0) Vtx->Flags += Vtx_VisUp;
-				if (Vtx->PY >= YRes_1) Vtx->Flags += Vtx_VisDown;
+				if (Vtx->PY >= YRes) Vtx->Flags += Vtx_VisDown;
 			}
 			//    printf("Ahead VGA/Wizard.\n");
 			goto OUT;

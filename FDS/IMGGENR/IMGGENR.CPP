@@ -607,7 +607,7 @@ __declspec(align(16)) struct uint128 {
 void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YRes)
 {
 	// hopefully, paragraph aligned
-	static mmreg c0, c1, dc0dy, dc1dy, c, dcdx, t;
+	mmreg c0, c1, dc0dy, dc1dy, c, dcdx, t;
 
 	mword i, j, x, y, gx = (XRes / Grid_Subsamp)+1;
 	dword *tex = Img->Data;

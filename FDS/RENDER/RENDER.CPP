@@ -320,7 +320,7 @@ void Vertex_Loop1(Vertex *Vert,Vertex *VEnd,Matrix M,Vector *V)
 		if (Vtx->PX<0) Vtx->Flags|=Vtx_VisLeft;
 		if (Vtx->PX>=XRes) Vtx->Flags|=Vtx_VisRight;
 		if (Vtx->PY<0) Vtx->Flags|=Vtx_VisUp;
-		if (Vtx->PY>=YRes_1) Vtx->Flags|=Vtx_VisDown;
+		if (Vtx->PY>=YRes) Vtx->Flags|=Vtx_VisDown;
 	}
 }
 
@@ -338,7 +338,7 @@ void calcVisibilityFlags(Scene* Sc, Vertex* Vtx) {
 		if (Vtx->PX < 0) Vtx->Flags |= Vtx_VisLeft;
 		if (Vtx->PX >= XRes) Vtx->Flags |= Vtx_VisRight;
 		if (Vtx->PY < 0) Vtx->Flags |= Vtx_VisUp;
-		if (Vtx->PY >= YRes_1) Vtx->Flags |= Vtx_VisDown;
+		if (Vtx->PY >= YRes) Vtx->Flags |= Vtx_VisDown;
 		if (Vtx->TPos.z > Sc->FZP) Vtx->Flags |= Vtx_VisFar;
 	} else Vtx->Flags |= Vtx_VisNear;
 }
@@ -596,7 +596,7 @@ Ahead://Vertex_Loop1(T->Vertex,VEnd,M,&V);
 				if (Vtx->PX<0) Vtx->Flags|=Vtx_VisLeft;
 				if (Vtx->PX>=XRes) Vtx->Flags|=Vtx_VisRight;
 				if (Vtx->PY<0) Vtx->Flags|=Vtx_VisUp;
-				if (Vtx->PY>=YRes_1) Vtx->Flags|=Vtx_VisDown;
+				if (Vtx->PY>=YRes) Vtx->Flags|=Vtx_VisDown;
 				if (Vtx->TPos.z>Sc->FZP) Vtx->Flags|=Vtx_VisFar;
 			}
 			//    printf("Ahead VGA/Wizard.\n");
@@ -625,7 +625,7 @@ Regular:
 					if (Vtx->PX<0) Vtx->Flags|=Vtx_VisLeft;
 					if (Vtx->PX>=XRes) Vtx->Flags|=Vtx_VisRight;
 					if (Vtx->PY<0) Vtx->Flags|=Vtx_VisUp;
-					if (Vtx->PY>=YRes_1) Vtx->Flags|=Vtx_VisDown;
+					if (Vtx->PY>=YRes) Vtx->Flags|=Vtx_VisDown;
 					if (Vtx->TPos.z>Sc->FZP) Vtx->Flags|=Vtx_VisFar;
 				} else Vtx->Flags|=Vtx_VisNear;
 				//      printf("Regular shit!\n");
@@ -691,7 +691,7 @@ EAhead://Vertex_Loop1(T->Vertex,VEnd,M,&V);
 				if (Vtx->PX<0) Vtx->Flags=Vtx_VisLeft; else Vtx->Flags=0;
 				if (Vtx->PX>=XRes) Vtx->Flags+=Vtx_VisRight;
 				if (Vtx->PY<0) Vtx->Flags+=Vtx_VisUp;
-				if (Vtx->PY>=YRes_1) Vtx->Flags+=Vtx_VisDown;
+				if (Vtx->PY>=YRes) Vtx->Flags+=Vtx_VisDown;
 				if (Vtx->TPos.z>Sc->FZP) Vtx->Flags|=Vtx_VisFar;
 			}
 			//    printf("Ahead VGA/Wizard.\n");
@@ -725,7 +725,7 @@ ERegular:
 					if (Vtx->PX<0) Vtx->Flags=Vtx_VisLeft;
 					if (Vtx->PX>=XRes) Vtx->Flags+=Vtx_VisRight;
 					if (Vtx->PY<0) Vtx->Flags+=Vtx_VisUp;
-					if (Vtx->PY>=YRes_1) Vtx->Flags+=Vtx_VisDown;
+					if (Vtx->PY>=YRes) Vtx->Flags+=Vtx_VisDown;
 					if (Vtx->TPos.z>Sc->FZP) Vtx->Flags|=Vtx_VisFar;
 				} else Vtx->Flags=Vtx_VisNear;
 				
@@ -1724,13 +1724,11 @@ namespace renderns {
 void RenderInner(float x1, float y1, float x2, float y2) {
 	FrustumClipper clipper;
 	clipper.InitViewport(CurScene);
-	clipper.SetClippingExtents(x1, y1, x2-1, y2);
+	clipper.SetClippingExtents(x1, y1, x2, y2);
 
 	long I = CAll;
 	Face** FLS = FList;//+CAll-1;
-	Vertex* A, * B, * C, * D, * T;
-	TriMesh* Tri;
-	Edge** EP;
+	Vertex* A, * B, * C;
 
 	Vertex* V[4];
 
@@ -1770,27 +1768,28 @@ void RenderInner(float x1, float y1, float x2, float y2) {
 
 void Render()
 {
-	constexpr auto		numTiles = 4;
-	const auto			tileSizeX = (XRes + (numTiles - 1)) / numTiles;
-	const auto			tileSizeY = (YRes + (numTiles - 1)) / numTiles;
+	constexpr auto		numTilesX = 5;
+	constexpr auto		numTilesY = 3;
+	const auto			tileSizeX = (XRes + (numTilesX - 1)) / numTilesX;
+	const auto			tileSizeY = (YRes + (numTilesY - 1)) / numTilesY;
 
 	renderns::tileCounter = 0;
 
-	for (auto j = 0; j < numTiles; ++j) {
+	for (auto j = 0; j < numTilesY; ++j) {
 		auto y1 = tileSizeY * j;
 		auto y2 = std::min(y1 + tileSizeY, YRes);
-		for (auto i = 0; i < numTiles; ++i) {
+		for (auto i = 0; i < numTilesX; ++i) {
 			auto x1 = tileSizeX * i;
 			auto x2 = std::min(x1 + tileSizeX, XRes);
 
 			ThreadPool::instance().enqueue([x1, y1, x2, y2]() { RenderInner(x1, y1, x2, y2); });
-			// RenderInner(x1, y1, x2, y2);
+			//RenderInner(x1, y1, x2, y2);
 		}
 	}
 
 	{
 		std::unique_lock<std::mutex> lock(renderns::tileCounterMutex);
-		renderns::condition.wait(lock, [] {return renderns::tileCounter == numTiles * numTiles; });
+		renderns::condition.wait(lock, [] {return renderns::tileCounter == numTilesX * numTilesY; });
 	}
 
 	long I = CAll;
