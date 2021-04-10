@@ -79,7 +79,7 @@ void VESA_Surface2Global(VESA_Surface *VS)
   PageSize = VS->PageSize;
   PageSizeW = PageSize>>1;
   PageSizeDW = PageSizeW>>1;
-	VPage = VS->Data;
+  VPage = VS->Data;
   ZBuffer = VS->ZBuffer;
   Flip = VS->Flip;
   YOffs = VS->YTable;

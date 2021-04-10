@@ -37,11 +37,13 @@ static VESA_Surface Surf1;
 static VESA_Surface Surf2;
 static VESA_Surface Surf3;
 static VESA_Surface Surf4;
+static VESA_Surface FinalSurf;
 static long numGridPoints;
 static byte *Page1;
 static byte *Page2;
 static byte *Page3;
 static byte *Page4;
+static byte* FinalPage;
 static long TrigOffset;
 static Texture *LogoTexture;
 static Image *LogoImage;
@@ -54,13 +56,19 @@ static Image *GfxImage;
 static Texture *SfxTexture;
 static Image *SfxImage;
 
+static long InitScreenXRes, InitScreenYRes;
+
 
 void Initialize_Glato()
 {
-
-	static int x,y,i,j;
+	InitScreenXRes = XRes;
+	InitScreenYRes = YRes;
+	long xres = InitScreenXRes;
+	long yres = InitScreenYRes;
+	int x,y,i,j;
 	int X,Y;
-	float XResFactor = XRes/320.0;
+	float XResFactor = xres/320.0;
+
 
 	LogoTexture = new Texture;
 	LogoImage = new Image;
@@ -74,7 +82,7 @@ void Initialize_Glato()
 	SfxImage = new Image;
 
 	Load_Image_JPEG(LogoImage,"Textures//Logo.JPG");
-	Scale_Image(LogoImage,XRes,YRes);
+	Scale_Image(LogoImage,xres,yres);
 
 /*	LogoTexture->FileName = strdup("Textures//Logo.JPG");
 	Identify_Texture(LogoTexture);
@@ -137,21 +145,25 @@ void Initialize_Glato()
 	Page2 = new byte[PageSize];
 	Page3 = new byte[PageSize];
 	Page4 = new byte[PageSize];
+	FinalPage = new byte[PageSize];
 
 	// only last YRes - YRes & (~7) lines should be cleared
 	memset(Page1, 0, PageSize);
 	memset(Page2, 0, PageSize);
 	memset(Page3, 0, PageSize);
 	memset(Page4, 0, PageSize);
+	memset(FinalPage, 0, PageSize);
 
 	memcpy(&Surf1,VSurface,sizeof(VESA_Surface));
 	memcpy(&Surf2,VSurface,sizeof(VESA_Surface));
 	memcpy(&Surf3,VSurface,sizeof(VESA_Surface));
 	memcpy(&Surf4,VSurface,sizeof(VESA_Surface));
+	memcpy(&FinalSurf, VSurface, sizeof(VESA_Surface));
 	Surf1.Data = Page1;
 	Surf2.Data = Page2;
 	Surf3.Data = Page3;
 	Surf4.Data = Page4;
+	FinalSurf.Data = FinalPage;
 	Surf1.Flags = VSurf_Noalloc;
 	Surf1.Targ = NULL;
 	Surf2.Flags = VSurf_Noalloc;
@@ -160,8 +172,10 @@ void Initialize_Glato()
 	Surf3.Targ = NULL;
 	Surf4.Flags = VSurf_Noalloc;
 	Surf4.Targ = NULL;
+	FinalSurf.Flags = VSurf_Noalloc;
+	FinalSurf.Targ = NULL;
 
-	numGridPoints = ((XRes>>3)+1)*((YRes>>3)+1);
+	numGridPoints = ((xres>>3)+1)*((yres>>3)+1);
 	//Plane_GP = new NewGridPoint[numGridPoints];
 	//Plane_GP = new GridPoint[numGridPoints];
 	Plane_GP = new GridPointTG[numGridPoints];
@@ -183,10 +197,10 @@ void Initialize_Glato()
 
 	for (y=0;y<=YRes;y+=8)
 	{
-		for (x=0;x<=XRes;x+=8)
+		for (x=0;x<=xres;x+=8)
 		{
-			X = x - XRes * 0.5;
-			Y = y - YRes * 0.5;
+			X = x - xres * 0.5;
+			Y = y - yres * 0.5;
 
 			LenTable[j] = sqrt((float)(X*X + Y*Y))/XResFactor;
 			j++;
@@ -202,17 +216,20 @@ static inline float max_magnitude(float a, float b)
 void Run_Glato(void)
 {
 //	Setup_Grid_Texture_Mapper_XXX(XRes, YRes);
-	Setup_Grid_Texture_Mapper_MMX(XRes, YRes);
+//	Setup_Grid_Texture_Mapper_MMX(XRes, YRes);
+	long xres = InitScreenXRes;
+	long yres = InitScreenYRes;
+	Setup_Grid_Texture_Mapper_MMX(xres, yres);
 
 	XMMVector CameraPos(0,0,0);
 	XMMMatrix CamMat;
 	float Radius;
-	static int x,y,i,j;
-	static float a,bb,c,d,Delta,X1,X2,X3,z,Rx,Ry,Rz;
-	static float u,v,u1,v1,u2,v2,r,g,b;
-	static float Code_R1,Code_RS,Code_R2,CCosR1,CSinR1,CCosR2,CSinR2;
-	static float Gfx_R1,Gfx_R2,GCosR1,GSinR1,GCosR2,GSinR2,Gfx_RS;
-	static XMMVector Intersection1,Origin1,Direction1,U;
+	int x,y,i,j;
+	float a,bb,c,d,Delta,X1,X2,X3,z,Rx,Ry,Rz;
+	float u,v,u1,v1,u2,v2,r,g,b;
+	float Code_R1,Code_RS,Code_R2,CCosR1,CSinR1,CCosR2,CSinR2;
+	float Gfx_R1,Gfx_R2,GCosR1,GSinR1,GCosR2,GSinR2,Gfx_RS;
+	XMMVector Intersection1,Origin1,Direction1,U;
 	
 	int X,Y;
 	float R1,R3,R4;
@@ -236,14 +253,14 @@ void Run_Glato(void)
 
 	char MSGStr[MAX_GSTRING];
 
-	float XResFactor = XRes/320.0;
-	float rXResFactor = 320.0/XRes;
-	float rYResFactor = 240.0/YRes;
+	float XResFactor = xres/320.0;
+	float rXResFactor = 320.0/xres;
+	float rYResFactor = 240.0/yres;
 
 	dword TTrd = Timer;
 
 	// clear the screen once (only yres % 8 last lines are really needed)
-	memset(VPage, 0, PageSize);
+	memset(FinalPage, 0, PageSize);
 
 	while (Timer<3500)
 	{
@@ -307,11 +324,11 @@ void Run_Glato(void)
 		Origin1 = CameraPos;
 		// Clear page isn't required as wobbler overwrites entire screen / frame
 //		memset(VPage, 0, PageSize);
-		for (y=0;y<=YRes;y+=8)
-			for (x=0;x<=XRes;x+=8)
+		for (y=0;y<=yres;y+=8)
+			for (x=0;x<=xres;x+=8)
 			{
-				Direction1.x=x-(XRes >> 1);
-				Direction1.y=y-(YRes >> 1);
+				Direction1.x=x-(xres >> 1);
+				Direction1.y=y-(yres >> 1);
 				Direction1.z=256.0*XResFactor;
 				Direction1.w = .0f;
 				MatrixXVector(CamMat.XMMMatrix,&Direction1,&U);
@@ -439,8 +456,8 @@ void Run_Glato(void)
 //				Plane_GP[j].RGB = ((long)r<<16)+((long)g<<8)+(long)b;
 
 
-				X = x - XRes * 0.5;
-				Y = y - YRes * 0.5;
+				X = x - xres * 0.5;
+				Y = y - yres * 0.5;
 
 				if (Code)
 				{
@@ -568,25 +585,25 @@ void Run_Glato(void)
 		if (Code)
 		{
 //			Grid_Texture_Mapper_XXX(Code_GP,CodeImage,(DWord *)Page2);
-			GridRendererT(Code_GP,CodeImage,(DWord *)Page2, XRes, YRes);
+			GridRendererT(Code_GP,CodeImage,(DWord *)Page2, Surf1.X, Surf1.Y);
 			//Grid_Texture_Mapper_T(Code_GP, CodeImage, (DWord *)Page2);
-			Modulate(&Surf1,&Surf2,0xa0a0a0,0xa0a0a0);
-			Modulate(&Surf2,VSurface,0xa0a0a0, 0xb0b0b0);
+			Modulate(&Surf1,&Surf2,0xa0a0a0,0xa0a0a0, Surf1.PageSize);
+			Modulate(&Surf2,&FinalSurf,0xa0a0a0, 0xb0b0b0, Surf2.PageSize);
 		}
 		if (Gfx)
 		{
 //			Grid_Texture_Mapper_XXX(Gfx_GP,GfxImage,(DWord *)Page3);
-			GridRendererT(Gfx_GP,GfxImage,(DWord *)Page3, XRes, YRes);
-			Modulate(&Surf1,&Surf3,0xa0a0a0, 0xd0d0d0);
-			Modulate(&Surf3,VSurface,0xa0a0a0, 0xb0b0b0);
+			GridRendererT(Gfx_GP,GfxImage,(DWord *)Page3, Surf3.X, Surf3.Y);
+			Modulate(&Surf1,&Surf3,0xa0a0a0, 0xd0d0d0, Surf1.PageSize);
+			Modulate(&Surf3,&FinalSurf,0xa0a0a0, 0xb0b0b0, Surf3.PageSize);
  //			Modulate(&Surf2,&Surf3,0xa0a0a0,0xa0a0a0);
 		}
 		if (Sfx)
 		{
 //			Grid_Texture_Mapper_XXX(Sfx_GP,SfxImage,(DWord *)Page4);
-			GridRendererT(Sfx_GP,SfxImage,(DWord *)Page4, XRes, YRes);
-			Modulate(&Surf1,&Surf4,0xa0a0a0,0xa0a0a0);
-			Modulate(&Surf4,VSurface,0xa0a0a0, 0xb0b0b0);
+			GridRendererT(Sfx_GP,SfxImage,(DWord *)Page4, Surf4.X, Surf4.Y);
+			Modulate(&Surf1,&Surf4,0xa0a0a0,0xa0a0a0, Surf1.PageSize);
+			Modulate(&Surf4,&FinalSurf,0xa0a0a0, 0xb0b0b0, Surf4.PageSize);
 		}
 //		memcpy(VPage, Page1, PageSize);
 		if (Timer>3200)
@@ -595,7 +612,7 @@ void Run_Glato(void)
 			if (cfVal>255) cfVal = 255;
 			DWord SrcPer = ((DWord)cfVal) * 0x01010101;
 			DWord DstPer = ((DWord)(255-cfVal)) * 0x01010101;
-			AlphaBlend((byte *)LogoImage->Data, VPage, SrcPer, DstPer);
+			AlphaBlend((byte *)LogoImage->Data, FinalPage, SrcPer, DstPer, FinalSurf.PageSize);
 		}
 		//if (Timer < 750)
 		//{
@@ -621,9 +638,9 @@ void Run_Glato(void)
 				sprintf(MSGStr, "%f FPS", (float)(tm - TTrd));
 			}
 
-			OutTextXY(VPage,0,0,MSGStr,255);
+			OutTextXY(FinalPage,0,0,MSGStr,255, xres, yres);
 		}
-		Flip(VSurface);
+		Flip(&FinalSurf);
 //		Flip(&Surf1);
 
 //		Rx += 0.01;

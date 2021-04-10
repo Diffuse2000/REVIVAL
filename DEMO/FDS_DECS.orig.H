@@ -209,7 +209,7 @@ extern void Deinitialize_VESA();
 extern void SetVESAMode(int Mode);
 extern void SetVGAMode(unsigned short Mode);
 extern void Transparence(VESA_Surface *Source,VESA_Surface *Target);
-extern void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWord TrgMask);
+extern void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWord TrgMask, dword PageSize);
 #endif
 
 #ifndef ISRIncluded

@@ -530,12 +530,12 @@ long J1 = XRes-Grid_Subsamp,J2 = YOffs[Grid_Subsamp];
 } */
 
 // texture grid renderer.
-void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword XRes, dword YRes)
+void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword xres, dword yres)
 {
 	// hopefully, paragraph aligned
-	static mmreg c0, c1, dc0dy, dc1dy, c, dcdx, t;
+	mmreg c0, c1, dc0dy, dc1dy, c, dcdx, t;
 
-	mword i, j, x, y, gx = (XRes / Grid_Subsamp)+1;
+	mword i, j, x, y, gx = (xres / Grid_Subsamp)+1;
 	dword *tex = Img->Data;
 	
 	GridPointT *p[4];
@@ -548,10 +548,10 @@ void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword XRes, dword YRes
 
 	dword *block = page, *scanline;
 
-	long YLimit = YRes-Grid_Subsamp;
+	long YLimit = yres-Grid_Subsamp;
 	for(j=0; j<=YLimit; j += Grid_Subsamp)
 	{
-		for(i=0; i<XRes; i += Grid_Subsamp)
+		for(i=0; i<xres; i += Grid_Subsamp)
 		{
 			long u0 = p[0]->u;
 			long v0 = p[0]->v;
@@ -576,7 +576,7 @@ void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword XRes, dword YRes
 					u += dudx;
 					v += dvdx;
 				}
-				scanline += XRes;
+				scanline += xres;
 				u0 += du0dy;
 				v0 += dv0dy;
 				u1 += du1dy;
@@ -588,7 +588,7 @@ void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword XRes, dword YRes
 			p[2]++;
 			p[3]++;
 		}
-		block += (Grid_Subsamp-1) * XRes;
+		block += (Grid_Subsamp-1) * xres;
 		p[0]++;
 		p[1]++;
 		p[2]++;

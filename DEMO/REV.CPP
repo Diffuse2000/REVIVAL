@@ -1252,13 +1252,21 @@ void CodeEntry(void *var)
 	ThreadPoolCleanup _guard;
 
 	Initialize_Glato(); //9.3
-	Initialize_City(); //9.3
-	Initialize_Chase();
-	Initialize_Fountain(); //8.3
-	Initialize_Crash();
-	Initialize_Greets(); //5.6
 	//Initialize_Nova();
-	
+
+	std::thread t1([]() {
+		filler_initializer->Apply();
+		InitPolyStats(200);
+		_control87(_PC_24 | _RC_UP, _MCW_PC | _MCW_RC);
+		FPU_LPrecision();
+
+		Initialize_City();
+		Initialize_Chase();
+		Initialize_Fountain(); //8.3
+		Initialize_Crash();
+		Initialize_Greets(); //5.6
+	});// (); //9.3
+
 //	Initialize_Koch();
 //	ImageCompressionTestCode();
 //	TestPhotonTracer();
@@ -1273,9 +1281,13 @@ void CodeEntry(void *var)
 		
 	//FillerTest();
 	//return;
-
 	Run_Glato();
+
+	t1.join();
+
 	while (Timer<4000);
+
+
 	Timer = 0;
 	if (Timer<=0) Timer = 1;
 	Run_City();

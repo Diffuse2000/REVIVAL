@@ -1020,7 +1020,9 @@ void Assign_Fillers(Scene *Sc)
 				IX_Prefiller_TGZTAM, //TGAcZ, // transparent Texture/Gouraud with Alpha blending
 				IX_Prefiller_TGZSAM,
 			};
-
+			//if (rasterFlags > 0 && rasterFlags < 3) {
+			//	volatile int banama = 1;
+			//}
 			F->Filler = stdFillers[rasterFlags];
 			continue;
 

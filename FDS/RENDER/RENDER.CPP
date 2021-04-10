@@ -1783,7 +1783,7 @@ void Render()
 			auto x2 = std::min(x1 + tileSizeX, XRes);
 
 			ThreadPool::instance().enqueue([x1, y1, x2, y2]() { RenderInner(x1, y1, x2, y2); });
-			//RenderInner(x1, y1, x2, y2);
+			// RenderInner(x1, y1, x2, y2);
 		}
 	}
 
@@ -2072,7 +2072,7 @@ Away:Tot = Timer-TTrd;
 				 if (MotionBlur_Enabled)
 				 {
 					 if (MMXState)
-						 Modulate(Screen,&Blurred,0xb0b0b0,0xb0b0b0);
+						 Modulate(Screen,&Blurred,0xb0b0b0,0xb0b0b0, PageSize);
 					 else
 						 Transparence(Screen,&Blurred);
 					 Flip(&Blurred);

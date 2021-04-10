@@ -777,7 +777,7 @@ __declspec(align(16)) struct uint128 {
 #pragma pack(pop)
 
 // 32bit MMX Alpha blending, 
-inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarget)
+inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarget, dword page_size)
 {
 	uint128 perSrc;
 	perSrc.low = perSrc.high = PerSource | static_cast<uint64>(PerSource) << 32;
@@ -786,6 +786,8 @@ inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarg
 
 	uint128 *perSrcRef = &perSrc;
 	uint128 *perDstRef = &perDst;
+
+	dword ps = page_size;
 
 	__asm
 	{
@@ -808,7 +810,7 @@ inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarg
 		punpcklbw xmm6, [ecx]
 		psrlw xmm7, 8
 		psrlw xmm6, 8
-		mov ecx, [PageSize]
+		mov ecx, ps
 		add esi, ecx
 		add edi, ecx
 		neg ECX
@@ -922,12 +924,12 @@ inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarg
 	//}
 }
 
-inline void AlphaBlend(byte* Source, byte* Target, DWord& PerSource, DWord& PerTarget, DWord Size) {
-	auto tmp = PageSize;
-	PageSize = Size;
-	AlphaBlend(Source, Target, PerSource, PerTarget);
-	PageSize = tmp;
-}
+//inline void AlphaBlend(byte* Source, byte* Target, DWord& PerSource, DWord& PerTarget, DWord Size) {
+//	//auto tmp = PageSize;
+//	//PageSize = Size;
+//	AlphaBlend(Source, Target, PerSource, PerTarget, Size);
+//	//PageSize = tmp;
+//}
 
 
 inline void Transparence_16(byte *Source,byte *Target)
@@ -978,7 +980,7 @@ inline void Transparence_32(byte *Source,byte *Target)
 
 #endif
 
-inline void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWord TrgMask)
+inline void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWord TrgMask, dword PageSize)
 {
   if (Source->BPP!=Target->BPP) return;
   switch (Source->BPP)
@@ -986,7 +988,7 @@ inline void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWo
     //it really supports all the modes, so we HAD to do a switch
     case 8: break;
     case 16: break;
-    case 32: AlphaBlend(Source->Data,Target->Data,SrcMask,TrgMask);
+    case 32: AlphaBlend(Source->Data,Target->Data,SrcMask,TrgMask, PageSize);
   }
 }
 

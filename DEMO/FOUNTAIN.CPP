@@ -210,7 +210,7 @@ void Initialize_Particles(Scene *Sc)
 		// Converegance Vectors set at starting position.
 //		Vector_Copy(&Sc->Pcl[I].Conv,&Sc->Pcl[I].V.Pos);
 		// Particle Virtual Face -> Particle Vertex		
-		Sc->Pcl[I].F.FlareSize = 0.06f * 20 / 10; // indicates this isn't an omni flare polygon.
+		Sc->Pcl[I].F.FlareSize = 0.06f * 20.0 / 10.0; // indicates this isn't an omni flare polygon.
 		Sc->Pcl[I].F.A = Sc->Pcl[I].F.B = &Sc->Pcl[I].V;
 		// manual assignment
 		Sc->Pcl[I].F.Filler = TBR_Sprite;

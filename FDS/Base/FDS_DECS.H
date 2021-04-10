@@ -240,7 +240,7 @@ void Deinitialize_VESA();
 void SetVESAMode(int Mode);
 void SetVGAMode(unsigned short Mode);
 void Transparence(VESA_Surface *Source,VESA_Surface *Target);
-void Modulate(VESA_Surface *Source,VESA_Surface *Target,dword SrcMask,dword TrgMask);
+void Modulate(VESA_Surface *Source,VESA_Surface *Target,dword SrcMask,dword TrgMask, dword PageSize);
 
 dword AttemptGraphicsSet(long X,long Y,long BPP,dword ForceBanked);
 
