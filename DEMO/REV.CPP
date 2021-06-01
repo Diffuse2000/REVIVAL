@@ -1125,7 +1125,7 @@ void VolTrace(Image &Im)
 }
 
 #include <CoffReader/CoffReader.h>
-extern "C" {	void IX_TGZSAM_AsmFiller(); }
+//extern "C" {	void IX_TGZSAM_AsmFiller(); }
 
 
 struct ThreadLocalFillerInitializer {
@@ -1137,10 +1137,10 @@ struct ThreadLocalFillerInitializer {
 			{"_PageSize",		(uintptr_t)&PageSize},
 			{"_XRes",			(uintptr_t)&XRes},
 		}),
-		IXTGZM("C:\\Projects\\REVIVAL\\FDS\\IXTGZM.obj", global_symbols),
-		IXTGZSAM("C:\\Projects\\REVIVAL\\FDS\\IXTGZSAM.obj", global_symbols),
-		IXTGZTAM("C:\\Projects\\REVIVAL\\FDS\\IXTGZTAM.obj", global_symbols),
-		IXTGZTM("C:\\Projects\\REVIVAL\\FDS\\IXTGZTM.obj", global_symbols)
+		IXTGZM("Fillers\\IXTGZM.obj", global_symbols),
+		IXTGZSAM("Fillers\\IXTGZSAM.obj", global_symbols),
+		IXTGZTAM("Fillers\\IXTGZTAM.obj", global_symbols),
+		IXTGZTM("Fillers\\IXTGZTM.obj", global_symbols)
 	{}
 
 	void Apply() {

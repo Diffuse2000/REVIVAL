@@ -187,6 +187,9 @@
     <ClCompile Include="CoffReader\CoffReader.cpp">
       <Filter>CoffReader</Filter>
     </ClCompile>
+    <ClCompile Include="Fillers\TheOtherBarry.cpp">
+      <Filter>Fillers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3ds\I_defs.h">
@@ -325,6 +328,9 @@
     </ClInclude>
     <ClInclude Include="Threads.h">
       <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Fillers\TheOtherBarry.h">
+      <Filter>Fillers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

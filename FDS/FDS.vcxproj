@@ -189,6 +189,9 @@
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>copy IXTGZ*.obj ..\Runtime\Fillers</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">
     <ClCompile>
@@ -409,6 +412,7 @@
     <ClCompile Include="FILLERS\IXGZ.cpp" />
     <ClCompile Include="FILLERS\IXTGZ.cpp" />
     <ClCompile Include="FILLERS\IXTZ.cpp" />
+    <ClCompile Include="Fillers\TheOtherBarry.cpp" />
     <ClCompile Include="FLD\FLD_CONV.CPP" />
     <ClCompile Include="FLD\FLD_MAT.CPP" />
     <ClCompile Include="FLD\FLD_READ.CPP" />
@@ -468,6 +472,7 @@
     <ClInclude Include="FILLERS\F4Vec.h" />
     <ClInclude Include="Fillers\FILLERS.H" />
     <ClInclude Include="FILLERS\IX.h" />
+    <ClInclude Include="Fillers\TheOtherBarry.h" />
     <ClInclude Include="FLD\FLD_READ.H" />
     <ClInclude Include="FLD\LWREAD.H" />
     <ClInclude Include="FRUSTRUM.H" />
