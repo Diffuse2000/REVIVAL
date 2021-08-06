@@ -85,7 +85,7 @@ Material* Generate_Gradient(const std::vector<GradientEndpoint>& endpoints, int 
 	Convert_Image2Texture(&Img, M->Txtr);
 	delete[] Img.Data;
 
-	Sachletz((dword*)(M->Txtr->Data), txSize, txSize);
+	//Sachletz((dword*)(M->Txtr->Data), txSize, txSize);
 	M->Txtr->Mipmap[0] = M->Txtr->Data;
 	M->Txtr->numMipmaps = 1;
 

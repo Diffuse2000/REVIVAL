@@ -5,6 +5,7 @@
 #include "FRUSTRUM.H"
 #include "Clipper.h"
 #include "Threads.h"
+#include <FILLERS/TheOtherBarry.h>
 
 #include <VESA/VESA.H>
 
@@ -1035,9 +1036,12 @@ static void drawPoly(float DT)
 
 	T += 0.5;
 
+	const auto W = 2800;
+	const auto H = 250;
+
 	i=0;
-	V[i].PX = 900.1 - 2800 * c - 250 * s;
-	V[i].PY = 400.1 + 2800 * s - 250 * c;
+	V[i].PX = 900.1 - W * c - H * s;
+	V[i].PY = 400.1 + W * s - H * c;
 //	V[i].PX = 200.0;
 //	V[i].PY = 100.0;
 	V[i].TPos.z = 1.0;
@@ -1049,8 +1053,8 @@ static void drawPoly(float DT)
 	V[i].LB = 253;
 
 	i=1;
-	V[i].PX = 900.1 + 2800 * c - 250 * s;
-	V[i].PY = 400.1 - 2800 * s - 250 * c;
+	V[i].PX = 900.1 + W * c - H * s;
+	V[i].PY = 400.1 - W * s - H * c;
 //	V[i].PX = 130.0;
 //	V[i].PY = 200.0;
 	V[i].TPos.z = 1.0;
@@ -1062,8 +1066,8 @@ static void drawPoly(float DT)
 	V[i].LB = 127;
 
 	i=2;
-	V[i].PX = 900.1 + 2800 * c + 250 * s;
-	V[i].PY = 400.1 - 2800 * s + 250 * c;
+	V[i].PX = 900.1 + W * c + H * s;
+	V[i].PY = 400.1 - W * s + H * c;
 //	V[i].PX = 100.0;
 //	V[i].PY = 100.0;
 	V[i].TPos.z = 1.0;
@@ -1075,8 +1079,8 @@ static void drawPoly(float DT)
 	V[i].LB = 2;
 
 	i=3;
-	V[i].PX = 900.1 - 2800 * c + 250 * s;
-	V[i].PY = 400.1 + 2800 * s + 250 * c;
+	V[i].PX = 900.1 - W * c + H * s;
+	V[i].PY = 400.1 + W * s + H * c;
 	V[i].TPos.z = 1.0;
 	V[i].U = 0;
 	V[i].V = 0.999;
@@ -1096,7 +1100,10 @@ static void drawPoly(float DT)
 	F.Txtr->Txtr->LSizeX = 8;
 	F.Txtr->Txtr->LSizeY = 8;
 	F.Txtr->ZBufferWrite = 0;
-	F.Filler = IX_Prefiller_TGZSAM;
+	//F.Filler = IX_Prefiller_TGZSAM;
+	F.Filler = TheOtherBarry;
+	//F.Filler = IX_Prefiller_FZ;
+	//F.Filler = IX_Prefiller_TGZM;
 
 	Viewport vp;
 	vp.ClipX1 = 0;
@@ -1253,25 +1260,26 @@ void FillerTest()
 
 	auto M = Generate_Gradient(endpoints, 256, 0.2, false);
 
-	//dword i,j;
-	//for(j=0; j<256; j++)
-	//{
-	//	for(i=0; i<256; i++)		
-	//	{
-	//		l_TestTexture[i + (j << 8)] =
-	//			//0xFFFFFF;				
-	//			//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
-	//			//(i<<16)+(j<<8)+(i^j) * 0x010101;
-	//			(i ^ j) * 0x010101;
-	//			//((i>>2)&1)*0xFFFFFF;
-	//			
-	//	}
-	//}
-	//Sachletz(l_TestTexture, 256, 256);
-
 	l_TestTexture = (DWord *)M->Txtr->Data;
 //	l_TestTexture = (DWord *)Tx.Data;
 	//memset(l_TestTexture, 255, 256 * 256 * 4);
+
+	dword i, j;
+	for (j = 0; j < 256; j++)
+	{
+		for (i = 0; i < 256; i++)
+		{
+			l_TestTexture[i + (j << 8)] =
+				//0xFFFFFF;				
+				//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
+				//(i<<16)+(j<<8)+(i^j) * 0x010101;
+				//(i ^ j) * 0x010101;
+				(((i ^ j) >> 3) & 1) * 0xffffff;
+			//((i>>2)&1)*0xFFFFFF;
+
+		}
+	}
+	//Sachletz(l_TestTexture, 256, 256);
 	const long PartTime = 10000;
 
 	long timerStack[20], timerIndex = 0;
@@ -1303,7 +1311,7 @@ void FillerTest()
 		//}
 
 		drawPoly(0);
-		drawPoly(500);
+		//drawPoly(500);
 
 		DWord pSrc = 0x80808080;
 		DWord pDst = 0x8C8C8C8C;

@@ -1,0 +1,217 @@
+diff --git a/DEMO/CHASE.CPP b/DEMO/CHASE.CPP
+index 218bd43..48c292f 100644
+--- a/DEMO/CHASE.CPP
++++ b/DEMO/CHASE.CPP
+@@ -421,7 +421,9 @@ static void Reflected_Transform(Scene *Sc)
+ 	for (O = Sc->OmniHead; O; O = O->Next)
+ 	{
+ 		Vtx = &O->V;
+-		Vector_Sub(&O->IPos, &View->ISource, &V);
++		Vector ReflectedPos = O->IPos;
++		ReflectedPos.y = -ReflectedPos.y;
++		Vector_Sub(&ReflectedPos, &View->ISource, &V);
+ 		MatrixXVector(View->Mat, &V, &Vtx->TPos);
+ 		if (Vtx->TPos.z > Sc->NZP&&Vtx->TPos.z < Sc->FZP)
+ 		{
+@@ -433,7 +435,7 @@ static void Reflected_Transform(Scene *Sc)
+ 			//dz *=-16384;
+ 			//dz +=0x7FFFFFFF;
+ 			//RoundToInt(&O->Face.SortZ.DW,dz);
+-			// *Ins++ = &O->F; // no insertion : flares are not reflected for now
++			*Ins++ = &O->F; // no insertion : flares are not reflected for now
+ 
+ 			O->F.FlareSize = O->ISize;
+ #ifdef FRONT_TO_BACK_SORTING
+diff --git a/DEMO/CITY.CPP b/DEMO/CITY.CPP
+index 8f27be9..e94baa7 100644
+--- a/DEMO/CITY.CPP
++++ b/DEMO/CITY.CPP
+@@ -211,7 +211,7 @@ static void Reflective_Surface_Setup()
+ 
+ 			// Extract coverage (range) over XZ plane and over texture
+ 			// (notice: this reads texture coords. from vertices, not faces).
+-/*			float mx, Mx, mz, Mz, y;
++			float mx, Mx, mz, Mz, y;
+ 			float mu, Mu, mv, Mv;
+ 			dword i, j;
+ 			mx = Mx = T->Verts[0].Pos.x;
+@@ -269,8 +269,8 @@ static void Reflective_Surface_Setup()
+ 					Vtx->Pos.x = x;
+ 					Vtx->Pos.y = y;
+ 					Vtx->Pos.z = z;
+-					Vtx->U = u;
+-					Vtx->V = v;
++					Vtx->U = u / 2.5;
++					Vtx->V = v / 2.5;
+ 					Vtx++;
+ 				}
+ 			}
+@@ -304,7 +304,7 @@ static void Reflective_Surface_Setup()
+ 					F->V3 = F->C->V;
+ 					F++;
+ 				}
+-			}*/
++			}
+ 
+ //			break;
+ 		} else {
+@@ -722,7 +722,9 @@ OUT:FEnd=T->Faces+T->FIndex;
+ 	for(O=Sc->OmniHead;O;O=O->Next)
+ 	{
+ 		Vtx=&O->V;
+-		Vector_Sub(&O->IPos,&View->ISource,&V);
++		Vector ReflectedPos = O->IPos;
++		ReflectedPos.y = -ReflectedPos.y;
++		Vector_Sub(&ReflectedPos,&View->ISource,&V);
+ 		MatrixXVector(View->Mat,&V,&Vtx->TPos);
+ 		if (Vtx->TPos.z>Sc->NZP&&Vtx->TPos.z<Sc->FZP)
+ 		{
+@@ -730,11 +732,13 @@ OUT:FEnd=T->Faces+T->FIndex;
+ 			Vtx->PX=CntrEX+Vtx->TPos.x*PX*Vtx->RZ;
+ 			Vtx->PY=CntrEY-Vtx->TPos.y*PY*Vtx->RZ;
+ 			// Insert to List
++			//dz = Vtx->TPos.z;
++			//dz *=-16384;
++			//dz +=0x7FFFFFFF;
++			//RoundToInt((long *)&O->F.SortZ.DW,dz);
+ 			dz = Vtx->TPos.z;
+-			dz *=-16384;
+-			dz +=0x7FFFFFFF;
+-			RoundToInt((long *)&O->F.SortZ.DW,dz);
+ 			*Ins++ = &O->F; // no insertion : flares are not reflected for now
++			O->F.SortZ.F = 2 * fzp - dz;
+ 		}
+ 	}
+ 	COmnies = (Ins-FList)-CPolys;
+@@ -969,12 +973,12 @@ void Reflective_AnimateTexture()
+ 	Face *F, *FE;
+ 	for(F = T->Faces, FE = F + T->FIndex; F<FE; F++)
+ 	{
+-		F->U1 += dTime * 0.0007;
+-		F->V1 += dTime * 0.0003;
+-		F->U2 += dTime * 0.0007;
+-		F->V2 += dTime * 0.0003;
+-		F->U3 += dTime * 0.0007;
+-		F->V3 += dTime * 0.0003;
++		F->U1 += dTime * 0.0007 * 2;
++		F->V1 += dTime * 0.0003 * 2;
++		F->U2 += dTime * 0.0007 * 2;
++		F->V2 += dTime * 0.0003 * 2;
++		F->U3 += dTime * 0.0007 * 2;
++		F->V3 += dTime * 0.0003 * 2;
+ 	}
+ 
+ }
+diff --git a/FDS/Fds_vars.h b/FDS/Fds_vars.h
+index 5e60934..0fba0e0 100644
+--- a/FDS/Fds_vars.h
++++ b/FDS/Fds_vars.h
+@@ -1288,47 +1288,46 @@ modify [eax ecx edx];
+ #ifdef _C_VC6
+ inline void MatrixXVector(Matrix M,Vector *U,Vector *V)
+ {
+-
+ 	V->x = M[0][0] * U->x + M[0][1] * U->y + M[0][2] * U->z;
+ 	V->y = M[1][0] * U->x + M[1][1] * U->y + M[1][2] * U->z;
+ 	V->z = M[2][0] * U->x + M[2][1] * U->y + M[2][2] * U->z;
+-
+-	//__asm {
+-	//	mov	EDX, [M]
+-	//		mov ESI, [U]
+-	//		mov EDI, [V]
+-	//		FLD   DWORD PTR [ESI]
+-	//		FMUL  DWORD PTR [EDX]
+-	//		FLD   DWORD PTR [ESI]
+-	//		FMUL  DWORD PTR [EDX+12]
+-	//		FLD   DWORD PTR [ESI]
+-	//		FMUL  DWORD PTR [EDX+24]
+-	//		FLD   DWORD PTR [ESI+4]
+-	//		FMUL  DWORD PTR [EDX+4]
+-	//		FLD   DWORD PTR [ESI+4]
+-	//		FMUL  DWORD PTR [EDX+16]
+-	//		FLD   DWORD PTR [ESI+4]
+-	//		FMUL  DWORD PTR [EDX+28]
+-	//		FXCH  ST(2)
+-	//		FADDP ST(5),ST(0)
+-	//		FADDP ST(3),ST(0)
+-	//		FADDP ST(1),ST(0)
+-	//		FLD   DWORD PTR [ESI+8]
+-	//		FMUL  DWORD PTR [EDX+8]
+-	//		FLD   DWORD PTR [ESI+8]
+-	//		FMUL  DWORD PTR [EDX+20]
+-	//		FLD   DWORD PTR [ESI+8]
+-	//		FMUL  DWORD PTR [EDX+32]
+-	//		FXCH  ST(2)
+-	//		FADDP ST(5),ST(0)
+-	//		FADDP ST(3),ST(0)
+-	//		FADDP ST(1),ST(0)
+-	//		FXCH  ST(1)
+-	//		FXCH  ST(2)
+-	//		FSTP  DWORD PTR [EDI]
+-	//		FSTP  DWORD PTR [EDI+8]
+-	//		FSTP  DWORD PTR [EDI+4]
+-	//}
++/*
++	__asm {
++		mov	EDX, [M]
++			mov ESI, [U]
++			mov EDI, [V]
++			FLD   DWORD PTR [ESI]
++			FMUL  DWORD PTR [EDX]
++			FLD   DWORD PTR [ESI]
++			FMUL  DWORD PTR [EDX+12]
++			FLD   DWORD PTR [ESI]
++			FMUL  DWORD PTR [EDX+24]
++			FLD   DWORD PTR [ESI+4]
++			FMUL  DWORD PTR [EDX+4]
++			FLD   DWORD PTR [ESI+4]
++			FMUL  DWORD PTR [EDX+16]
++			FLD   DWORD PTR [ESI+4]
++			FMUL  DWORD PTR [EDX+28]
++			FXCH  ST(2)
++			FADDP ST(5),ST(0)
++			FADDP ST(3),ST(0)
++			FADDP ST(1),ST(0)
++			FLD   DWORD PTR [ESI+8]
++			FMUL  DWORD PTR [EDX+8]
++			FLD   DWORD PTR [ESI+8]
++			FMUL  DWORD PTR [EDX+20]
++			FLD   DWORD PTR [ESI+8]
++			FMUL  DWORD PTR [EDX+32]
++			FXCH  ST(2)
++			FADDP ST(5),ST(0)
++			FADDP ST(3),ST(0)
++			FADDP ST(1),ST(0)
++			FXCH  ST(1)
++			FXCH  ST(2)
++			FSTP  DWORD PTR [EDI]
++			FSTP  DWORD PTR [EDI+8]
++			FSTP  DWORD PTR [EDI+4]
++	}*/
+ }
+ 
+ inline void Vector_Add(Vector *U,Vector *V,Vector *W)
+diff --git a/FDS/RENDER/RENDER.CPP b/FDS/RENDER/RENDER.CPP
+index d1c094f..27c95b7 100644
+--- a/FDS/RENDER/RENDER.CPP
++++ b/FDS/RENDER/RENDER.CPP
+@@ -175,11 +175,15 @@ void Animate_Objects(Scene *Sc)
+ 	// lalala, HARARCHIA , Ver 3, it now rulati
+ 	for (Obj=Sc->ObjectHead;Obj;Obj=Obj->Next)
+ 	{
+-		if (Obj->Pivot.is_zero()) {
+-			U.x = U.y = U.z = 0.0f;
+-		} else {
+-			MatrixXVector(*Obj->Rot, &Obj->Pivot, &U);
++		if (Obj->Type == Obj_Omni) {
++			Matrix_Identity(*Obj->Rot);
+ 		}
++		//if (Obj->Pivot.is_zero()) {
++		MatrixXVector(*Obj->Rot, &Obj->Pivot, &U);
++//			U.x = U.y = U.z = 0.0f;
++		//} else {
++			//MatrixXVector(*Obj->Rot, &Obj->Pivot, &U);
++		//}
+ 		//printf("%s U: \n", Obj->Name);
+ 		//U.print();
+ 		//printf("\n");

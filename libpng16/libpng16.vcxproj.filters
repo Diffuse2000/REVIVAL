@@ -16,7 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="libpng16.lib" />
-    <Library Include="zlib.lib" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="png.h">

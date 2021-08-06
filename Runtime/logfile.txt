@@ -1,0 +1,7 @@
+] Vertigo GL (V0.85) - INITIALIZE
+] Hacking Random-seed.
+] Globals initialization.
+] Diffusing Materials.
+] FPU >> Low Precision.
+] Basic font.
+] Initializing Video system.

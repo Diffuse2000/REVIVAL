@@ -28,7 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="libpng16.lib" />
-    <Library Include="zlib.lib" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="png.h" />
@@ -153,6 +152,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
