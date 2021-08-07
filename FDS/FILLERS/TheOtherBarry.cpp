@@ -1,5 +1,8 @@
 #include "TheOtherBarry.h"
 
+#include <intrin.h>
+#include <immintrin.h>
+
 namespace barry {
 	constexpr const int32_t TILE_SIZE = 8;
 
@@ -20,6 +23,61 @@ namespace barry {
 	};
 
 	using Triangle = RVector4[3];
+
+	// block-tiling adjustment functions
+	// Example for 256x256 texture
+	//    3         2         1         0
+	//   10987654321098765432109876543210
+	// U 0000UUUUUU00000000uu0fffffffffff
+	// V 0000000000VVVVVVvv000fffffffffff
+
+	uint32_t tile_vmask(uint32_t vmask) {
+		return 0x7ff | (vmask << 14);
+	}
+
+	uint32_t tile_v(uint32_t v, uint32_t vmask) {
+		return (v & 0x7ff) | ((v << 3) & (vmask << 14));
+	}
+
+	uint32_t tile_dv(uint32_t v, uint32_t vmask) {
+		return tile_v(v, vmask) | 0x3800;
+	}
+	
+	uint32_t tile_umask(uint32_t vbits, uint32_t umask) {
+		return 0x37ff | ((umask >> 2) << (14 + vbits));
+	}
+
+	uint32_t tile_u(uint32_t u, uint32_t vbits, uint32_t umask) {
+		return (u & 0x7ff) | ((u & 0x1800) << 1) | ((u << (1 + vbits)) & ((umask >> 2) << (14 + vbits)));
+	}
+
+	uint32_t tile_du(uint32_t u, uint32_t vbits, uint32_t umask) {
+		return tile_u(u, vbits, umask) | 0x800 | (((1 << vbits) - 1) << 14);
+	}
+
+	__m256 m256_from_arith_seq(float x, float d) {
+		return {
+			x,
+			x + d,
+			x + d + d,
+			x + d + d + d,
+			x + d + d + d + d,
+			x + d + d + d + d + d,
+			x + d + d + d + d + d + d,
+			x + d + d + d + d + d + d + d,
+		};
+	}
+
+	__m256i m256i_from_arith_seq_tiled(uint32_t x0, uint32_t dx, uint32_t mask) {
+		uint32_t x1 = (x0 + dx) & mask;
+		uint32_t x2 = (x1 + dx) & mask;
+		uint32_t x3 = (x2 + dx) & mask;
+		uint32_t x4 = (x3 + dx) & mask;
+		uint32_t x5 = (x4 + dx) & mask;
+		uint32_t x6 = (x5 + dx) & mask;
+		uint32_t x7 = (x6 + dx) & mask;
+		return _mm256_set_epi32(x0, x1, x2, x3, x4, x5, x6, x7);
+	}
 
 	struct TileRasterizer {
 		TileRasterizer(Vertex **V, byte* dstSurface, int32_t bpsl, int32_t xres, int32_t yres, Texture* Txtr, int miplevel)
@@ -65,53 +123,177 @@ namespace barry {
 			return std::min(std::max(y, 0), yres - 1);
 		}
 
+		// reference impl
+		//void apply(const barry::Tile& tile) {
+		//	float t0_dudy_f = (V[v1]->U - V[v0]->U) * tile.dady + (V[v2]->U - V[v0]->U) * tile.dbdy;
+		//	float t0_dvdy_f = (V[v1]->V - V[v0]->V) * tile.dady + (V[v2]->V - V[v0]->V) * tile.dbdy;
+
+		//	float t0_dudx_f = (V[v1]->U - V[v0]->U) * tile.dadx + (V[v2]->U - V[v0]->U) * tile.dbdx;
+		//	float t0_dvdx_f = (V[v1]->V - V[v0]->V) * tile.dadx + (V[v2]->V - V[v0]->V) * tile.dbdx;
+
+		//	float a0 = tile.a0;
+		//	float b0 = tile.b0;
+
+		//	float t0_u0_f = V[v0]->U + t0_dudy_f * (tile.y * TILE_SIZE - V[v0]->PY) + t0_dudx_f * (tile.x * TILE_SIZE - V[v0]->PX);
+		//	float t0_v0_f = V[v0]->V + t0_dvdy_f * (tile.y * TILE_SIZE - V[v0]->PY) + t0_dvdx_f * (tile.x * TILE_SIZE - V[v0]->PX);
+
+		//	int32_t t0_dudy = (int32_t)(2048.0 * t0_dudy_f * t0.UScaleFactor);
+		//	int32_t t0_dvdy = (int32_t)(2048.0 * t0_dvdy_f * t0.VScaleFactor);
+
+		//	int32_t t0_dudx = (int32_t)(2048.0 * t0_dudx_f * t0.UScaleFactor);
+		//	int32_t t0_dvdx = (int32_t)(2048.0 * t0_dvdx_f * t0.VScaleFactor);
+
+		//	int32_t t0_u0 = (int32_t)(2048.0 * t0_u0_f * t0.UScaleFactor);
+		//	int32_t t0_v0 = (int32_t)(2048.0 * t0_v0_f * t0.VScaleFactor);
+
+		//	int32_t t0_umask = (1 << t0.LogWidth) - 1;
+		//	int32_t t0_vmask = (1 << t0.LogHeight) - 1;
+
+		//	uint32_t t0_u0_bt = tile_u(t0_u0, t0.LogHeight, t0_umask);
+		//	uint32_t t0_v0_bt = tile_v(t0_v0, t0_vmask);
+
+		//	uint32_t t0_dudx_bt = tile_du(t0_dudx, t0.LogHeight, t0_umask);
+		//	uint32_t t0_dvdx_bt = tile_dv(t0_dvdx, t0_vmask);
+
+		//	uint32_t t0_dudy_bt = tile_du(t0_dudy, t0.LogHeight, t0_umask);
+		//	uint32_t t0_dvdy_bt = tile_dv(t0_dvdy, t0_vmask);
+
+		//	uint32_t t0_umask_bt = tile_umask(t0.LogHeight, t0_umask);
+		//	uint32_t t0_vmask_bt = tile_vmask(t0_vmask);
+
+		//	byte* scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
+		//	for (size_t j = 0; j != TILE_SIZE; ++j) {
+		//		float a = a0;
+		//		float b = b0;
+		//		uint32_t t0_u_bt = t0_u0_bt;
+		//		uint32_t t0_v_bt = t0_v0_bt;
+		//		dword* span = ((dword*)scanline) + tile.x * TILE_SIZE;
+		//		for (size_t i = 0; i != TILE_SIZE; ++i) {
+		//			auto t0_offset = (t0_v_bt >> 12); //(t0_u_bt + t0_v_bt) >> 12;
+		//			if (a >= 0 && b >= 0 && a + b < 1) {
+		//				span[i] = t0.TextureAddr[t0_offset];
+		//			}
+
+		//			a += tile.dadx;
+		//			b += tile.dbdx;
+		//			t0_u_bt += t0_dudx_bt;
+		//			t0_v_bt += t0_dvdx_bt;
+		//			t0_u_bt &= t0_umask_bt;
+		//			t0_v_bt &= t0_vmask_bt;
+		//		}
+		//		a0 += tile.dady;
+		//		b0 += tile.dbdy;
+		//		t0_u0_bt += t0_dudy_bt;
+		//		t0_v0_bt += t0_dvdy_bt;
+		//		t0_u0_bt &= t0_umask_bt;
+		//		t0_v0_bt &= t0_vmask_bt;
+
+		//		scanline += bpsl;
+		//	}
+		//}
+
 		void apply(const barry::Tile& tile) {
+			float a0 = tile.a0;
+			float b0 = tile.b0;
+
 			float t0_dudy_f = (V[v1]->U - V[v0]->U) * tile.dady + (V[v2]->U - V[v0]->U) * tile.dbdy;
 			float t0_dvdy_f = (V[v1]->V - V[v0]->V) * tile.dady + (V[v2]->V - V[v0]->V) * tile.dbdy;
 
 			float t0_dudx_f = (V[v1]->U - V[v0]->U) * tile.dadx + (V[v2]->U - V[v0]->U) * tile.dbdx;
 			float t0_dvdx_f = (V[v1]->V - V[v0]->V) * tile.dadx + (V[v2]->V - V[v0]->V) * tile.dbdx;
 
-			float a0 = tile.a0;
-			float b0 = tile.b0;
-
 			float t0_u0_f = V[v0]->U + t0_dudy_f * (tile.y * TILE_SIZE - V[v0]->PY) + t0_dudx_f * (tile.x * TILE_SIZE - V[v0]->PX);
 			float t0_v0_f = V[v0]->V + t0_dvdy_f * (tile.y * TILE_SIZE - V[v0]->PY) + t0_dvdx_f * (tile.x * TILE_SIZE - V[v0]->PX);
 
-			int32_t t0_dudy = (int32_t)(65536.0 * t0_dudy_f * t0.UScaleFactor);
-			int32_t t0_dvdy = (int32_t)(65536.0 * t0_dvdy_f * t0.VScaleFactor);
+			int32_t t0_dudy = (int32_t)(2048.0 * t0_dudy_f * t0.UScaleFactor);
+			int32_t t0_dvdy = (int32_t)(2048.0 * t0_dvdy_f * t0.VScaleFactor);
 
-			int32_t t0_dudx = (int32_t)(65536.0 * t0_dudx_f * t0.UScaleFactor);
-			int32_t t0_dvdx = (int32_t)(65536.0 * t0_dvdx_f * t0.VScaleFactor);
+			int32_t t0_dudx = (int32_t)(2048.0 * t0_dudx_f * t0.UScaleFactor);
+			int32_t t0_dvdx = (int32_t)(2048.0 * t0_dvdx_f * t0.VScaleFactor);
 
-			int32_t t0_umask = ((1 << t0.LogWidth) - 1) << 16;
-			int32_t t0_vmask = ((1 << t0.LogHeight) - 1) << 16;
+			int32_t t0_u0 = (int32_t)(2048.0 * t0_u0_f * t0.UScaleFactor);
+			int32_t t0_v0 = (int32_t)(2048.0 * t0_v0_f * t0.VScaleFactor);
 
-			int32_t t0_u0 = (int32_t)(65536.0 * t0_u0_f * t0.UScaleFactor);
-			int32_t t0_v0 = (int32_t)(65536.0 * t0_v0_f * t0.VScaleFactor);
+			int32_t t0_umask = (1 << t0.LogWidth) - 1;
+			int32_t t0_vmask = (1 << t0.LogHeight) - 1;
+
+			uint32_t t0_u0_tiled = tile_u(t0_u0, t0.LogHeight, t0_umask);
+			uint32_t t0_v0_tiled = tile_v(t0_v0, t0_vmask);
+
+			uint32_t t0_dudx_tiled = tile_du(t0_dudx, t0.LogHeight, t0_umask);
+			uint32_t t0_dvdx_tiled = tile_dv(t0_dvdx, t0_vmask);
+
+			uint32_t t0_dudy_tiled = tile_du(t0_dudy, t0.LogHeight, t0_umask);
+			uint32_t t0_dvdy_tiled = tile_dv(t0_dvdy, t0_vmask);
+
+			uint32_t t0_umask_tiled = tile_umask(t0.LogHeight, t0_umask);
+			uint32_t t0_vmask_tiled = tile_vmask(t0_vmask);
+
+			// 8-pixel deltas are currently unused because TILE_SIZE = 8
+			//int32_t t0_dudx_8 = (int32_t)(2048.0 * t0_dudx_f * t0.UScaleFactor * 8.0);
+			//int32_t t0_dvdx_8 = (int32_t)(2048.0 * t0_dvdx_f * t0.VScaleFactor * 8.0);
+			//uint32_t t0_dudx_8_tiled = tile_du(t0_dudx_8, t0.LogHeight, t0_umask);
+			//uint32_t t0_dvdx_8_tiled = tile_dv(t0_dvdx_8, t0_vmask);
+
+			__m256 v_a0 = m256_from_arith_seq(a0, tile.dadx);
+			__m256 v_b0 = m256_from_arith_seq(b0, tile.dbdx);
+
+			const __m256 v_zero = _mm256_setzero_ps();
+			const __m256 v_one = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
+
+			__m256 v_dady = _mm256_set1_ps(tile.dady);
+			__m256 v_dbdy = _mm256_set1_ps(tile.dbdy);
+
+			__m256i v_t0_u0_tiled = m256i_from_arith_seq_tiled(t0_u0_tiled, t0_dudx_tiled, t0_umask_tiled);
+			__m256i v_t0_v0_tiled = m256i_from_arith_seq_tiled(t0_v0_tiled, t0_dvdx_tiled, t0_vmask_tiled);
+
+			__m256i v_t0_dudy_tiled = _mm256_set1_epi32(t0_dudy_tiled);
+			__m256i v_t0_dvdy_tiled = _mm256_set1_epi32(t0_dvdy_tiled);
+
+			__m256i v_t0_umask_tiled = _mm256_set1_epi32(t0_umask_tiled);
+			__m256i v_t0_vmask_tiled = _mm256_set1_epi32(t0_vmask_tiled);
 
 			byte* scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
 			for (size_t j = 0; j != TILE_SIZE; ++j) {
-				float a = a0;
-				float b = b0;
-				int32_t t0_u = t0_u0;
-				int32_t t0_v = t0_v0;
-				dword* span = ((dword*)scanline) + tile.x * TILE_SIZE;
-				for (size_t i = 0; i != TILE_SIZE; ++i) {
-					auto t0_offset = ((t0_u & t0_umask) >> 16) + (((t0_v & t0_vmask) >> 16) << t0.LogWidth);
-					if (a >= 0 && b >= 0 && a + b < 1) {
-						span[i] = t0.TextureAddr[t0_offset];
-					}
+				__m256 v_a = v_a0;
+				__m256 v_b = v_b0;
+				__m256i v_t0_u_tiled = v_t0_u0_tiled;
+				__m256i v_t0_v_tiled = v_t0_v0_tiled;
+				__m256i* span = ((__m256i*)scanline) + tile.x * TILE_SIZE / 8;
 
-					a += tile.dadx;
-					b += tile.dbdx;
-					t0_u += t0_dudx;
-					t0_v += t0_dvdx;
+				for (size_t i = 0; i != TILE_SIZE; i += 8) {
+					const __m256i v_t0_offsets_frac = v_t0_v_tiled;
+					//const __m256i v_t0_offsets_frac = _mm256_add_epi32(v_t0_u_tiled, v_t0_v_tiled);
+					const __m256i v_t0_offsets = _mm256_srli_epi32(v_t0_offsets_frac, 12);
+					const __m256 v_ab = _mm256_add_ps(v_a, v_b);
+					const __m256 pass0 = _mm256_cmp_ps(v_a, v_zero, _CMP_NLE_UQ);
+					const __m256 pass1 = _mm256_cmp_ps(v_b, v_zero, _CMP_NLE_UQ);
+					const __m256 pass2 = _mm256_cmp_ps(v_ab, v_one, _CMP_NGE_UQ);
+
+					const __m256 pass = _mm256_and_ps(_mm256_and_ps(pass0, pass1), pass2);
+					const __m256i pass_mask = *(__m256i*)(&pass);
+
+					const __m256i texture_samples = _mm256_i32gather_epi32((const int*)t0.TextureAddr, v_t0_offsets, 4);
+
+					//__m256i output = _mm256_set1_epi32(0xffffff);
+					__m256i output = texture_samples;
+
+					__m256i prior = _mm256_load_si256(span);
+					__m256i result = _mm256_blendv_epi8(prior, output, pass_mask);
+					_mm256_store_si256(span, result);
+					//if (a >= 0 && b >= 0 && a + b < 1) {
+					//	span[i] = 0xffffff; //t0.TextureAddr[t0_offset];
+					//}
+					// NOTE: removing per-8-pixel interpolation, we'll be stuck with TILE_SIZE = 8 for now
 				}
-				a0 += tile.dady;
-				b0 += tile.dbdy;
-				t0_u0 += t0_dudy;
-				t0_v0 += t0_dvdy;
+				v_a0 = _mm256_add_ps(v_a0, v_dady);
+				v_b0 = _mm256_add_ps(v_b0, v_dbdy);
+
+				v_t0_u0_tiled = _mm256_add_epi32(v_t0_u0_tiled, v_t0_dudy_tiled);
+				v_t0_v0_tiled = _mm256_add_epi32(v_t0_v0_tiled, v_t0_dvdy_tiled);
+				v_t0_u0_tiled = _mm256_and_si256(v_t0_u0_tiled, v_t0_umask_tiled);
+				v_t0_v0_tiled = _mm256_and_si256(v_t0_v0_tiled, v_t0_vmask_tiled);
+
 				scanline += bpsl;
 			}
 		}

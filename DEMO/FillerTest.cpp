@@ -1036,7 +1036,7 @@ static void drawPoly(float DT)
 
 	T += 0.5;
 
-	const auto W = 2800;
+	const auto W = 280;
 	const auto H = 250;
 
 	i=0;
@@ -1279,7 +1279,7 @@ void FillerTest()
 
 		}
 	}
-	//Sachletz(l_TestTexture, 256, 256);
+	Sachletz(l_TestTexture, 256, 256);
 	const long PartTime = 10000;
 
 	long timerStack[20], timerIndex = 0;
