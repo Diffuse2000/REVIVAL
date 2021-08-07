@@ -76,7 +76,8 @@ namespace barry {
 		uint32_t x5 = (x4 + dx) & mask;
 		uint32_t x6 = (x5 + dx) & mask;
 		uint32_t x7 = (x6 + dx) & mask;
-		return _mm256_set_epi32(x0, x1, x2, x3, x4, x5, x6, x7);
+		//return _mm256_set_epi32(x0, x1, x2, x3, x4, x5, x6, x7);
+		return _mm256_set_epi32(x7, x6, x5, x4, x3, x2, x1, x0);
 	}
 
 	struct TileRasterizer {
@@ -262,8 +263,8 @@ namespace barry {
 				__m256i* span = ((__m256i*)scanline) + tile.x * TILE_SIZE / 8;
 
 				for (size_t i = 0; i != TILE_SIZE; i += 8) {
-					const __m256i v_t0_offsets_frac = v_t0_v_tiled;
-					//const __m256i v_t0_offsets_frac = _mm256_add_epi32(v_t0_u_tiled, v_t0_v_tiled);
+					//const __m256i v_t0_offsets_frac = v_t0_v_tiled;
+					const __m256i v_t0_offsets_frac = _mm256_add_epi32(v_t0_u_tiled, v_t0_v_tiled);
 					const __m256i v_t0_offsets = _mm256_srli_epi32(v_t0_offsets_frac, 12);
 					const __m256 v_ab = _mm256_add_ps(v_a, v_b);
 					const __m256 pass0 = _mm256_cmp_ps(v_a, v_zero, _CMP_NLE_UQ);
@@ -274,6 +275,17 @@ namespace barry {
 					const __m256i pass_mask = *(__m256i*)(&pass);
 
 					const __m256i texture_samples = _mm256_i32gather_epi32((const int*)t0.TextureAddr, v_t0_offsets, 4);
+					//uint32_t texture_samples_i32[8] = {
+					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 0)],
+					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 1)],
+					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 2)],
+					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 3)],
+					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 4)],
+					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 5)],
+					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 6)],
+					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 7)]
+					//};
+					//__m256i texture_samples = _mm256_loadu_epi32(texture_samples_i32);
 
 					//__m256i output = _mm256_set1_epi32(0xffffff);
 					__m256i output = texture_samples;
