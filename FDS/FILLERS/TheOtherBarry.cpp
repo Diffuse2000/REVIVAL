@@ -71,7 +71,7 @@ namespace barry {
 
 	static inline Vec8ui gather(const Vec8ui index, void const* table, Vec8ib mask) {
 #if INSTRSET >= 8
-		return _mm256_i32gather_epi32((const int*)table, static_cast<__m256i>(index), 4);
+		return _mm256_mask_i32gather_epi32((const int*)table, static_cast<__m256i>(index), static_cast<__m256i>(mask), 4);
 #else
 		auto t = (const uint32_t *)table;
 		uint32_t ind[8];
