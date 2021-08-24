@@ -431,6 +431,7 @@
     <ClCompile Include="PCLSYS\PCLSYS.CPP" />
     <ClCompile Include="RADIO\RADIO.CPP" />
     <ClCompile Include="RENDER\RENDER.CPP" />
+    <ClCompile Include="simd\instrset_detect.cpp" />
     <ClCompile Include="V3D\V3D_READ.CPP" />
     <ClCompile Include="VESA\FONTS.CPP">
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExceptionHandling>
@@ -485,6 +486,26 @@
     <ClInclude Include="RENDER\GENERAL.H" />
     <ClInclude Include="RENDER\SORTS.H" />
     <ClInclude Include="RENDER\SQRTTBL.H" />
+    <ClInclude Include="simd\instrset.h" />
+    <ClInclude Include="simd\vectorclass.h" />
+    <ClInclude Include="simd\vectorf128.h" />
+    <ClInclude Include="simd\vectorf256.h" />
+    <ClInclude Include="simd\vectorf256e.h" />
+    <ClInclude Include="simd\vectorf512.h" />
+    <ClInclude Include="simd\vectorf512e.h" />
+    <ClInclude Include="simd\vectori128.h" />
+    <ClInclude Include="simd\vectori256.h" />
+    <ClInclude Include="simd\vectori256e.h" />
+    <ClInclude Include="simd\vectori512.h" />
+    <ClInclude Include="simd\vectori512e.h" />
+    <ClInclude Include="simd\vectori512s.h" />
+    <ClInclude Include="simd\vectori512se.h" />
+    <ClInclude Include="simd\vectormath_common.h" />
+    <ClInclude Include="simd\vectormath_exp.h" />
+    <ClInclude Include="simd\vectormath_hyp.h" />
+    <ClInclude Include="simd\vectormath_lib.h" />
+    <ClInclude Include="simd\vectormath_trig.h" />
+    <ClInclude Include="simd\vector_convert.h" />
     <ClInclude Include="Threads.h" />
     <ClInclude Include="V3D\M_DEFS.H" />
     <ClInclude Include="V3D\OBJECTS.H" />

@@ -1264,21 +1264,21 @@ void FillerTest()
 //	l_TestTexture = (DWord *)Tx.Data;
 	//memset(l_TestTexture, 255, 256 * 256 * 4);
 
-	dword i, j;
-	for (j = 0; j < 256; j++)
-	{
-		for (i = 0; i < 256; i++)
-		{
-			l_TestTexture[i + (j << 8)] =
-				//0xFFFFFF;				
-				//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
-				//(i<<16)+(j<<8)+(i^j) * 0x010101;
-				//(i ^ j) * 0x010101;
-				(((i ^ j) >> 3) & 1) * 0xffffff;
-			//((i>>2)&1)*0xFFFFFF;
+	//dword i, j;
+	//for (j = 0; j < 256; j++)
+	//{
+	//	for (i = 0; i < 256; i++)
+	//	{
+	//		l_TestTexture[i + (j << 8)] =
+	//			//0xFFFFFF;				
+	//			//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
+	//			//(i<<16)+(j<<8)+(i^j) * 0x010101;
+	//			//(i ^ j) * 0x010101;
+	//			(((i ^ j) >> 3) & 1) * 0xffffff;
+	//		//((i>>2)&1)*0xFFFFFF;
 
-		}
-	}
+	//	}
+	//}
 	Sachletz(l_TestTexture, 256, 256);
 	const long PartTime = 10000;
 

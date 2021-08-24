@@ -21,6 +21,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+Release Library/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -275,3 +276,16 @@ __pycache__/
 /FDS/IXTGZTM.lst
 /FDS/IXTGZTAM.lst
 DEMO.exe
+/CMake
+/DEMO/CMakeLists.txt
+/DEMO/CITYold.CPP
+/DEMO/CITY-old.CPP
+/DEMO/CITY - Copy.CPP
+/FDS/FILLERS/IXTGZTAM - Copy.ASM
+/FDS/CMakeLists.txt
+/FDS/IXTGZSAM.lst
+/libpng
+/Runtime/logfile.txt
+/Runtime/fountain-profiling.txt
+/libpng16/libpng16.lib
+/libpng16/zlib.lib

@@ -64,6 +64,9 @@
     <Filter Include="CoffReader">
       <UniqueIdentifier>{d9e82236-db56-4f82-962c-b2e647f0b807}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SIMD">
+      <UniqueIdentifier>{1d18de85-e9f5-4493-9a1c-2b9b64c15249}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3DS\3DS_READ.CPP">
@@ -189,6 +192,9 @@
     </ClCompile>
     <ClCompile Include="Fillers\TheOtherBarry.cpp">
       <Filter>Fillers</Filter>
+    </ClCompile>
+    <ClCompile Include="simd\instrset_detect.cpp">
+      <Filter>SIMD</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -331,6 +337,66 @@
     </ClInclude>
     <ClInclude Include="Fillers\TheOtherBarry.h">
       <Filter>Fillers</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\instrset.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vector_convert.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectorclass.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectorf128.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectorf256.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectorf256e.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectorf512.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectorf512e.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectori128.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectori256.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectori256e.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectori512.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectori512e.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectori512s.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectori512se.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectormath_common.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectormath_exp.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectormath_hyp.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectormath_lib.h">
+      <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="simd\vectormath_trig.h">
+      <Filter>SIMD</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

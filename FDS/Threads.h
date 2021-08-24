@@ -18,7 +18,7 @@ public:
 	using item_t = std::function<void()>;
 
 	void init(item_t initFunc) {
-		auto numThreads = std::thread::hardware_concurrency();
+		auto numThreads = 4;// std::thread::hardware_concurrency();
 		for (int ii = 0; ii < numThreads; ii++) {
 			pool.push_back(std::thread([this, initFunc]() {initFunc(); worker(); }));
 		}

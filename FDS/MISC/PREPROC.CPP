@@ -12,6 +12,7 @@
 #include "Base/TriMesh.h"
 #include "Base/Omni.h"
 #include "Base/Scene.h"
+#include <FILLERS/TheOtherBarry.h>
 
 FILE *LogFile;
 
@@ -1012,6 +1013,7 @@ void Assign_Fillers(Scene *Sc)
 				IX_Prefiller_TZ, // Texture
 				IX_Prefiller_GZ, // Gouraud
 				IX_Prefiller_TGZM, // Txtr/Gouraud
+				//TheOtherBarry,
 //				IX_Prefiller_TGZ, // Txtr/Gouraud
 				IX_Prefiller_FAcZ, // transparent Flat
 				IX_Prefiller_TAcZ, // transparent Texture

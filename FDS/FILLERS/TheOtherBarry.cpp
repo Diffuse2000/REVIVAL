@@ -2,6 +2,7 @@
 
 #include <intrin.h>
 #include <immintrin.h>
+#include <SIMD/vectorclass.h>
 
 namespace barry {
 	constexpr const int32_t TILE_SIZE = 8;
@@ -68,16 +69,31 @@ namespace barry {
 		};
 	}
 
-	__m256i m256i_from_arith_seq_tiled(uint32_t x0, uint32_t dx, uint32_t mask) {
-		uint32_t x1 = (x0 + dx) & mask;
-		uint32_t x2 = (x1 + dx) & mask;
-		uint32_t x3 = (x2 + dx) & mask;
-		uint32_t x4 = (x3 + dx) & mask;
-		uint32_t x5 = (x4 + dx) & mask;
-		uint32_t x6 = (x5 + dx) & mask;
-		uint32_t x7 = (x6 + dx) & mask;
-		//return _mm256_set_epi32(x0, x1, x2, x3, x4, x5, x6, x7);
-		return _mm256_set_epi32(x7, x6, x5, x4, x3, x2, x1, x0);
+	static inline Vec8ui gather(const Vec8ui index, void const* table, Vec8ib mask) {
+#if INSTRSET >= 8
+		return _mm256_i32gather_epi32((const int*)table, static_cast<__m256i>(index), 4);
+#else
+		auto t = (const uint32_t *)table;
+		uint32_t ind[8];
+		index.store(ind);
+		uint32_t m[8];
+		mask.store(m);
+		return Vec8ui(m[0] ? t[ind[0]] : 0, m[1] ? t[ind[1]] : 0, m[2] ? t[ind[2]] : 0, m[3] ? t[ind[3]] : 0,
+					  m[4] ? t[ind[4]] : 0, m[5] ? t[ind[5]] : 0, m[6] ? t[ind[6]] : 0, m[7] ? t[ind[7]] : 0);
+#endif
+	}
+
+
+	Vec8ui m256i_from_arith_seq_tiled(uint32_t x0, uint32_t dx, uint32_t mask) {
+		const uint32_t x1 = (x0 + dx) & mask;
+		const uint32_t x2 = (x1 + dx) & mask;
+		const uint32_t x3 = (x2 + dx) & mask;
+		const uint32_t x4 = (x3 + dx) & mask;
+		const uint32_t x5 = (x4 + dx) & mask;
+		const uint32_t x6 = (x5 + dx) & mask;
+		const uint32_t x7 = (x6 + dx) & mask;
+		return Vec8ui(x0, x1, x2, x3, x4, x5, x6, x7);
+		//return _mm256_set_epi32(x7, x6, x5, x4, x3, x2, x1, x0);
 	}
 
 	struct TileRasterizer {
@@ -245,36 +261,36 @@ namespace barry {
 			__m256 v_dady = _mm256_set1_ps(tile.dady);
 			__m256 v_dbdy = _mm256_set1_ps(tile.dbdy);
 
-			__m256i v_t0_u0_tiled = m256i_from_arith_seq_tiled(t0_u0_tiled, t0_dudx_tiled, t0_umask_tiled);
-			__m256i v_t0_v0_tiled = m256i_from_arith_seq_tiled(t0_v0_tiled, t0_dvdx_tiled, t0_vmask_tiled);
+			auto v_t0_u0_tiled = m256i_from_arith_seq_tiled(t0_u0_tiled, t0_dudx_tiled, t0_umask_tiled);
+			auto v_t0_v0_tiled = m256i_from_arith_seq_tiled(t0_v0_tiled, t0_dvdx_tiled, t0_vmask_tiled);
 
-			__m256i v_t0_dudy_tiled = _mm256_set1_epi32(t0_dudy_tiled);
-			__m256i v_t0_dvdy_tiled = _mm256_set1_epi32(t0_dvdy_tiled);
+			auto v_t0_dudy_tiled = Vec8ui(t0_dudy_tiled);
+			auto v_t0_dvdy_tiled = Vec8ui(t0_dvdy_tiled);
 
-			__m256i v_t0_umask_tiled = _mm256_set1_epi32(t0_umask_tiled);
-			__m256i v_t0_vmask_tiled = _mm256_set1_epi32(t0_vmask_tiled);
+			auto v_t0_umask_tiled = Vec8ui(t0_umask_tiled);
+			auto v_t0_vmask_tiled = Vec8ui(t0_vmask_tiled);
 
 			byte* scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
 			for (size_t j = 0; j != TILE_SIZE; ++j) {
 				__m256 v_a = v_a0;
 				__m256 v_b = v_b0;
-				__m256i v_t0_u_tiled = v_t0_u0_tiled;
-				__m256i v_t0_v_tiled = v_t0_v0_tiled;
-				__m256i* span = ((__m256i*)scanline) + tile.x * TILE_SIZE / 8;
+				auto v_t0_u_tiled = v_t0_u0_tiled;
+				auto v_t0_v_tiled = v_t0_v0_tiled;
+				auto span = ((Vec8ui*)scanline) + tile.x * TILE_SIZE / 8;
 
 				for (size_t i = 0; i != TILE_SIZE; i += 8) {
 					//const __m256i v_t0_offsets_frac = v_t0_v_tiled;
-					const __m256i v_t0_offsets_frac = _mm256_add_epi32(v_t0_u_tiled, v_t0_v_tiled);
-					const __m256i v_t0_offsets = _mm256_srli_epi32(v_t0_offsets_frac, 12);
+					const auto v_t0_offsets_frac = v_t0_u_tiled + v_t0_v_tiled;
+					const auto v_t0_offsets = v_t0_offsets_frac >> 12;
 					const __m256 v_ab = _mm256_add_ps(v_a, v_b);
 					const __m256 pass0 = _mm256_cmp_ps(v_a, v_zero, _CMP_NLE_UQ);
 					const __m256 pass1 = _mm256_cmp_ps(v_b, v_zero, _CMP_NLE_UQ);
 					const __m256 pass2 = _mm256_cmp_ps(v_ab, v_one, _CMP_NGE_UQ);
 
 					const __m256 pass = _mm256_and_ps(_mm256_and_ps(pass0, pass1), pass2);
-					const __m256i pass_mask = *(__m256i*)(&pass);
+					const auto pass_mask = *(Vec8ib*)(&pass);
 
-					const __m256i texture_samples = _mm256_i32gather_epi32((const int*)t0.TextureAddr, v_t0_offsets, 4);
+					const auto texture_samples = gather(v_t0_offsets, t0.TextureAddr, pass_mask); // _mm256_i32gather_epi32((const int*)t0.TextureAddr, v_t0_offsets, 4);
 					//uint32_t texture_samples_i32[8] = {
 					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 0)],
 					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 1)],
@@ -288,11 +304,17 @@ namespace barry {
 					//__m256i texture_samples = _mm256_loadu_epi32(texture_samples_i32);
 
 					//__m256i output = _mm256_set1_epi32(0xffffff);
-					__m256i output = texture_samples;
+					auto output = texture_samples;
 
-					__m256i prior = _mm256_load_si256(span);
-					__m256i result = _mm256_blendv_epi8(prior, output, pass_mask);
-					_mm256_store_si256(span, result);
+					//Vec8ui prior;
+					//prior.load_a(span);
+					//auto result = select(pass_mask, output, prior);
+					//auto result = _mm256_blendv_epi8(prior, output, pass_mask);
+//					auto result = output;
+
+					//result.store_a(span); // Fucking A!
+					_mm256_maskstore_ps((float*)span, *(__m256i*)(&pass), *(__m256*)(&output));
+//					_mm256_store_si256(span, result);
 					//if (a >= 0 && b >= 0 && a + b < 1) {
 					//	span[i] = 0xffffff; //t0.TextureAddr[t0_offset];
 					//}
@@ -301,10 +323,15 @@ namespace barry {
 				v_a0 = _mm256_add_ps(v_a0, v_dady);
 				v_b0 = _mm256_add_ps(v_b0, v_dbdy);
 
-				v_t0_u0_tiled = _mm256_add_epi32(v_t0_u0_tiled, v_t0_dudy_tiled);
-				v_t0_v0_tiled = _mm256_add_epi32(v_t0_v0_tiled, v_t0_dvdy_tiled);
-				v_t0_u0_tiled = _mm256_and_si256(v_t0_u0_tiled, v_t0_umask_tiled);
-				v_t0_v0_tiled = _mm256_and_si256(v_t0_v0_tiled, v_t0_vmask_tiled);
+				//v_t0_u0_tiled = _mm256_add_epi32(v_t0_u0_tiled, v_t0_dudy_tiled);
+				//v_t0_v0_tiled = _mm256_add_epi32(v_t0_v0_tiled, v_t0_dvdy_tiled);
+				//v_t0_u0_tiled = _mm256_and_si256(v_t0_u0_tiled, v_t0_umask_tiled);
+				//v_t0_v0_tiled = _mm256_and_si256(v_t0_v0_tiled, v_t0_vmask_tiled);
+				v_t0_u0_tiled += v_t0_dudy_tiled;
+				v_t0_v0_tiled += v_t0_dvdy_tiled;
+				v_t0_u0_tiled &= v_t0_umask_tiled;
+				v_t0_v0_tiled &= v_t0_vmask_tiled;
+
 
 				scanline += bpsl;
 			}
