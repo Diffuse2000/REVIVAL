@@ -12,7 +12,7 @@ namespace barry {
 		float x, y, z, w;
 
 		static RVector4 fromVertex(const Vertex* v) {
-			return RVector4 { v->PX / v->RZ, v->PY / v->RZ, 1.0f / v->RZ, v->RZ };
+			return RVector4 { v->PX , v->PY , 1.0f / v->RZ, v->RZ };
 		}
 	};
 
@@ -56,17 +56,22 @@ namespace barry {
 		return tile_u(u, vbits, umask) | 0x800 | (((1 << vbits) - 1) << 14);
 	}
 
-	__m256 m256_from_arith_seq(float x, float d) {
-		return {
-			x,
-			x + d,
-			x + d + d,
-			x + d + d + d,
-			x + d + d + d + d,
-			x + d + d + d + d + d,
-			x + d + d + d + d + d + d,
-			x + d + d + d + d + d + d + d,
-		};
+	static const auto arith_seq_mult = Vec8f{ 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
+
+	__m256 m256_from_arith_seq(float x_, float d_) {
+		auto x = Vec8f { x_ };
+		auto d = Vec8f { d_ };
+		return mul_add(d, arith_seq_mult, x);
+		//return {
+		//	x,
+		//	x + d,
+		//	x + d + d,
+		//	x + d + d + d,
+		//	x + d + d + d + d,
+		//	x + d + d + d + d + d,
+		//	x + d + d + d + d + d + d,
+		//	x + d + d + d + d + d + d + d,
+		//};
 	}
 
 	static inline Vec8ui gather(const Vec8ui index, void const* table, Vec8ib mask) {
@@ -78,6 +83,10 @@ namespace barry {
 		index.store(ind);
 		uint32_t m[8];
 		mask.store(m);
+
+		//return Vec8ui(t[ind[0]], t[ind[1]], t[ind[2]], t[ind[3]],
+		//			  t[ind[4]], t[ind[5]], t[ind[6]], t[ind[7]]); // ignore mask
+
 		return Vec8ui(m[0] ? t[ind[0]] : 0, m[1] ? t[ind[1]] : 0, m[2] ? t[ind[2]] : 0, m[3] ? t[ind[3]] : 0,
 					  m[4] ? t[ind[4]] : 0, m[5] ? t[ind[5]] : 0, m[6] ? t[ind[6]] : 0, m[7] ? t[ind[7]] : 0);
 #endif
@@ -92,7 +101,7 @@ namespace barry {
 		const uint32_t x5 = (x4 + dx) & mask;
 		const uint32_t x6 = (x5 + dx) & mask;
 		const uint32_t x7 = (x6 + dx) & mask;
-		return Vec8ui(x0, x1, x2, x3, x4, x5, x6, x7);
+		return Vec8ui{ x0, x1, x2, x3, x4, x5, x6, x7 };
 		//return _mm256_set_epi32(x7, x6, x5, x4, x3, x2, x1, x0);
 	}
 
@@ -340,10 +349,10 @@ namespace barry {
 
 	template <typename TTileRasterizer>
 	void rasterize_triangle(TTileRasterizer rasterizer, const RVector4& v1, const RVector4& v2, const RVector4& v3) {
-		const int tile_mx = rasterizer.clampedX(std::min({ v1.x * v1.w, v2.x * v2.w, v3.x * v3.w })) / TILE_SIZE;
-		const int tile_Mx = rasterizer.clampedX(std::max({ v1.x * v1.w, v2.x * v2.w, v3.x * v3.w })) / TILE_SIZE;
-		const int tile_my = rasterizer.clampedY(std::min({ v1.y * v1.w, v2.y * v2.w, v3.y * v3.w })) / TILE_SIZE;
-		const int tile_My = rasterizer.clampedY(std::max({ v1.y * v1.w, v2.y * v2.w, v3.y * v3.w })) / TILE_SIZE;
+		const int tile_mx = rasterizer.clampedX(std::min({ v1.x, v2.x, v3.x})) / TILE_SIZE;
+		const int tile_Mx = rasterizer.clampedX(std::max({ v1.x, v2.x, v3.x})) / TILE_SIZE;
+		const int tile_my = rasterizer.clampedY(std::min({ v1.y, v2.y, v3.y})) / TILE_SIZE;
+		const int tile_My = rasterizer.clampedY(std::max({ v1.y, v2.y, v3.y})) / TILE_SIZE;
 
 		const float m[4] = {
 			(v2.x - v1.x) / TILE_SIZE, (v2.y - v1.y) / TILE_SIZE,

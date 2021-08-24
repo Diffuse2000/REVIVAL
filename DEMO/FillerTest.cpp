@@ -1044,7 +1044,7 @@ static void drawPoly(float DT)
 	V[i].PY = 400.1 + W * s - H * c;
 //	V[i].PX = 200.0;
 //	V[i].PY = 100.0;
-	V[i].TPos.z = 1.0;
+	V[i].TPos.z = 2.0;
 	V[i].U = 0.0;
 	V[i].V = 0.0;
 	V[i].LA = 255;
@@ -1070,7 +1070,7 @@ static void drawPoly(float DT)
 	V[i].PY = 400.1 - W * s + H * c;
 //	V[i].PX = 100.0;
 //	V[i].PY = 100.0;
-	V[i].TPos.z = 1.0;
+	V[i].TPos.z = 2.0;
 	V[i].U = 0.999;
 	V[i].V = 0.999;
 	V[i].LA = 255;
@@ -1100,7 +1100,7 @@ static void drawPoly(float DT)
 	F.Txtr->Txtr->LSizeX = 8;
 	F.Txtr->Txtr->LSizeY = 8;
 	F.Txtr->ZBufferWrite = 0;
-	//F.Filler = IX_Prefiller_TGZSAM;
+	F.Filler = IX_Prefiller_TGZSAM;
 	F.Filler = TheOtherBarry;
 	//F.Filler = IX_Prefiller_FZ;
 	//F.Filler = IX_Prefiller_TGZM;
