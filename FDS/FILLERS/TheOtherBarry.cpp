@@ -3,24 +3,30 @@
 #include <intrin.h>
 #include <immintrin.h>
 #include <SIMD/vectorclass.h>
+#include <cassert>
 
 namespace barry {
 	constexpr const int32_t TILE_SIZE = 8;
+	using TScreenCoord = int32_t;
 
 	struct alignas(16) RVector4 {
-		// xyz taken from TPos, w is 1/z
+		// screen space x, y
+		// z is z in view space
+		// w is 1/z in view space
 		float x, y, z, w;
 
 		static RVector4 fromVertex(const Vertex* v) {
-			return RVector4 { v->PX , v->PY , 1.0f / v->RZ, v->RZ };
+			return RVector4 { v->PX, v->PY, 1.0f / v->RZ, v->RZ };
 		}
 	};
 
 	struct Tile {
+		// NOTE: can probably remove junk from here later on
 		int x, y;
 
-		float a0, dadx, dady; // , dadxdy;
-		float b0, dbdx, dbdy; // , dbdxdy;
+		TScreenCoord a0, dadx, dady;
+		TScreenCoord b0, dbdx, dbdy;
+		TScreenCoord c0, dcdx, dcdy;
 	};
 
 	using Triangle = RVector4[3];
@@ -62,6 +68,8 @@ namespace barry {
 		auto x = Vec8f { x_ };
 		auto d = Vec8f { d_ };
 		return mul_add(d, arith_seq_mult, x);
+		//const auto x = x_;
+		//const auto d = d_;
 		//return {
 		//	x,
 		//	x + d,
@@ -102,7 +110,6 @@ namespace barry {
 		const uint32_t x6 = (x5 + dx) & mask;
 		const uint32_t x7 = (x6 + dx) & mask;
 		return Vec8ui{ x0, x1, x2, x3, x4, x5, x6, x7 };
-		//return _mm256_set_epi32(x7, x6, x5, x4, x3, x2, x1, x0);
 	}
 
 	struct TileRasterizer {
@@ -218,7 +225,7 @@ namespace barry {
 		//	}
 		//}
 
-		void apply(const barry::Tile& tile) {
+		/*void apply(const barry::Tile& tile) {
 			float a0 = tile.a0;
 			float b0 = tile.b0;
 
@@ -332,10 +339,6 @@ namespace barry {
 				v_a0 = _mm256_add_ps(v_a0, v_dady);
 				v_b0 = _mm256_add_ps(v_b0, v_dbdy);
 
-				//v_t0_u0_tiled = _mm256_add_epi32(v_t0_u0_tiled, v_t0_dudy_tiled);
-				//v_t0_v0_tiled = _mm256_add_epi32(v_t0_v0_tiled, v_t0_dvdy_tiled);
-				//v_t0_u0_tiled = _mm256_and_si256(v_t0_u0_tiled, v_t0_umask_tiled);
-				//v_t0_v0_tiled = _mm256_and_si256(v_t0_v0_tiled, v_t0_vmask_tiled);
 				v_t0_u0_tiled += v_t0_dudy_tiled;
 				v_t0_v0_tiled += v_t0_dvdy_tiled;
 				v_t0_u0_tiled &= v_t0_umask_tiled;
@@ -344,17 +347,99 @@ namespace barry {
 
 				scanline += bpsl;
 			}
-		}
+		}*/
 	};
+
+	constexpr const int8_t SUBPIXEL_BITS = 8;
+	constexpr const float SUBPIXEL_MULT = 256.0f;
+
+	TScreenCoord orient2d(
+		TScreenCoord ax, TScreenCoord ay,
+		TScreenCoord bx, TScreenCoord by,
+		TScreenCoord cx, TScreenCoord cy)
+	{
+		return (int64_t(bx - ax) * (cy - ay) - int64_t(by - ay) * (cx - ax)) >> SUBPIXEL_BITS;
+	}
 
 	template <typename TTileRasterizer>
 	void rasterize_triangle(TTileRasterizer rasterizer, const RVector4& v1, const RVector4& v2, const RVector4& v3) {
-		const int tile_mx = rasterizer.clampedX(std::min({ v1.x, v2.x, v3.x})) / TILE_SIZE;
-		const int tile_Mx = rasterizer.clampedX(std::max({ v1.x, v2.x, v3.x})) / TILE_SIZE;
-		const int tile_my = rasterizer.clampedY(std::min({ v1.y, v2.y, v3.y})) / TILE_SIZE;
-		const int tile_My = rasterizer.clampedY(std::max({ v1.y, v2.y, v3.y})) / TILE_SIZE;
+		const int tile_mx = rasterizer.clampedX(std::min({ v1.x, v2.x, v3.x })) / TILE_SIZE;
+		const int tile_Mx = rasterizer.clampedX(std::max({ v1.x, v2.x, v3.x })) / TILE_SIZE;
+		const int tile_my = rasterizer.clampedY(std::min({ v1.y, v2.y, v3.y })) / TILE_SIZE;
+		const int tile_My = rasterizer.clampedY(std::max({ v1.y, v2.y, v3.y })) / TILE_SIZE;
 
-		const float m[4] = {
+		TScreenCoord v1x = TScreenCoord(v1.x * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v1y = TScreenCoord(v1.y * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v2x = TScreenCoord(v2.x * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v2y = TScreenCoord(v2.y * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v3x = TScreenCoord(v3.x * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v3y = TScreenCoord(v3.y * SUBPIXEL_MULT + 0.5);
+
+		TScreenCoord x0 = tile_mx * TILE_SIZE << SUBPIXEL_BITS;
+		TScreenCoord y0 = tile_my * TILE_SIZE << SUBPIXEL_BITS;
+		TScreenCoord _a0 = orient2d(v2x, v2y, v1x, v1y, x0, y0);
+		TScreenCoord _b0 = orient2d(v3x, v3y, v2x, v2y, x0, y0);
+		TScreenCoord _c0 = orient2d(v1x, v1y, v3x, v3y, x0, y0);
+
+		TScreenCoord dadx = (v2y - v1y);
+		TScreenCoord dady = (v1x - v2x);
+		TScreenCoord dbdx = (v3y - v2y);
+		TScreenCoord dbdy = (v2x - v3x);
+		TScreenCoord dcdx = (v1y - v3y);
+		TScreenCoord dcdy = (v3x - v1x);
+
+		// flat without tiling
+		/*for (int y = tile_my * TILE_SIZE; y <= tile_My * TILE_SIZE + TILE_SIZE - 1; ++y) {
+			byte* scanline = rasterizer.dstSurface + y * rasterizer.bpsl;
+			for (int x = tile_mx * TILE_SIZE; x <= tile_Mx * TILE_SIZE + TILE_SIZE - 1; ++x) {
+				TScreenCoord alpha = orient2d(v2x, v2y, v1x, v1y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
+				TScreenCoord beta = orient2d(v3x, v3y, v2x, v2y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
+				TScreenCoord gamma = orient2d(v1x, v1y, v3x, v3y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
+				uint32_t& pixel = ((uint32_t*)scanline)[x];
+				if (alpha >= 0 && beta >= 0 && gamma >= 0) {
+					pixel = 0xcdefab;
+				} else if (pixel == 0) {
+					pixel = 0x123456;
+				}
+			}
+		}*/
+
+		for (int y = tile_my; y <= tile_My; ++y, _a0 += TILE_SIZE * dady, _b0 += TILE_SIZE * dbdy, _c0 += TILE_SIZE * dcdy) {
+			TScreenCoord a0 = _a0;
+			TScreenCoord b0 = _b0;
+			TScreenCoord c0 = _c0;
+			for (int x = tile_mx; x <= tile_Mx; ++x, a0 += TILE_SIZE * dadx, b0 += TILE_SIZE * dbdx, c0 += TILE_SIZE * dcdx) {
+				Tile tile = {
+					.x = x,
+					.y = y,
+					.a0 = a0,
+					.dadx = dadx,
+					.dady = dady,
+					.b0 = b0,
+					.dbdx = dbdx,
+					.dbdy = dbdy,
+					.c0 = c0,
+					.dcdx = dcdx,
+					.dcdy = dcdy
+				};
+				TScreenCoord max_a = a0 + ((dadx > 0) ? dadx * TILE_SIZE : 0) + ((dady > 0) ? dady * TILE_SIZE : 0);
+				TScreenCoord max_b = b0 + ((dbdx > 0) ? dbdx * TILE_SIZE : 0) + ((dbdy > 0) ? dbdy * TILE_SIZE : 0);
+				TScreenCoord max_c = c0 + ((dcdx > 0) ? dcdx * TILE_SIZE : 0) + ((dcdy > 0) ? dcdy * TILE_SIZE : 0);
+
+				if ((max_a | max_b | max_c) >= 0) {
+					//rasterizer.apply(tile);
+					for (int py = y * TILE_SIZE; py <= (y + 1) * TILE_SIZE; ++py) {
+						byte* scanline = rasterizer.dstSurface + py * rasterizer.bpsl;
+						for (int px = x * TILE_SIZE; px <= (x + 1) * TILE_SIZE; ++px) {
+							uint32_t& pixel = ((uint32_t*)scanline)[px];
+							pixel = 0xcdefab;
+						}
+					}					
+				}
+			}
+		}
+
+		/*const float m[4] = {
 			(v2.x - v1.x) / TILE_SIZE, (v2.y - v1.y) / TILE_SIZE,
 			(v3.x - v1.x) / TILE_SIZE, (v3.y - v1.y) / TILE_SIZE
 		};
@@ -421,7 +506,7 @@ namespace barry {
 					rasterizer.apply(tile);
 				}
 			}
-		}
+		}*/
 	}
 
 } // namespace barry

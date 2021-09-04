@@ -27,9 +27,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="libpng16.lib" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="png.h" />
     <ClInclude Include="pngconf.h" />
     <ClInclude Include="pnglibconf.h" />

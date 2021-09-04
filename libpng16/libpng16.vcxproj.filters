@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="libpng16.lib" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="png.h">
       <Filter>Header Files</Filter>
     </ClInclude>

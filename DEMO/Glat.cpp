@@ -225,7 +225,7 @@ void Run_Glato(void)
 	XMMMatrix CamMat;
 	float Radius;
 	int x,y,i,j;
-	float a,bb,c,d,Delta,X1,X2,X3,z,Rx,Ry,Rz;
+	float a = 0.0f,bb = 0.0f,c = 0.0f,d = 0.0f,Delta = 0.0f,X1 = 0.0f,X2 = 0.0f,X3 = 0.0f,z = 0.0f,Rx = 0.0f,Ry = 0.0f,Rz = 0.0f;
 	float u,v,u1,v1,u2,v2,r,g,b;
 	float Code_R1,Code_RS,Code_R2,CCosR1,CSinR1,CCosR2,CSinR2;
 	float Gfx_R1,Gfx_R2,GCosR1,GSinR1,GCosR2,GSinR2,Gfx_RS;

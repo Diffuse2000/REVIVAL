@@ -1036,7 +1036,7 @@ static void drawPoly(float DT)
 
 	T += 0.5;
 
-	const auto W = 2800;
+	const auto W = 280;
 	const auto H = 250;
 
 	i=0;

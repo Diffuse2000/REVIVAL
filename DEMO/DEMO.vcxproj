@@ -173,7 +173,7 @@
       <ObjectFileName>.\Release/</ObjectFileName>
       <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <CompileAs>CompileAsCpp</CompileAs>
+      <CompileAs>Default</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>$(SolutionDir)fmod;$(SolutionDir)FDS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
@@ -186,6 +186,11 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <SDLCheck>false</SDLCheck>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
@@ -197,6 +202,8 @@
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <PreventDllBinding>true</PreventDllBinding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <Profile>true</Profile>
     </Link>
     <Midl>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -315,6 +322,7 @@ copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <PreventDllBinding>true</PreventDllBinding>
+      <Profile>true</Profile>
     </Link>
     <Midl>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -571,9 +579,6 @@ copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
     </ProjectReference>
     <ProjectReference Include="..\IJLD\IJLD.vcxproj">
       <Project>{8b62af28-c242-9b32-27df-492a187c8d42}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\libpng16\libpng16.vcxproj">
-      <Project>{f6c07fb1-da1a-4fcd-b703-60917f046b70}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Modplayer\Modplayer.vcxproj">
       <Project>{65292fb5-9235-4bf6-9b45-0ffc88978d96}</Project>

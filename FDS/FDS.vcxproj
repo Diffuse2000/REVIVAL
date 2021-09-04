@@ -176,11 +176,16 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <SDLCheck>false</SDLCheck>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Lib>
       <OutputFile>.\Release\FDS.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
