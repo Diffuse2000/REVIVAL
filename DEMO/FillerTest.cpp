@@ -1030,11 +1030,11 @@ static void drawPoly(float DT)
 	dword i;
 	static float T = 0;
 
-	float a = (T + DT) * 0.003;
+	float a = (T + DT) * 0.3;
 	float c = cos(a);
 	float s = sin(a);
 
-	T += 0.5;
+	T += 0.005;
 
 	const auto W = 280;
 	const auto H = 250;
@@ -1044,7 +1044,7 @@ static void drawPoly(float DT)
 	V[i].PY = 400.1 + W * s - H * c;
 //	V[i].PX = 200.0;
 //	V[i].PY = 100.0;
-	V[i].TPos.z = 2.0;
+	V[i].TPos.z = 3.0;
 	V[i].U = 0.0;
 	V[i].V = 0.0;
 	V[i].LA = 255;
@@ -1057,7 +1057,7 @@ static void drawPoly(float DT)
 	V[i].PY = 400.1 - W * s - H * c;
 //	V[i].PX = 130.0;
 //	V[i].PY = 200.0;
-	V[i].TPos.z = 1.0;
+	V[i].TPos.z = 5.0;
 	V[i].U = 0.999;
 	V[i].V = 0.0;
 	V[i].LA = 255;
@@ -1070,7 +1070,7 @@ static void drawPoly(float DT)
 	V[i].PY = 400.1 - W * s + H * c;
 //	V[i].PX = 100.0;
 //	V[i].PY = 100.0;
-	V[i].TPos.z = 2.0;
+	V[i].TPos.z = 4.0f;
 	V[i].U = 0.999;
 	V[i].V = 0.999;
 	V[i].LA = 255;
@@ -1081,7 +1081,7 @@ static void drawPoly(float DT)
 	i=3;
 	V[i].PX = 900.1 - W * c + H * s;
 	V[i].PY = 400.1 + W * s + H * c;
-	V[i].TPos.z = 1.0;
+	V[i].TPos.z = 6.0;
 	V[i].U = 0;
 	V[i].V = 0.999;
 	V[i].LA = 255;
@@ -1264,22 +1264,22 @@ void FillerTest()
 //	l_TestTexture = (DWord *)Tx.Data;
 	//memset(l_TestTexture, 255, 256 * 256 * 4);
 
-	//dword i, j;
-	//for (j = 0; j < 256; j++)
-	//{
-	//	for (i = 0; i < 256; i++)
-	//	{
-	//		l_TestTexture[i + (j << 8)] =
-	//			//0xFFFFFF;				
-	//			//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
-	//			//(i<<16)+(j<<8)+(i^j) * 0x010101;
-	//			//(i ^ j) * 0x010101;
-	//			(((i ^ j) >> 3) & 1) * 0xffffff;
-	//		//((i>>2)&1)*0xFFFFFF;
+	dword i, j;
+	for (j = 0; j < 256; j++)
+	{
+		for (i = 0; i < 256; i++)
+		{
+			l_TestTexture[i + (j << 8)] =
+				//0xFFFFFF;				
+				//(((i<<3)^(j<<3)) & 0xFF) *0x010101;
+				//(i<<16)+(j<<8)+(i^j) * 0x010101;
+				//(i ^ j) * 0x010101;
+				(((i ^ j) >> 3) & 1) * 0xffffff;
+			//((i>>2)&1)*0xFFFFFF;
 
-	//	}
-	//}
-	Sachletz(l_TestTexture, 256, 256);
+		}
+	}
+	//Sachletz(l_TestTexture, 256, 256);
 	const long PartTime = 10000;
 
 	long timerStack[20], timerIndex = 0;

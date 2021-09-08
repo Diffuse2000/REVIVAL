@@ -20,13 +20,19 @@ namespace barry {
 		}
 	};
 
+	struct TileTxtrInfo {
+		float uz0, vz0;
+	};
+
 	struct Tile {
-		// NOTE: can probably remove junk from here later on
 		int x, y;
 
 		TScreenCoord a0, dadx, dady;
 		TScreenCoord b0, dbdx, dbdy;
 		TScreenCoord c0, dcdx, dcdy;
+
+		float rz0;
+		TileTxtrInfo t0;
 	};
 
 	using Triangle = RVector4[3];
@@ -139,15 +145,20 @@ namespace barry {
 			long LogHeight;
 			float UScaleFactor;
 			float VScaleFactor;
-		};
-		TextureInfo t0;
-		size_t v0 = 0 , v1 = 0, v2 = 0;
+			float duzdx, duzdy;
+			float dvzdx, dvzdy;
 
-		void setVertexIndexes(size_t v0, size_t v1, size_t v2) {
-			this->v0 = v0;
-			this->v1 = v1;
-			this->v2 = v2;
-		}
+		};
+		float drzdx, drzdy;
+		uint32_t umask;// = (1 << t0.LogWidth) - 1);
+		uint32_t vmask;// = (1 << t0.LogHeight) - 1);
+		TextureInfo t0;
+		//size_t v1 = 0 , v2 = 0, v3 = 0;
+		//void setVertexIndexes(size_t v1, size_t v2, size_t v3) {
+		//	this->v1 = v1;
+		//	this->v2 = v2;
+		//	this->v3 = v3;
+		//}
 
 		int32_t clampedX(int32_t x) {
 			return std::min(std::max(x, 0), xres - 1);
@@ -348,6 +359,47 @@ namespace barry {
 				scanline += bpsl;
 			}
 		}*/
+
+		void apply(const barry::Tile& tile) {
+			auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
+			auto span = ((uint32_t *)scanline) + tile.x * TILE_SIZE;
+			auto bpsl_u32 = bpsl / sizeof(uint32_t);
+
+			TScreenCoord a0 = tile.a0;
+			TScreenCoord b0 = tile.b0;
+			TScreenCoord c0 = tile.c0;
+
+			float rz0 = tile.rz0;
+			float uz0 = tile.t0.uz0;
+			float vz0 = tile.t0.vz0;
+			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32) {
+				TScreenCoord a = a0;
+				TScreenCoord b = b0;
+				TScreenCoord c = c0;
+
+				float rz = rz0;
+				float uz = uz0;
+				float vz = vz0;
+
+				for (uint32_t* p = span; p != span + TILE_SIZE; ++p, a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
+					if ((a | b | c) >= 0) {
+						uint32_t u = uint32_t(uz / rz * t0.UScaleFactor) & ((1 << t0.LogWidth) - 1);
+						uint32_t v = uint32_t(vz / rz * t0.VScaleFactor) & ((1 << t0.LogHeight) - 1);
+						auto offset = u + (v << t0.LogWidth);
+						// auto offset = (v << t0.LogWidth);
+						*p = t0.TextureAddr[offset];
+						// *p ^= 0xcdefab;
+					}
+
+					rz += drzdx;
+					uz += t0.duzdx;
+					vz += t0.dvzdx;
+				}
+				rz0 += drzdy;
+				uz0 += t0.duzdy;
+				vz0 += t0.dvzdy;
+			}
+		}
 	};
 
 	constexpr const int8_t SUBPIXEL_BITS = 8;
@@ -362,18 +414,19 @@ namespace barry {
 	}
 
 	template <typename TTileRasterizer>
-	void rasterize_triangle(TTileRasterizer rasterizer, const RVector4& v1, const RVector4& v2, const RVector4& v3) {
-		const int tile_mx = rasterizer.clampedX(std::min({ v1.x, v2.x, v3.x })) / TILE_SIZE;
-		const int tile_Mx = rasterizer.clampedX(std::max({ v1.x, v2.x, v3.x })) / TILE_SIZE;
-		const int tile_my = rasterizer.clampedY(std::min({ v1.y, v2.y, v3.y })) / TILE_SIZE;
-		const int tile_My = rasterizer.clampedY(std::max({ v1.y, v2.y, v3.y })) / TILE_SIZE;
+	void rasterize_triangle(TTileRasterizer rasterizer, const Vertex& v1, const Vertex& v2, const Vertex& v3) {
+		// FIXME: raster conventions (it is doing floor right now)
+		const int tile_mx = rasterizer.clampedX(std::min({ v1.PX, v2.PX, v3.PX })) / TILE_SIZE;
+		const int tile_Mx = rasterizer.clampedX(std::max({ v1.PX, v2.PX, v3.PX })) / TILE_SIZE;
+		const int tile_my = rasterizer.clampedY(std::min({ v1.PY, v2.PY, v3.PY })) / TILE_SIZE;
+		const int tile_My = rasterizer.clampedY(std::max({ v1.PY, v2.PY, v3.PY })) / TILE_SIZE;
 
-		TScreenCoord v1x = TScreenCoord(v1.x * SUBPIXEL_MULT + 0.5);
-		TScreenCoord v1y = TScreenCoord(v1.y * SUBPIXEL_MULT + 0.5);
-		TScreenCoord v2x = TScreenCoord(v2.x * SUBPIXEL_MULT + 0.5);
-		TScreenCoord v2y = TScreenCoord(v2.y * SUBPIXEL_MULT + 0.5);
-		TScreenCoord v3x = TScreenCoord(v3.x * SUBPIXEL_MULT + 0.5);
-		TScreenCoord v3y = TScreenCoord(v3.y * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v1x = TScreenCoord(v1.PX * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v1y = TScreenCoord(v1.PY * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v2x = TScreenCoord(v2.PX * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v2y = TScreenCoord(v2.PY * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v3x = TScreenCoord(v3.PX * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v3y = TScreenCoord(v3.PY * SUBPIXEL_MULT + 0.5);
 
 		TScreenCoord x0 = tile_mx * TILE_SIZE << SUBPIXEL_BITS;
 		TScreenCoord y0 = tile_my * TILE_SIZE << SUBPIXEL_BITS;
@@ -389,55 +442,67 @@ namespace barry {
 		TScreenCoord dcdy = (v3x - v1x);
 
 		// flat without tiling
-		/*for (int y = tile_my * TILE_SIZE; y <= tile_My * TILE_SIZE + TILE_SIZE - 1; ++y) {
-			byte* scanline = rasterizer.dstSurface + y * rasterizer.bpsl;
-			for (int x = tile_mx * TILE_SIZE; x <= tile_Mx * TILE_SIZE + TILE_SIZE - 1; ++x) {
-				TScreenCoord alpha = orient2d(v2x, v2y, v1x, v1y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
-				TScreenCoord beta = orient2d(v3x, v3y, v2x, v2y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
-				TScreenCoord gamma = orient2d(v1x, v1y, v3x, v3y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
-				uint32_t& pixel = ((uint32_t*)scanline)[x];
-				if (alpha >= 0 && beta >= 0 && gamma >= 0) {
-					pixel = 0xcdefab;
-				} else if (pixel == 0) {
-					pixel = 0x123456;
-				}
-			}
-		}*/
-
+		//for (int y = tile_my * TILE_SIZE; y <= tile_My * TILE_SIZE + TILE_SIZE - 1; ++y) {
+		//	byte* scanline = rasterizer.dstSurface + y * rasterizer.bpsl;
+		//	for (int x = tile_mx * TILE_SIZE; x <= tile_Mx * TILE_SIZE + TILE_SIZE - 1; ++x) {
+		//		TScreenCoord alpha = orient2d(v2x, v2y, v1x, v1y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
+		//		TScreenCoord beta = orient2d(v3x, v3y, v2x, v2y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
+		//		TScreenCoord gamma = orient2d(v1x, v1y, v3x, v3y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
+		//		uint32_t& pixel = ((uint32_t*)scanline)[x];
+		//		if (alpha >= 0 && beta >= 0 && gamma >= 0) {
+		//			pixel = 0xcdefab;
+		//		} /*else if (pixel == 0) {
+		//			pixel = 0x123456;
+		//		}*/
+		//	}
+		//}
+//		/*
+		// this is constant across entire triangle
+		float zoltek = 1.0f / (_a0 + _b0 + _c0);
 		for (int y = tile_my; y <= tile_My; ++y, _a0 += TILE_SIZE * dady, _b0 += TILE_SIZE * dbdy, _c0 += TILE_SIZE * dcdy) {
 			TScreenCoord a0 = _a0;
 			TScreenCoord b0 = _b0;
 			TScreenCoord c0 = _c0;
 			for (int x = tile_mx; x <= tile_Mx; ++x, a0 += TILE_SIZE * dadx, b0 += TILE_SIZE * dbdx, c0 += TILE_SIZE * dcdx) {
-				Tile tile = {
-					.x = x,
-					.y = y,
-					.a0 = a0,
-					.dadx = dadx,
-					.dady = dady,
-					.b0 = b0,
-					.dbdx = dbdx,
-					.dbdy = dbdy,
-					.c0 = c0,
-					.dcdx = dcdx,
-					.dcdy = dcdy
-				};
 				TScreenCoord max_a = a0 + ((dadx > 0) ? dadx * TILE_SIZE : 0) + ((dady > 0) ? dady * TILE_SIZE : 0);
 				TScreenCoord max_b = b0 + ((dbdx > 0) ? dbdx * TILE_SIZE : 0) + ((dbdy > 0) ? dbdy * TILE_SIZE : 0);
 				TScreenCoord max_c = c0 + ((dcdx > 0) ? dcdx * TILE_SIZE : 0) + ((dcdy > 0) ? dcdy * TILE_SIZE : 0);
 
 				if ((max_a | max_b | max_c) >= 0) {
-					//rasterizer.apply(tile);
-					for (int py = y * TILE_SIZE; py <= (y + 1) * TILE_SIZE; ++py) {
-						byte* scanline = rasterizer.dstSurface + py * rasterizer.bpsl;
-						for (int px = x * TILE_SIZE; px <= (x + 1) * TILE_SIZE; ++px) {
-							uint32_t& pixel = ((uint32_t*)scanline)[px];
-							pixel = 0xcdefab;
+					// FIXME: define outside and maintain
+					Tile tile = {
+						.x = x,
+						.y = y,
+						.a0 = a0,
+						.dadx = dadx,
+						.dady = dady,
+						.b0 = b0,
+						.dbdx = dbdx,
+						.dbdy = dbdy,
+						.c0 = c0,
+						.dcdx = dcdx,
+						.dcdy = dcdy,
+						//.rz0 = (v1.RZ + (x * TILE_SIZE - v1.PX) * rasterizer.drzdx + (y * TILE_SIZE - v1.PY) * rasterizer.drzdy),
+						.rz0 = (v1.RZ * b0 + v2.RZ * c0 + v3.RZ * a0) * zoltek,
+						.t0 = {
+							//.uz0 = (v1.UZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.duzdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.duzdy),
+							//.vz0 = (v1.VZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.dvzdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.dvzdy)
+							.uz0 = (v1.UZ * b0 + v2.UZ * c0 + v3.UZ * a0) * zoltek,
+							.vz0 = (v1.VZ * b0 + v2.VZ * c0 + v3.VZ * a0) * zoltek
 						}
-					}					
+					};
+
+					rasterizer.apply(tile);
+					//for (int py = y * TILE_SIZE; py <= (y + 1) * TILE_SIZE - 1; ++py) {
+					//	byte* scanline = rasterizer.dstSurface + py * rasterizer.bpsl;
+					//	for (int px = x * TILE_SIZE; px <= (x + 1) * TILE_SIZE - 1; ++px) {
+					//		uint32_t& pixel = ((uint32_t*)scanline)[px];
+					//		pixel += 0x2c1cde;
+					//	}
+					//}
 				}
 			}
-		}
+		} //*/
 
 		/*const float m[4] = {
 			(v2.x - v1.x) / TILE_SIZE, (v2.y - v1.y) / TILE_SIZE,
@@ -519,11 +584,32 @@ void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 		V[i]->V = V[i]->VZ * z;
 	}
 	barry::TileRasterizer r(V, VPage, VESA_BPSL, XRes, YRes, F->Txtr->Txtr, miplevel);
+
 	for (dword i = 2; i < numVerts; ++i) {
-		r.setVertexIndexes(0, i - 1, i);
-		auto v0 = barry::RVector4::fromVertex(V[0]);
-		auto v1 = barry::RVector4::fromVertex(V[i - 1]);
-		auto v2 = barry::RVector4::fromVertex(V[i]);
-		barry::rasterize_triangle(r, v0, v1, v2);
+		//r.setVertexIndexes(0, i - 1, i);
+
+		const auto& v1 = *(V[0]);
+		const auto& v2 = *(V[i - 1]);
+		const auto& v3 = *(V[i]);
+
+		float m[4] = {
+			v2.PX - v1.PX, v2.PY - v1.PY,
+			v3.PX - v1.PX, v3.PY - v1.PY
+		};
+		const float det = m[0] * m[3] - m[1] * m[2];
+		const float im[4] = {
+			 m[3] / det, -m[1] / det,
+			-m[2] / det,  m[0] / det
+		};
+		r.drzdx = im[0] * (v2.RZ - v1.RZ) + im[1] * (v3.RZ - v1.RZ);
+		r.drzdy = im[2] * (v2.RZ - v1.RZ) + im[3] * (v3.RZ - v1.RZ);
+		r.t0.duzdx = im[0] * (v2.UZ - v1.UZ) + im[1] * (v3.UZ - v1.UZ);
+		r.t0.duzdy = im[2] * (v2.UZ - v1.UZ) + im[3] * (v3.UZ - v1.UZ);
+		r.t0.dvzdx = im[0] * (v2.VZ - v1.VZ) + im[1] * (v3.VZ - v1.VZ);
+		r.t0.dvzdy = im[2] * (v2.VZ - v1.VZ) + im[3] * (v3.VZ - v1.VZ);
+		r.umask = (1 << r.t0.LogWidth) - 1;
+		r.vmask = (1 << r.t0.LogHeight) - 1;
+
+		barry::rasterize_triangle(r, v1, v2, v3);
 	}
 }
