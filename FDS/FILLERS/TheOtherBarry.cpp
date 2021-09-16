@@ -21,7 +21,10 @@ namespace barry {
 	};
 
 	struct TileTxtrInfo {
-		float uz0, vz0;
+		float uz0, vz0, rz0;
+		float uz1, vz1, rz1;
+		float uz2, vz2, rz2;
+		float uz3, vz3, rz3;
 	};
 
 	struct Tile {
@@ -372,32 +375,96 @@ namespace barry {
 			float rz0 = tile.rz0;
 			float uz0 = tile.t0.uz0;
 			float vz0 = tile.t0.vz0;
+			int32_t t0_umask = (1 << t0.LogWidth) - 1;
+			int32_t t0_vmask = (1 << t0.LogHeight) - 1;
+			auto au = int32_t(uz0 / rz0 * 16384.0f * t0.UScaleFactor);
+			auto av = int32_t(vz0 / rz0 * 16384.0f * t0.VScaleFactor);
+			auto bu = int32_t((uz0 + t0.duzdx * 8.0f) / (rz0 + drzdx * 7.0f) * 16384.0f * t0.UScaleFactor);
+			auto bv = int32_t((vz0 + t0.dvzdx * 8.0f) / (rz0 + drzdx * 7.0f) * 16384.0f * t0.VScaleFactor);
+			auto cu = int32_t((uz0 + t0.duzdy * 8.0f) / (rz0 + drzdy * 7.0f) * 16384.0f * t0.UScaleFactor);
+			auto cv = int32_t((vz0 + t0.dvzdy * 8.0f) / (rz0 + drzdy * 7.0f) * 16384.0f * t0.VScaleFactor);
+			auto du = int32_t((uz0 + t0.duzdx * 8.0f + t0.duzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 16384.0f * t0.UScaleFactor);
+			auto dv = int32_t((vz0 + t0.dvzdx * 8.0f + t0.dvzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 16384.0f * t0.VScaleFactor);
+
+			auto ddu0 = int32_t(cu - au) / 8;
+			auto ddv0 = int32_t(cv - av) / 8;
+			auto ddu1 = int32_t(du - bu) / 8;
+			auto ddv1 = int32_t(dv - bv) / 8;
+
+
 			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32) {
 				TScreenCoord a = a0;
 				TScreenCoord b = b0;
 				TScreenCoord c = c0;
 
-				float rz = rz0;
-				float uz = uz0;
-				float vz = vz0;
+				//float rz = rz0;
+				//float uz = uz0;
+				//float vz = vz0;
+				float rz1 = rz0 + drzdx * 8.0f;
+				float uz1 = uz0 + t0.duzdx * 8.0f;
+				float vz1 = vz0 + t0.dvzdx * 8.0f;
+
+				float oneOverRz0;
+				_mm_store_ps(&oneOverRz0, _mm_rcp_ss(_mm_load_ss(&rz0)));
+				float oneOverRz1;
+				_mm_store_ps(&oneOverRz1, _mm_rcp_ss(_mm_load_ss(&rz1)));
+				float u0 = uz0 * oneOverRz0;
+				float v0 = vz0 * oneOverRz0;
+				float u1 = uz1 * oneOverRz1;
+				float v1 = vz1 * oneOverRz1;
+				const auto fdux = int32_t((u1 - u0) * 16384.0f * t0.UScaleFactor) / 8;
+				const auto fdvx = int32_t((v1 - v0) * 16384.0f * t0.VScaleFactor) / 8;
+
+				//int32_t u = uint32_t(u0 * 16384.0f * t0.UScaleFactor);
+				//int32_t v = uint32_t(v0 * 16384.0f * t0.VScaleFactor);
+
+				const auto dux = (bu - au) / 8;
+				const auto dvx = (bv - av) / 8;
+				int32_t u = au;
+				int32_t v = av;
 
 				for (uint32_t* p = span; p != span + TILE_SIZE; ++p, a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
 					if ((a | b | c) >= 0) {
-						uint32_t u = uint32_t(uz / rz * t0.UScaleFactor) & ((1 << t0.LogWidth) - 1);
-						uint32_t v = uint32_t(vz / rz * t0.VScaleFactor) & ((1 << t0.LogHeight) - 1);
-						auto offset = u + (v << t0.LogWidth);
-						// auto offset = (v << t0.LogWidth);
-						*p = t0.TextureAddr[offset];
+						//float oneOverRz;
+						//_mm_store_ps(&oneOverRz, _mm_rcp_ss(_mm_load_ss(&rz)));
+						//uint32_t u = uint32_t(uz * oneOverRz * t0.UScaleFactor) & ((1 << t0.LogWidth) - 1);
+						//uint32_t v = uint32_t(vz * oneOverRz * t0.VScaleFactor) & ((1 << t0.LogHeight) - 1);
+
+						//						uint32_t tu = tile_u(u, t0.LogHeight, t0_umask);
+	//					uint32_t tv = tile_v(v, t0_vmask);
+//						auto offset = tu + tv ;
+
+						auto uu = (u >> 14) & t0_umask;
+						auto vv = (v >> 14) & t0_vmask;
+						auto offset = uu + (vv << t0.LogWidth);
+						//if ((y == 0 || y == TILE_SIZE - 1) && (p == span || p == span + TILE_SIZE - 1)) 
+						{
+							//*p = uu ^ vv * 0x010001;
+							*p = t0.TextureAddr[offset];
+						}
 						// *p ^= 0xcdefab;
 					}
 
-					rz += drzdx;
-					uz += t0.duzdx;
-					vz += t0.dvzdx;
+					//u += fdux;
+					//v += fdvx;
+					u += dux;
+					v += dux;
+
+					//rz += drzdx;
+					//uz += t0.duzdx;
+					//vz += t0.dvzdx;
 				}
 				rz0 += drzdy;
 				uz0 += t0.duzdy;
 				vz0 += t0.dvzdy;
+
+				au += ddu0;
+				av += ddv0;
+				bu += ddu1;
+				bv += ddv1;
+			}
+			if (au != cu || av != cv || bu != du || bv != dv) {
+				int abnana = 1;
 			}
 		}
 	};
