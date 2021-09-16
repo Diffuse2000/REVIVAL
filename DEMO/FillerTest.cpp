@@ -1044,9 +1044,9 @@ static void drawPoly(float DT)
 	V[i].PY = 400.1 + W * s - H * c;
 //	V[i].PX = 200.0;
 //	V[i].PY = 100.0;
-	V[i].TPos.z = 1.0;
-	V[i].U = 0.0;
-	V[i].V = 0.0;
+	V[i].TPos.z = 1.0f;
+	V[i].U = 0.001;
+	V[i].V = 0.001;
 	V[i].LA = 255;
 	V[i].LR = 2;
 	V[i].LG = 2;
@@ -1057,9 +1057,9 @@ static void drawPoly(float DT)
 	V[i].PY = 400.1 - W * s - H * c;
 //	V[i].PX = 130.0;
 //	V[i].PY = 200.0;
-	V[i].TPos.z = 2.0;
+	V[i].TPos.z = 5.0f;
 	V[i].U = 0.999;
-	V[i].V = 0.0;
+	V[i].V = 0.001;
 	V[i].LA = 255;
 	V[i].LR = 2;
 	V[i].LG = 2;
@@ -1081,8 +1081,8 @@ static void drawPoly(float DT)
 	i=3;
 	V[i].PX = 900.1 - W * c + H * s;
 	V[i].PY = 400.1 + W * s + H * c;
-	V[i].TPos.z = 2.0;
-	V[i].U = 0;
+	V[i].TPos.z = 5.0f;
+	V[i].U = 0.001f;
 	V[i].V = 0.999;
 	V[i].LA = 255;
 	V[i].LR = 255;

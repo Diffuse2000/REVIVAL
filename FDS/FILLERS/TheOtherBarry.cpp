@@ -40,6 +40,16 @@ namespace barry {
 
 	using Triangle = RVector4[3];
 
+	enum class TInterpolationType {
+		AFFINE,
+		QUADRATIC
+	};
+
+	enum class TBlendMode {
+		XOR,
+		OVERWRITE
+	};
+
 	// block-tiling adjustment functions
 	// Example for 256x256 texture
 	//    3         2         1         0
@@ -363,6 +373,55 @@ namespace barry {
 			}
 		}*/
 
+		void apply_exact(const barry::Tile& tile) {
+			auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
+			auto span = ((uint32_t*)scanline) + tile.x * TILE_SIZE;
+			auto bpsl_u32 = bpsl / sizeof(uint32_t);
+
+			TScreenCoord a0 = tile.a0;
+			TScreenCoord b0 = tile.b0;
+			TScreenCoord c0 = tile.c0;
+
+			float rz0 = tile.rz0;
+			float uz0 = tile.t0.uz0;
+			float vz0 = tile.t0.vz0;
+			int32_t t0_umask = (1 << t0.LogWidth) - 1;
+			int32_t t0_vmask = (1 << t0.LogHeight) - 1;
+
+
+			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32) {
+				TScreenCoord a = a0;
+				TScreenCoord b = b0;
+				TScreenCoord c = c0;
+
+				float rz = rz0;
+				float uz = uz0;
+				float vz = vz0;
+
+				for (uint32_t* p = span; p != span + TILE_SIZE; ++p, a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
+					if ((a | b | c) >= 0) {
+						float oneOverRz = 1.0f / rz;
+//						_mm_store_ps(&oneOverRz, _mm_rcp_ss(_mm_load_ss(&rz)));
+						uint32_t u = uint32_t(uz * oneOverRz * t0.UScaleFactor) & ((1 << t0.LogWidth) - 1);
+						uint32_t v = uint32_t(vz * oneOverRz * t0.VScaleFactor) & ((1 << t0.LogHeight) - 1);
+
+						auto offset = u + (v << t0.LogWidth);
+
+						*p = t0.TextureAddr[offset];
+					}
+
+					rz += drzdx;
+					uz += t0.duzdx;
+					vz += t0.dvzdx;
+				}
+				rz0 += drzdy;
+				uz0 += t0.duzdy;
+				vz0 += t0.dvzdy;
+
+			}
+		}
+
+		template <TInterpolationType IType = TInterpolationType::QUADRATIC, TBlendMode BlendMode = TBlendMode::OVERWRITE>
 		void apply(const barry::Tile& tile) {
 			auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
 			auto span = ((uint32_t *)scanline) + tile.x * TILE_SIZE;
@@ -377,94 +436,78 @@ namespace barry {
 			float vz0 = tile.t0.vz0;
 			int32_t t0_umask = (1 << t0.LogWidth) - 1;
 			int32_t t0_vmask = (1 << t0.LogHeight) - 1;
-			auto au = int32_t(uz0 / rz0 * 16384.0f * t0.UScaleFactor);
-			auto av = int32_t(vz0 / rz0 * 16384.0f * t0.VScaleFactor);
-			auto bu = int32_t((uz0 + t0.duzdx * 8.0f) / (rz0 + drzdx * 7.0f) * 16384.0f * t0.UScaleFactor);
-			auto bv = int32_t((vz0 + t0.dvzdx * 8.0f) / (rz0 + drzdx * 7.0f) * 16384.0f * t0.VScaleFactor);
-			auto cu = int32_t((uz0 + t0.duzdy * 8.0f) / (rz0 + drzdy * 7.0f) * 16384.0f * t0.UScaleFactor);
-			auto cv = int32_t((vz0 + t0.dvzdy * 8.0f) / (rz0 + drzdy * 7.0f) * 16384.0f * t0.VScaleFactor);
-			auto du = int32_t((uz0 + t0.duzdx * 8.0f + t0.duzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 16384.0f * t0.UScaleFactor);
-			auto dv = int32_t((vz0 + t0.dvzdx * 8.0f + t0.dvzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 16384.0f * t0.VScaleFactor);
 
-			auto ddu0 = int32_t(cu - au) / 8;
-			auto ddv0 = int32_t(cv - av) / 8;
-			auto ddu1 = int32_t(du - bu) / 8;
-			auto ddv1 = int32_t(dv - bv) / 8;
+			auto au = int32_t(uz0 / rz0 * 2048.0f * t0.UScaleFactor);
+			auto av = int32_t(vz0 / rz0 * 2048.0f * t0.VScaleFactor);
+			auto bu = int32_t((uz0 + t0.duzdx * 8.0f) / (rz0 + drzdx * 8.0f) * 2048.0f * t0.UScaleFactor);
+			auto bv = int32_t((vz0 + t0.dvzdx * 8.0f) / (rz0 + drzdx * 8.0f) * 2048.0f * t0.VScaleFactor);
+			auto cu = int32_t((uz0 + t0.duzdy * 8.0f) / (rz0 + drzdy * 8.0f) * 2048.0f * t0.UScaleFactor);
+			auto cv = int32_t((vz0 + t0.dvzdy * 8.0f) / (rz0 + drzdy * 8.0f) * 2048.0f * t0.VScaleFactor);
+			auto du = int32_t((uz0 + t0.duzdx * 8.0f + t0.duzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 2048.0f * t0.UScaleFactor);
+			auto dv = int32_t((vz0 + t0.dvzdx * 8.0f + t0.dvzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 2048.0f * t0.VScaleFactor);
 
+			auto au00 = au;
+			auto au10 = (bu - au) / 8;
+			auto au01 = (cu - au) / 8;
+			auto av00 = av;
+			auto av10 = (bv - av) / 8;
+			auto av01 = (cv - av) / 8;
 
+			int32_t au11, av11;
+			if constexpr (IType == TInterpolationType::QUADRATIC) {
+				au11 = (du - bu - cu + au) / 64;
+				av11 = (dv - bv - cv + av) / 64;
+			}
+
+			auto dux0 = au10;
+			auto dvx0 = av10;
+			auto duy = au01;
+			auto dvy = av01;
+
+			int32_t dduxy, ddvxy;
+			if constexpr (IType == TInterpolationType::QUADRATIC) {
+				dduxy = 0;
+				ddvxy = 0;
+			}
+			int32_t u0 = au;
+			int32_t v0 = av;
 			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32) {
 				TScreenCoord a = a0;
 				TScreenCoord b = b0;
 				TScreenCoord c = c0;
 
-				//float rz = rz0;
-				//float uz = uz0;
-				//float vz = vz0;
-				float rz1 = rz0 + drzdx * 8.0f;
-				float uz1 = uz0 + t0.duzdx * 8.0f;
-				float vz1 = vz0 + t0.dvzdx * 8.0f;
-
-				float oneOverRz0;
-				_mm_store_ps(&oneOverRz0, _mm_rcp_ss(_mm_load_ss(&rz0)));
-				float oneOverRz1;
-				_mm_store_ps(&oneOverRz1, _mm_rcp_ss(_mm_load_ss(&rz1)));
-				float u0 = uz0 * oneOverRz0;
-				float v0 = vz0 * oneOverRz0;
-				float u1 = uz1 * oneOverRz1;
-				float v1 = vz1 * oneOverRz1;
-				const auto fdux = int32_t((u1 - u0) * 16384.0f * t0.UScaleFactor) / 8;
-				const auto fdvx = int32_t((v1 - v0) * 16384.0f * t0.VScaleFactor) / 8;
-
-				//int32_t u = uint32_t(u0 * 16384.0f * t0.UScaleFactor);
-				//int32_t v = uint32_t(v0 * 16384.0f * t0.VScaleFactor);
-
-				const auto dux = (bu - au) / 8;
-				const auto dvx = (bv - av) / 8;
-				int32_t u = au;
-				int32_t v = av;
+				auto u = u0;
+				auto v = v0;
+				auto dux = dux0;
+				auto dvx = dvx0;
 
 				for (uint32_t* p = span; p != span + TILE_SIZE; ++p, a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
 					if ((a | b | c) >= 0) {
-						//float oneOverRz;
-						//_mm_store_ps(&oneOverRz, _mm_rcp_ss(_mm_load_ss(&rz)));
-						//uint32_t u = uint32_t(uz * oneOverRz * t0.UScaleFactor) & ((1 << t0.LogWidth) - 1);
-						//uint32_t v = uint32_t(vz * oneOverRz * t0.VScaleFactor) & ((1 << t0.LogHeight) - 1);
-
-						//						uint32_t tu = tile_u(u, t0.LogHeight, t0_umask);
-	//					uint32_t tv = tile_v(v, t0_vmask);
-//						auto offset = tu + tv ;
-
-						auto uu = (u >> 14) & t0_umask;
-						auto vv = (v >> 14) & t0_vmask;
+						auto uu = (u >> 11) & t0_umask;
+						auto vv = (v >> 11) & t0_vmask;
 						auto offset = uu + (vv << t0.LogWidth);
-						//if ((y == 0 || y == TILE_SIZE - 1) && (p == span || p == span + TILE_SIZE - 1)) 
-						{
-							//*p = uu ^ vv * 0x010001;
-							*p = t0.TextureAddr[offset];
+						auto output = t0.TextureAddr[offset];
+						if constexpr (BlendMode == TBlendMode::XOR) {
+							*p ^= output;
+						} else {
+							*p = output;
 						}
-						// *p ^= 0xcdefab;
 					}
 
-					//u += fdux;
-					//v += fdvx;
+					if constexpr (IType == TInterpolationType::QUADRATIC) {
+						dux += dduxy;
+						dvx += ddvxy;
+					}
 					u += dux;
-					v += dux;
-
-					//rz += drzdx;
-					//uz += t0.duzdx;
-					//vz += t0.dvzdx;
+					v += dvx;
 				}
-				rz0 += drzdy;
-				uz0 += t0.duzdy;
-				vz0 += t0.dvzdy;
 
-				au += ddu0;
-				av += ddv0;
-				bu += ddu1;
-				bv += ddv1;
-			}
-			if (au != cu || av != cv || bu != du || bv != dv) {
-				int abnana = 1;
+				u0 += duy;
+				v0 += dvy;
+				if constexpr (IType == TInterpolationType::QUADRATIC) {
+					dduxy += au11;
+					ddvxy += av11;
+				}
 			}
 		}
 	};
@@ -559,7 +602,9 @@ namespace barry {
 						}
 					};
 
-					rasterizer.apply(tile);
+					rasterizer.apply<TInterpolationType::AFFINE, TBlendMode::OVERWRITE>(tile);
+					//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::OVERWRITE>(tile);
+					//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::XOR>(tile);
 					//for (int py = y * TILE_SIZE; py <= (y + 1) * TILE_SIZE - 1; ++py) {
 					//	byte* scanline = rasterizer.dstSurface + py * rasterizer.bpsl;
 					//	for (int px = x * TILE_SIZE; px <= (x + 1) * TILE_SIZE - 1; ++px) {
