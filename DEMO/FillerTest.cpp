@@ -1101,7 +1101,7 @@ static void drawPoly(float DT)
 	F.Txtr->Txtr->LSizeY = 8;
 	F.Txtr->ZBufferWrite = 0;
 	F.Filler = IX_Prefiller_TGZSAM;
-	F.Filler = TheOtherBarry;
+//	F.Filler = TheOtherBarry;
 	//F.Filler = IX_Prefiller_FZ;
 	//F.Filler = IX_Prefiller_TGZM;
 
@@ -1279,7 +1279,7 @@ void FillerTest()
 
 		}
 	}
-	//Sachletz(l_TestTexture, 256, 256);
+	Sachletz(l_TestTexture, 256, 256);
 	const long PartTime = 10000;
 
 	long timerStack[20], timerIndex = 0;
