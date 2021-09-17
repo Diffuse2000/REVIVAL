@@ -1062,7 +1062,7 @@ static void drawPoly(float DT)
 	V[i].V = 0.001;
 	V[i].LA = 255;
 	V[i].LR = 2;
-	V[i].LG = 2;
+	V[i].LG = 255;
 	V[i].LB = 127;
 
 	i=2;
@@ -1075,7 +1075,7 @@ static void drawPoly(float DT)
 	V[i].V = 0.999;
 	V[i].LA = 255;
 	V[i].LR = 253;
-	V[i].LG = 2;
+	V[i].LG = 50;
 	V[i].LB = 2;
 
 	i=3;
@@ -1085,13 +1085,13 @@ static void drawPoly(float DT)
 	V[i].U = 0.001f;
 	V[i].V = 0.999;
 	V[i].LA = 255;
-	V[i].LR = 255;
+	V[i].LR = 8;
 	V[i].LG = 2;
 	V[i].LB = 127;
 
-	for (i = 0; i != 4; ++i) {
-		V[i].LR = V[i].LG = V[i].LB = V[i].LA = 255;
-	}
+	//for (i = 0; i != 4; ++i) {
+	//	V[i].LR = V[i].LG = V[i].LB = V[i].LA = 255;
+	//}
 
 	F.Txtr = &DummyMat;
 	DummyMat.Txtr = &DummyTex;
