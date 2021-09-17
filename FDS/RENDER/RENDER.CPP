@@ -32,7 +32,7 @@ float frand() {
 }
 
 // Front-to-back sorting used together with ZBuffer.
-//#define FRONT_TO_BACK_SORTING
+#define FRONT_TO_BACK_SORTING
 
 //struct SceneContext {
 //	std::unique_ptr<Scene>  CurScene;

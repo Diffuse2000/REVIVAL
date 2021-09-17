@@ -424,7 +424,9 @@ namespace barry {
 		template <TInterpolationType IType = TInterpolationType::QUADRATIC, TBlendMode BlendMode = TBlendMode::OVERWRITE>
 		void apply(const barry::Tile& tile) {
 			auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
+			auto zscanline = dstSurface + PageSize + tile.y * TILE_SIZE * XRes * 2;
 			auto span = ((uint32_t *)scanline) + tile.x * TILE_SIZE;
+			auto zspan = ((uint16_t*)zscanline) + tile.x * TILE_SIZE;
 			auto bpsl_u32 = bpsl / sizeof(uint32_t);
 
 			TScreenCoord a0 = tile.a0;
@@ -449,6 +451,11 @@ namespace barry {
 			auto du = int32_t((uz0 + t0.duzdx * 8.0f + t0.duzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 2048.0f * t0.UScaleFactor);
 			auto dv = int32_t((vz0 + t0.dvzdx * 8.0f + t0.dvzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 2048.0f * t0.VScaleFactor);
 
+			auto az = (0xFF80 * 64 - (uint32_t((1.0f / rz0) * g_zscale * 64.0f)));
+			auto bz = (0xFF80 * 64 - (uint32_t(((1.0f / (rz0 + drzdx * 8.0f))) * g_zscale * 64.0f)));
+			auto cz = (0xFF80 * 64 - (uint32_t((1.0f / (rz0 + drzdy * 8.0f)) * g_zscale * 64.0f)));
+			auto dz = (0xFF80 * 64 - (uint32_t((1.0f / (rz0 + drzdx * 8.0f + drzdy * 8.0f)) * g_zscale * 64.0f)));
+
 			auto aut = tile_u(au, t0.LogHeight, t0_umask);
 			auto avt = tile_v(av, t0_vmask);
 
@@ -459,43 +466,62 @@ namespace barry {
 			auto av10 = (bv - av) / 8;
 			auto av01 = (cv - av) / 8;
 
-			int32_t au11, av11;
+			auto az00 = az;
+			auto az10 = (bz - az) / 8;
+			auto az01 = (cz - az) / 8;
+
+
+			int32_t au11, av11, az11;
 			if constexpr (IType == TInterpolationType::QUADRATIC) {
 				au11 = (du - bu - cu + au) / 64;
 				av11 = (dv - bv - cv + av) / 64;
 			}
+			az11 = (dz - bz - cz + az) / 64;
 
 			auto dux0 = tile_du(au10, t0.LogHeight, t0_umask);
 			auto dvx0 = tile_dv(av10, t0_vmask);
 			auto duy = tile_du(au01, t0.LogHeight, t0_umask);
 			auto dvy = tile_dv(av01, t0_umask);
+			uint32_t dzx0 = az10;
+			uint32_t dzy = az01;
 
-			uint32_t dduxy, ddvxy;
+			uint32_t dduxy, ddvxy, ddzxy;
 			if constexpr (IType == TInterpolationType::QUADRATIC) {
 				// we can't use tile_d? here as that would mess up the carry trick
 				dduxy = tile_u(0, t0.LogHeight, t0_umask);
 				ddvxy = tile_v(0, t0_vmask);
 			}
+			ddzxy = 0;
+
 			uint32_t u0 = aut;
 			uint32_t v0 = avt;
-			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32) {
+			uint32_t z0 = az;
+			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32, zspan += XRes) {
 				TScreenCoord a = a0;
 				TScreenCoord b = b0;
 				TScreenCoord c = c0;
 
 				auto u = u0;
 				auto v = v0;
+				auto z = z0;
 				auto dux = dux0;
 				auto dvx = dvx0;
+				auto dzx = dzx0;
 
-				for (uint32_t* p = span; p != span + TILE_SIZE; ++p, a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
+				uint16_t* pz = zspan;
+				for (uint32_t* p = span; p != span + TILE_SIZE; ++p, ++pz,a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
 					if ((a | b | c) >= 0) {
-						auto offset = (u + v) >> 12;
-						auto output = t0.TextureAddr[offset];
-						if constexpr (BlendMode == TBlendMode::XOR) {
-							*p ^= output;
-						} else {
-							*p = output;
+						auto wz = (z >> 6) & 0xffff;
+						if (wz > *pz) 
+						{
+							*pz = wz;
+							auto offset = (u + v) >> 12;
+							auto output = t0.TextureAddr[offset];
+							if constexpr (BlendMode == TBlendMode::XOR) {
+								*p ^= output;
+							} else {
+								*p = output;
+							}
 						}
 					}
 
@@ -505,20 +531,24 @@ namespace barry {
 						dvx += ddvxy;
 						dvx &= t0_vmask_tiled;
 					}
+					dzx += ddzxy;
 					u += dux;
 					u &= t0_umask_tiled;
 					v += dvx;
 					v &= t0_vmask_tiled;
+					z += dzx;
 				}
 
 				u0 += duy;
 				u0 &= t0_umask_tiled;
 				v0 += dvy;
 				v0 &= t0_vmask_tiled;
+				z0 += dzy;
 				if constexpr (IType == TInterpolationType::QUADRATIC) {
 					dduxy += au11;
 					ddvxy += av11;
 				}
+				ddzxy += az11;
 			}
 		}
 	};
