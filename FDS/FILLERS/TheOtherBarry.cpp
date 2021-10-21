@@ -82,6 +82,25 @@ namespace barry {
 		return tile_u(u, vbits, umask) | 0x800 | (((1 << vbits) - 1) << 14);
 	}
 
+	// block-tiling adjustment functions, V2
+	// Example for 256x256 texture
+	//    3         2         1         0
+	//   10987654321098765432109876543210
+	// U 0000000000000000UUUUUU00000000uu
+	// V 0000000000000000000000VVVVVVvv00
+
+	Vec8i packed_tile_v(Vec8i& v, uint32_t vmask) {
+		return (v & vmask) << 2;
+	}
+
+	uint32_t swizzle_umask(int32_t vbits, uint32_t umask) {
+		return (umask >> 2) << (2 + vbits);
+	}
+
+	Vec8i packed_tile_u(Vec8i& u, int32_t vbits, uint32_t swizzled_umask) {
+		return (u & 3) | ((u << vbits) & swizzled_umask);
+	}
+
 	static const auto arith_seq_mult = Vec8f{ 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
 
 	__m256 m256_from_arith_seq(float x_, float d_) {
@@ -161,12 +180,13 @@ namespace barry {
 			float VScaleFactor;
 			float duzdx, duzdy;
 			float dvzdx, dvzdy;
-			float drzdx, drzdy;
-			float dgzdx, dgzdy;
-			float dbzdx, dbzdy;
-			float dazdx, dazdy;
 		};
 		float drzdx, drzdy;
+		float dadx, dady;
+		float drdx, drdy;
+		float dgdx, dgdy;
+		float dbdx, dbdy;
+
 		uint32_t umask;// = (1 << t0.LogWidth) - 1);
 		uint32_t vmask;// = (1 << t0.LogHeight) - 1);
 		TextureInfo t0;
@@ -377,6 +397,7 @@ namespace barry {
 			}
 		}*/
 
+		template <TBlendMode BlendMode = TBlendMode::OVERWRITE>
 		void apply_exact(const barry::Tile& tile) {
 			auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
 			auto span = ((uint32_t*)scanline) + tile.x * TILE_SIZE;
@@ -392,7 +413,6 @@ namespace barry {
 			int32_t t0_umask = (1 << t0.LogWidth) - 1;
 			int32_t t0_vmask = (1 << t0.LogHeight) - 1;
 
-
 			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32) {
 				TScreenCoord a = a0;
 				TScreenCoord b = b0;
@@ -404,8 +424,8 @@ namespace barry {
 
 				for (uint32_t* p = span; p != span + TILE_SIZE; ++p, a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
 					if ((a | b | c) >= 0) {
-						float oneOverRz = 1.0f / rz;
-//						_mm_store_ps(&oneOverRz, _mm_rcp_ss(_mm_load_ss(&rz)));
+						float oneOverRz;// = 1.0f / rz;
+						_mm_store_ps(&oneOverRz, _mm_rcp_ss(_mm_load_ss(&rz)));
 						uint32_t u = uint32_t(uz * oneOverRz * t0.UScaleFactor) & ((1 << t0.LogWidth) - 1);
 						uint32_t v = uint32_t(vz * oneOverRz * t0.VScaleFactor) & ((1 << t0.LogHeight) - 1);
 
@@ -424,6 +444,25 @@ namespace barry {
 
 			}
 		}
+
+		uint32_t quantize_z(float z) {
+			constexpr const float M = 0xff80 * 1024;
+			float zrem = fmod(z * g_zscale * 1024.0f, M);
+			if (zrem < 0.0f) {
+				zrem += M;
+			}
+			return M - zrem;
+		}
+
+		uint32_t quantize_dz(float z) {
+			constexpr const float M = 0xff80 * 1024;
+			float zrem = fmod(z * g_zscale * 1024.0f, M);
+			if (zrem < 0.0f) {
+				zrem += M;
+			}
+			return -zrem;
+		}
+
 
 		template <TInterpolationType IType = TInterpolationType::QUADRATIC, TBlendMode BlendMode = TBlendMode::OVERWRITE>
 		void apply(const barry::Tile& tile) {
@@ -458,24 +497,24 @@ namespace barry {
 			auto du = int32_t((uz0 + t0.duzdx * 8.0f + t0.duzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 2048.0f * t0.UScaleFactor);
 			auto dv = int32_t((vz0 + t0.dvzdx * 8.0f + t0.dvzdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 2048.0f * t0.VScaleFactor);
 
-			auto az = (0xFF80 * 64 - (uint32_t((1.0f / rz0) * g_zscale * 64.0f)));
-			auto bz = (0xFF80 * 64 - (uint32_t(((1.0f / (rz0 + drzdx * 8.0f))) * g_zscale * 64.0f)));
-			auto cz = (0xFF80 * 64 - (uint32_t((1.0f / (rz0 + drzdy * 8.0f)) * g_zscale * 64.0f)));
-			auto dz = (0xFF80 * 64 - (uint32_t((1.0f / (rz0 + drzdx * 8.0f + drzdy * 8.0f)) * g_zscale * 64.0f)));
+			auto az = 1.0f / rz0;
+			auto bz = 1.0f / (rz0 + drzdx * 8.0f);
+			auto cz = 1.0f / (rz0 + drzdy * 8.0f);
+			auto dz = 1.0f / (rz0 + drzdx * 8.0f + drzdy * 8.0f);
 
 
 			auto ar = uint32_t(cr0 * 2048.0f);
 			auto ag = uint32_t(cg0 * 2048.0f);
 			auto ab = uint32_t(cb0 * 2048.0f);
-			auto br = uint32_t((cr0 + t0.drzdx * 8.0f) * 2048.0f);
-			auto bg = uint32_t((cg0 + t0.dgzdx * 8.0f) * 2048.0f);
-			auto bb = uint32_t((cb0 + t0.dbzdx * 8.0f) * 2048.0f);
-			auto cr = uint32_t((cr0 + t0.drzdy * 8.0f) * 2048.0f);
-			auto cg = uint32_t((cg0 + t0.dgzdy * 8.0f) * 2048.0f);
-			auto cb = uint32_t((cb0 + t0.dbzdy * 8.0f) * 2048.0f);
-			auto dr = uint32_t((cr0 + t0.drzdx * 8.0f + t0.drzdy * 8.0f) * 2048.0f);
-			auto dg = uint32_t((cg0 + t0.dgzdx * 8.0f + t0.dgzdy * 8.0f) * 2048.0f);
-			auto db = uint32_t((cb0 + t0.dbzdx * 8.0f + t0.dbzdy * 8.0f) * 2048.0f);
+			auto br = uint32_t((cr0 + drdx * 8.0f) * 2048.0f);
+			auto bg = uint32_t((cg0 + dgdx * 8.0f) * 2048.0f);
+			auto bb = uint32_t((cb0 + dbdx * 8.0f) * 2048.0f);
+			auto cr = uint32_t((cr0 + drdy * 8.0f) * 2048.0f);
+			auto cg = uint32_t((cg0 + dgdy * 8.0f) * 2048.0f);
+			auto cb = uint32_t((cb0 + dbdy * 8.0f) * 2048.0f);
+			auto dr = uint32_t((cr0 + drdx * 8.0f + drdy * 8.0f) * 2048.0f);
+			auto dg = uint32_t((cg0 + dgdx * 8.0f + dgdy * 8.0f) * 2048.0f);
+			auto db = uint32_t((cb0 + dbdx * 8.0f + dbdy * 8.0f) * 2048.0f);
 
 			auto aut = tile_u(au, t0.LogHeight, t0_umask);
 			auto avt = tile_v(av, t0_vmask);
@@ -487,9 +526,9 @@ namespace barry {
 			auto av10 = (bv - av) / 8;
 			auto av01 = (cv - av) / 8;
 
-			auto az00 = az;
-			auto az10 = (bz - az) / 8;
-			auto az01 = (cz - az) / 8;
+			auto az00 = quantize_z(az);
+			auto az10 = quantize_dz((bz - az) / 8.0f);
+			auto az01 = quantize_dz((cz - az) / 8.0f);
 
 			auto ar00 = ar;
 			auto ar10 = (br - ar) / 8;
@@ -511,7 +550,8 @@ namespace barry {
 				ag11 = (dg - bg - cg + ag) / 64;
 				ab11 = (db - bb - cb + ab) / 64;
 			}
-			az11 = (dz - bz - cz + az) / 64;
+			//az11 = quantize_ddz((dz - bz - cz + az) / 64.0f);
+			az11 = 0;
 
 			auto dux0 = tile_du(au10, t0.LogHeight, t0_umask);
 			auto dvx0 = tile_dv(av10, t0_vmask);
@@ -538,7 +578,7 @@ namespace barry {
 
 			uint32_t u0 = aut;
 			uint32_t v0 = avt;
-			uint32_t z0 = az;
+			//uint32_t z0 = az00;
 			uint32_t r0_ = ar;
 			uint32_t g0_ = ag;
 			uint32_t b0_ = ab;
@@ -549,7 +589,8 @@ namespace barry {
 
 				auto u = u0;
 				auto v = v0;
-				auto z = z0;
+				//auto z = z0;
+				auto rz = rz0;
 				auto r_ = r0_;
 				auto g_ = g0_;
 				auto b_ = b0_;
@@ -563,7 +604,8 @@ namespace barry {
 				uint16_t* pz = zspan;
 				for (uint32_t* p = span; p != span + TILE_SIZE; ++p, ++pz,a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
 					if ((a | b | c) >= 0) {
-						auto wz = (z >> 6) & 0xffff;
+						auto z = quantize_z(1.0f / rz);
+						auto wz = (z >> 10) & 0xffff;
 						if (wz > *pz)
 						{
 							*pz = wz;
@@ -597,7 +639,8 @@ namespace barry {
 					u &= t0_umask_tiled;
 					v += dvx;
 					v &= t0_vmask_tiled;
-					z += dzx;
+					//z += dzx;
+					rz += drzdx;
 					r_ += drx;
 					g_ += dgx;
 					b_ += dbx;
@@ -607,7 +650,8 @@ namespace barry {
 				u0 &= t0_umask_tiled;
 				v0 += dvy;
 				v0 &= t0_vmask_tiled;
-				z0 += dzy;
+				//z0 += dzy;
+				rz0 += drzdy;
 				r0_ += dry;
 				g0_ += dgy;
 				b0_ += dby;
@@ -631,7 +675,7 @@ namespace barry {
 		TScreenCoord bx, TScreenCoord by,
 		TScreenCoord cx, TScreenCoord cy)
 	{
-		return (int64_t(bx - ax) * (cy - ay) - int64_t(by - ay) * (cx - ax)) >> SUBPIXEL_BITS;
+		return (int64_t(bx - ax) * int64_t(cy - ay) - int64_t(by - ay) * int64_t(cx - ax)) >> SUBPIXEL_BITS;
 	}
 
 	template <typename TTileRasterizer>
@@ -703,20 +747,20 @@ namespace barry {
 						.c0 = c0,
 						.dcdx = dcdx,
 						.dcdy = dcdy,
-						//.rz0 = (v1.RZ + (x * TILE_SIZE - v1.PX) * rasterizer.drzdx + (y * TILE_SIZE - v1.PY) * rasterizer.drzdy),
-						.rz0 = (v1.RZ * b0 + v2.RZ * c0 + v3.RZ * a0) * zoltek,
+						.rz0 = (v1.RZ + (x * TILE_SIZE - v1.PX) * rasterizer.drzdx + (y * TILE_SIZE - v1.PY) * rasterizer.drzdy),
+						//.rz0 = (v1.RZ * b0 + v2.RZ * c0 + v3.RZ * a0) * zoltek,
 						.t0 = {
-							//.uz0 = (v1.UZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.duzdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.duzdy),
-							//.vz0 = (v1.VZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.dvzdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.dvzdy)
-							.uz0 = (v1.UZ * b0 + v2.UZ * c0 + v3.UZ * a0) * zoltek,
-							.vz0 = (v1.VZ * b0 + v2.VZ * c0 + v3.VZ * a0) * zoltek,
-							.r0 = (float(v1.LR) * b0 + float(v2.LR) * c0 + float(v3.LR) * a0) * zoltek,
-							.g0 = (float(v1.LG) * b0 + float(v2.LG) * c0 + float(v3.LG) * a0) * zoltek,
-							.b0 = (float(v1.LB) * b0 + float(v2.LB) * c0 + float(v3.LB) * a0) * zoltek,
+							.uz0 = (v1.UZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.duzdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.duzdy),
+							.vz0 = (v1.VZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.dvzdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.dvzdy),
+							//.uz0 = (v1.UZ * b0 + v2.UZ * c0 + v3.UZ * a0) * zoltek,
+							//.vz0 = (v1.VZ * b0 + v2.VZ * c0 + v3.VZ * a0) * zoltek,
+							.r0 = (v1.LR + (x * TILE_SIZE - v1.PX) * rasterizer.drdx + (y * TILE_SIZE - v1.PY) * rasterizer.drdy),
+							.g0 = (v1.LG + (x * TILE_SIZE - v1.PX) * rasterizer.dgdx + (y * TILE_SIZE - v1.PY) * rasterizer.dgdy),
+							.b0 = (v1.LB + (x * TILE_SIZE - v1.PX) * rasterizer.dbdx + (y * TILE_SIZE - v1.PY) * rasterizer.dbdy),
 						}
 					};
 
-					rasterizer.apply<TInterpolationType::AFFINE, TBlendMode::OVERWRITE>(tile);
+					rasterizer.apply_exact<TBlendMode::OVERWRITE>(tile);
 					//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::OVERWRITE>(tile);
 					//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::XOR>(tile);
 					//for (int py = y * TILE_SIZE; py <= (y + 1) * TILE_SIZE - 1; ++py) {
@@ -804,11 +848,11 @@ namespace barry {
 
 
 void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
-	for (dword i = 0; i < numVerts; ++i) {
-		float z = 1.0f / V[i]->RZ;
-		V[i]->U = V[i]->UZ * z;
-		V[i]->V = V[i]->VZ * z;
-	}
+	//for (dword i = 0; i < numVerts; ++i) {
+	//	float z = 1.0f / V[i]->RZ;
+	//	V[i]->U = V[i]->UZ * z;
+	//	V[i]->V = V[i]->VZ * z;
+	//}
 	barry::TileRasterizer r(V, VPage, VESA_BPSL, XRes, YRes, F->Txtr->Txtr, miplevel);
 
 	for (dword i = 2; i < numVerts; ++i) {
@@ -823,6 +867,7 @@ void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 			v3.PX - v1.PX, v3.PY - v1.PY
 		};
 		const float det = m[0] * m[3] - m[1] * m[2];
+		if (fabs(det) <= 0.01f) continue;
 		const float im[4] = {
 			 m[3] / det, -m[1] / det,
 			-m[2] / det,  m[0] / det
@@ -834,12 +879,12 @@ void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 		r.t0.dvzdx = im[0] * (v2.VZ - v1.VZ) + im[1] * (v3.VZ - v1.VZ);
 		r.t0.dvzdy = im[2] * (v2.VZ - v1.VZ) + im[3] * (v3.VZ - v1.VZ);
 
-		r.t0.drzdx = im[0] * float(v2.LR - v1.LR) + im[1] * float(v3.LR - v1.LR);
-		r.t0.drzdy = im[2] * float(v2.LR - v1.LR) + im[3] * float(v3.LR - v1.LR);
-		r.t0.dgzdx = im[0] * float(v2.LG - v1.LG) + im[1] * float(v3.LG - v1.LG);
-		r.t0.dgzdy = im[2] * float(v2.LG - v1.LG) + im[3] * float(v3.LG - v1.LG);
-		r.t0.dbzdx = im[0] * float(v2.LB - v1.LB) + im[1] * float(v3.LB - v1.LB);
-		r.t0.dbzdy = im[2] * float(v2.LB - v1.LB) + im[3] * float(v3.LB - v1.LB);
+		r.drdx = im[0] * float(v2.LR - v1.LR) + im[1] * float(v3.LR - v1.LR);
+		r.drdy = im[2] * float(v2.LR - v1.LR) + im[3] * float(v3.LR - v1.LR);
+		r.dgdx = im[0] * float(v2.LG - v1.LG) + im[1] * float(v3.LG - v1.LG);
+		r.dgdy = im[2] * float(v2.LG - v1.LG) + im[3] * float(v3.LG - v1.LG);
+		r.dbdx = im[0] * float(v2.LB - v1.LB) + im[1] * float(v3.LB - v1.LB);
+		r.dbdy = im[2] * float(v2.LB - v1.LB) + im[3] * float(v3.LB - v1.LB);
 		r.umask = (1 << r.t0.LogWidth) - 1;
 		r.vmask = (1 << r.t0.LogHeight) - 1;
 

@@ -747,7 +747,7 @@ void Init_Flares(Scene *Sc)
 			}
 #endif
 //			printf("Generating flare: R:%.3f G:%.3f B:%.3f\n",O->L.R,O->L.G,O->L.B);
-			O->F.Txtr=Generate_RGBFlare(O->L.R,O->L.G,O->L.B);
+			O->F.Txtr=Generate_RGBFlare(O->L.B,O->L.G,O->L.R);
 			O->F.Txtr->RelScene = Sc;
 
 			// insertion
@@ -1012,7 +1012,7 @@ void Assign_Fillers(Scene *Sc)
 				IX_Prefiller_FZ, // Flat (impl. gouraud)
 				IX_Prefiller_TZ, // Texture
 				IX_Prefiller_GZ, // Gouraud
-//				IX_Prefiller_TGZM, // Txtr/Gouraud
+			//	IX_Prefiller_TGZM, // Txtr/Gouraud
 				TheOtherBarry,
 //				IX_Prefiller_TGZ, // Txtr/Gouraud
 				IX_Prefiller_FAcZ, // transparent Flat

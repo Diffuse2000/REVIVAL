@@ -1023,6 +1023,7 @@ std::mutex mut;
 std::condition_variable cv;
 std::atomic<int> counter;
 
+
 static void drawPoly(float DT)
 {
 	Vertex V[4];
@@ -1030,21 +1031,21 @@ static void drawPoly(float DT)
 	dword i;
 	static float T = 0;
 
-	float a = (T + DT) * 0.3;
+	float a = (T + DT) * 0.003;
 	float c = cos(a);
 	float s = sin(a);
 
-	T += 0.005;
+	T += 0.5;
 
 	const auto W = 280;
 	const auto H = 250;
 
-	i=0;
+	i = 0;
 	V[i].PX = 900.1 - W * c - H * s;
 	V[i].PY = 400.1 + W * s - H * c;
-//	V[i].PX = 200.0;
-//	V[i].PY = 100.0;
-	V[i].TPos.z = 1.0f;
+	//	V[i].PX = 200.0;
+	//	V[i].PY = 100.0;
+	V[i].TPos.z = 1.0;
 	V[i].U = 0.001;
 	V[i].V = 0.001;
 	V[i].LA = 255;
@@ -1052,55 +1053,55 @@ static void drawPoly(float DT)
 	V[i].LG = 2;
 	V[i].LB = 253;
 
-	i=1;
+	i = 1;
 	V[i].PX = 900.1 + W * c - H * s;
 	V[i].PY = 400.1 - W * s - H * c;
-//	V[i].PX = 130.0;
-//	V[i].PY = 200.0;
-	V[i].TPos.z = 5.0f;
+	//	V[i].PX = 130.0;
+	//	V[i].PY = 200.0;
+	V[i].TPos.z = 1.0;
 	V[i].U = 0.999;
 	V[i].V = 0.001;
 	V[i].LA = 255;
 	V[i].LR = 2;
-	V[i].LG = 255;
+	V[i].LG = 2;
 	V[i].LB = 127;
 
-	i=2;
+	i = 2;
 	V[i].PX = 900.1 + W * c + H * s;
 	V[i].PY = 400.1 - W * s + H * c;
-//	V[i].PX = 100.0;
-//	V[i].PY = 100.0;
-	V[i].TPos.z = 1.0f;
+	//	V[i].PX = 100.0;
+	//	V[i].PY = 100.0;
+	V[i].TPos.z = 1.0;
 	V[i].U = 0.999;
 	V[i].V = 0.999;
 	V[i].LA = 255;
 	V[i].LR = 253;
-	V[i].LG = 50;
+	V[i].LG = 2;
 	V[i].LB = 2;
 
-	i=3;
+	i = 3;
 	V[i].PX = 900.1 - W * c + H * s;
 	V[i].PY = 400.1 + W * s + H * c;
-	V[i].TPos.z = 5.0f;
-	V[i].U = 0.001f;
+	V[i].TPos.z = 1.0;
+	V[i].U = 0.001;
 	V[i].V = 0.999;
 	V[i].LA = 255;
-	V[i].LR = 8;
+	V[i].LR = 255;
 	V[i].LG = 2;
 	V[i].LB = 127;
 
-	//for (i = 0; i != 4; ++i) {
-	//	V[i].LR = V[i].LG = V[i].LB = V[i].LA = 255;
-	//}
+	for (i = 0; i != 4; ++i) {
+		V[i].LR = V[i].LG = V[i].LB = V[i].LA = 255;
+	}
 
 	F.Txtr = &DummyMat;
 	DummyMat.Txtr = &DummyTex;
-	DummyTex.Data = (byte *)l_TestTexture;
+	DummyTex.Data = (byte*)l_TestTexture;
 	DummyTex.Mipmap[0] = DummyTex.Data;
 	F.Txtr->Txtr->LSizeX = 8;
 	F.Txtr->Txtr->LSizeY = 8;
 	F.Txtr->ZBufferWrite = 0;
-	F.Filler = IX_Prefiller_TGZSAM;
+	//F.Filler = IX_Prefiller_TGZSAM;
 	F.Filler = TheOtherBarry;
 	//F.Filler = IX_Prefiller_FZ;
 	//F.Filler = IX_Prefiller_TGZM;
@@ -1110,12 +1111,11 @@ static void drawPoly(float DT)
 	vp.ClipX2 = XRes;
 	vp.ClipY1 = 0;
 	vp.ClipY2 = YRes_1;
-			
-	for(i=0; i<4; i++)
-	{
+
+	for (i = 0; i < 4; i++) {
 		V[i].RZ = 1.0 / V[i].TPos.z;
 		V[i].UZ = V[i].U * V[i].RZ;
-		V[i].VZ = V[i].V * V[i].RZ;		
+		V[i].VZ = V[i].V * V[i].RZ;
 		viewportCalcFlags(vp, &V[i]);
 	}
 
@@ -1143,16 +1143,14 @@ static void drawPoly(float DT)
 
 	/*long my=0;
 	float minY = V[0].PY;
-
 	for(i=1; i<4; i++)
 	{
-		if (V[i].PY < minY) 
+		if (V[i].PY < minY)
 		{
 			my = i;
 			minY = V[i].PY;
 		}
 	}
-
 	Vertex *VP[4];
 	switch (my)
 	{
@@ -1196,28 +1194,28 @@ static void drawPoly(float DT)
 		++counter;
 		cv.notify_one();
 	});
-
 	{
 		std::unique_lock<std::mutex> lock(mut);
 		cv.wait(lock, [] {return counter == 1; });
 	}*/
 
-//	VPage -= 800;
-//	IX_Prefiller_TGZ(&F, VP, 4);
-//	VPage += 800;*/
+	//	VPage -= 800;
+	//	IX_Prefiller_TGZ(&F, VP, 4);
+	//	VPage += 800;*/
 
-/*	while (!Keyboard[ScSpace])
-	{
-		continue;
-	}*/
+	/*	while (!Keyboard[ScSpace])
+		{
+			continue;
+		}*/
 }
+
 
 void FillerTest()
 {
 	Scene Sc;
 	CurScene = &Sc;
 	Sc.Flags = 0;
-	Sc.NZP = 1.0;
+	Sc.NZP = 0.5;
 	Sc.FZP = 1000.0;
 
 //	Texture Tx;
@@ -1279,8 +1277,10 @@ void FillerTest()
 
 		}
 	}
-	Sachletz(l_TestTexture, 256, 256);
+	//Sachletz(l_TestTexture, 256, 256);
 	const long PartTime = 10000;
+
+	M->Txtr->Flags = Txtr_Tiled | Txtr_Nomip;
 
 	long timerStack[20], timerIndex = 0;
 	for (int i = 0; i < 20; i++)
