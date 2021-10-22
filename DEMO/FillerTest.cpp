@@ -1277,7 +1277,7 @@ void FillerTest()
 
 		}
 	}
-	//Sachletz(l_TestTexture, 256, 256);
+	Sachletz(l_TestTexture, 256, 256);
 	const long PartTime = 10000;
 
 	M->Txtr->Flags = Txtr_Tiled | Txtr_Nomip;

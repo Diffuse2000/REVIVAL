@@ -101,24 +101,34 @@ namespace barry {
 		return (u & 3) | ((u << vbits) & swizzled_umask);
 	}
 
-	static const auto arith_seq_mult = Vec8f{ 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
 
-	__m256 m256_from_arith_seq(float x_, float d_) {
-		auto x = Vec8f { x_ };
-		auto d = Vec8f { d_ };
-		return mul_add(d, arith_seq_mult, x);
-		//const auto x = x_;
-		//const auto d = d_;
-		//return {
-		//	x,
-		//	x + d,
-		//	x + d + d,
-		//	x + d + d + d,
-		//	x + d + d + d + d,
-		//	x + d + d + d + d + d,
-		//	x + d + d + d + d + d + d,
-		//	x + d + d + d + d + d + d + d,
-		//};
+	template <typename T>
+	struct v8_trait {};
+
+	template <>
+	struct v8_trait<float> {
+		using value_type = Vec8f;
+		inline static const auto arith_seq_mult = value_type(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
+	};
+
+	template <>
+	struct v8_trait<int32_t> {
+		using value_type = Vec8i;
+		inline static const auto arith_seq_mult = value_type(0, 1, 2, 3, 4, 5, 6, 7);
+	};
+
+	template <typename V>
+	using v8_type = typename v8_trait<V>::value_type;
+
+	Vec8i mul_add(Vec8i a, Vec8i b, Vec8i x) {
+		return a * b + x;
+	}
+
+	template < typename T>
+	typename v8_type<T> v8_from_arith_seq(T x_, T d_) {
+		auto x = v8_type<T>{x_};
+		auto d = v8_type<T>{d_};
+		return mul_add(d, v8_trait<T>::arith_seq_mult, x);
 	}
 
 	static inline Vec8ui gather(const Vec8ui index, void const* table, Vec8ib mask) {
@@ -400,48 +410,62 @@ namespace barry {
 		template <TBlendMode BlendMode = TBlendMode::OVERWRITE>
 		void apply_exact(const barry::Tile& tile) {
 			auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
+			auto zscanline = dstSurface + PageSize + tile.y * TILE_SIZE * XRes * 2;
 			auto span = ((uint32_t*)scanline) + tile.x * TILE_SIZE;
+			auto zspan = ((uint16_t*)zscanline) + tile.x * TILE_SIZE;
 			auto bpsl_u32 = bpsl / sizeof(uint32_t);
 
 			TScreenCoord a0 = tile.a0;
 			TScreenCoord b0 = tile.b0;
 			TScreenCoord c0 = tile.c0;
 
-			float rz0 = tile.rz0;
-			float uz0 = tile.t0.uz0;
-			float vz0 = tile.t0.vz0;
+			Vec8i p_a = v8_from_arith_seq(a0, tile.dadx);
+			Vec8i p_b = v8_from_arith_seq(b0, tile.dbdx);
+			Vec8i p_c = v8_from_arith_seq(c0, tile.dcdx);
+
 			int32_t t0_umask = (1 << t0.LogWidth) - 1;
 			int32_t t0_vmask = (1 << t0.LogHeight) - 1;
+			int32_t t0_umask_swizzled = swizzle_umask(t0.LogHeight, t0_umask);
+			Vec8f p_rz = v8_from_arith_seq(tile.rz0, drzdx);
+			Vec8f p_uz = v8_from_arith_seq(tile.t0.uz0, t0.duzdx);
+			Vec8f p_vz = v8_from_arith_seq(tile.t0.vz0, t0.dvzdx);
 
-			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32) {
-				TScreenCoord a = a0;
-				TScreenCoord b = b0;
-				TScreenCoord c = c0;
+			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32, zspan += XRes) {
+				auto p_mask = (p_a | p_b | p_c) >= 0;
 
-				float rz = rz0;
-				float uz = uz0;
-				float vz = vz0;
+				// TODO? if mask is all zeroed, continue
+				Vec8f p_z = approx_recipr(p_rz);
 
-				for (uint32_t* p = span; p != span + TILE_SIZE; ++p, a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
-					if ((a | b | c) >= 0) {
-						float oneOverRz;// = 1.0f / rz;
-						_mm_store_ps(&oneOverRz, _mm_rcp_ss(_mm_load_ss(&rz)));
-						uint32_t u = uint32_t(uz * oneOverRz * t0.UScaleFactor) & ((1 << t0.LogWidth) - 1);
-						uint32_t v = uint32_t(vz * oneOverRz * t0.VScaleFactor) & ((1 << t0.LogHeight) - 1);
+				auto z_candidate = (Vec8ui(0xFF80) - static_cast<Vec8ui>(roundi(g_zscale * p_z)));
+				Vec8us z_existing_c;
+				z_existing_c.load_a(zspan);
+				auto z_existing = extend(z_existing_c);
 
-						auto offset = u + (v << t0.LogWidth);
+				auto zmask = z_candidate > z_existing;
 
-						*p = t0.TextureAddr[offset];
-					}
+				p_mask &= zmask;
+				
+				*(__m128i*)zspan = _mm_blendv_epi8(*(__m128i*)zspan, compress(z_candidate), compress(p_mask));
 
-					rz += drzdx;
-					uz += t0.duzdx;
-					vz += t0.dvzdx;
-				}
-				rz0 += drzdy;
-				uz0 += t0.duzdy;
-				vz0 += t0.dvzdy;
+				Vec8i u = roundi(p_uz * p_z * t0.UScaleFactor);
+				Vec8i v = roundi(p_vz * p_z * t0.VScaleFactor);
 
+				Vec8i tu = packed_tile_u(u, t0.LogHeight, t0_umask_swizzled);
+				Vec8i tv = packed_tile_v(v, t0_vmask);
+
+				auto p_offset = tu + tv;
+
+				const auto texture_samples = gather(p_offset, t0.TextureAddr, p_mask);
+
+				_mm256_maskstore_ps((float*)span, *(__m256i *)(&p_mask), *(__m256*)(&texture_samples));
+
+				p_rz += Vec8f(drzdy);
+				p_uz += Vec8f(t0.duzdy);
+				p_vz += Vec8f(t0.dvzdy);
+
+				p_a += Vec8i(tile.dady);
+				p_b += Vec8i(tile.dbdy);
+				p_c += Vec8i(tile.dcdy);
 			}
 		}
 

@@ -1251,9 +1251,9 @@ void CodeEntry(void *var)
 	});
 	ThreadPoolCleanup _guard;
 
-	Timer = 0;
-	FillerTest();
-	return;
+	//Timer = 0;
+	//FillerTest();
+	//return;
 
 	Initialize_Glato(); //9.3
 	//Initialize_Nova();
