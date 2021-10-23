@@ -432,32 +432,37 @@ namespace barry {
 
 			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32, zspan += XRes) {
 				auto p_mask = (p_a | p_b | p_c) >= 0;
+				if (horizontal_or(p_mask)) {
 
-				// TODO? if mask is all zeroed, continue
-				Vec8f p_z = approx_recipr(p_rz);
+					// TODO? if mask is all zeroed, continue
+					Vec8f p_z = approx_recipr(p_rz);
 
-				auto z_candidate = (Vec8ui(0xFF80) - static_cast<Vec8ui>(roundi(g_zscale * p_z)));
-				Vec8us z_existing_c;
-				z_existing_c.load_a(zspan);
-				auto z_existing = extend(z_existing_c);
+					auto z_candidate = (Vec8ui(0xFF80) - static_cast<Vec8ui>(roundi(g_zscale * p_z)));
+					Vec8us z_existing_c;
+					z_existing_c.load_a(zspan);
+					auto z_existing = extend(z_existing_c);
 
-				auto zmask = z_candidate > z_existing;
+					auto zmask = z_candidate > z_existing;
 
-				p_mask &= zmask;
-				
-				*(__m128i*)zspan = _mm_blendv_epi8(*(__m128i*)zspan, compress(z_candidate), compress(p_mask));
+					p_mask &= zmask;
 
-				Vec8i u = roundi(p_uz * p_z * t0.UScaleFactor);
-				Vec8i v = roundi(p_vz * p_z * t0.VScaleFactor);
+					if (horizontal_or(p_mask)) {
 
-				Vec8i tu = packed_tile_u(u, t0.LogHeight, t0_umask_swizzled);
-				Vec8i tv = packed_tile_v(v, t0_vmask);
+						*(__m128i*)zspan = _mm_blendv_epi8(*(__m128i*)zspan, compress(z_candidate), compress(p_mask));
 
-				auto p_offset = tu + tv;
+						Vec8i u = roundi(p_uz * p_z * t0.UScaleFactor);
+						Vec8i v = roundi(p_vz * p_z * t0.VScaleFactor);
 
-				const auto texture_samples = gather(p_offset, t0.TextureAddr, p_mask);
+						Vec8i tu = packed_tile_u(u, t0.LogHeight, t0_umask_swizzled);
+						Vec8i tv = packed_tile_v(v, t0_vmask);
 
-				_mm256_maskstore_ps((float*)span, *(__m256i *)(&p_mask), *(__m256*)(&texture_samples));
+						auto p_offset = tu + tv;
+
+						const auto texture_samples = gather(p_offset, t0.TextureAddr, p_mask);
+
+						_mm256_maskstore_ps((float*)span, *(__m256i*)(&p_mask), *(__m256*)(&texture_samples));
+					}
+				}
 
 				p_rz += Vec8f(drzdy);
 				p_uz += Vec8f(t0.duzdy);
@@ -747,12 +752,13 @@ namespace barry {
 		//}
 //		/*
 		// this is constant across entire triangle
+		int i = 0;
 		float zoltek = 1.0f / (_a0 + _b0 + _c0);
-		for (int y = tile_my; y <= tile_My; ++y, _a0 += TILE_SIZE * dady, _b0 += TILE_SIZE * dbdy, _c0 += TILE_SIZE * dcdy) {
+		for (int y = tile_my; y <= tile_My; ++y, _a0 += TILE_SIZE * dady, _b0 += TILE_SIZE * dbdy, _c0 += TILE_SIZE * dcdy, ++i) {
 			TScreenCoord a0 = _a0;
 			TScreenCoord b0 = _b0;
 			TScreenCoord c0 = _c0;
-			for (int x = tile_mx; x <= tile_Mx; ++x, a0 += TILE_SIZE * dadx, b0 += TILE_SIZE * dbdx, c0 += TILE_SIZE * dcdx) {
+			for (int x = tile_mx; x <= tile_Mx; ++x, a0 += TILE_SIZE * dadx, b0 += TILE_SIZE * dbdx, c0 += TILE_SIZE * dcdx, ++i) {
 				TScreenCoord max_a = a0 + ((dadx > 0) ? dadx * TILE_SIZE : 0) + ((dady > 0) ? dady * TILE_SIZE : 0);
 				TScreenCoord max_b = b0 + ((dbdx > 0) ? dbdx * TILE_SIZE : 0) + ((dbdy > 0) ? dbdy * TILE_SIZE : 0);
 				TScreenCoord max_c = c0 + ((dcdx > 0) ? dcdx * TILE_SIZE : 0) + ((dcdy > 0) ? dcdy * TILE_SIZE : 0);
