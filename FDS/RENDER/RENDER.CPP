@@ -87,7 +87,7 @@ float Range_Factor;
 
 long Frames;
 #ifndef __clang__
-float dTime;
+extern float dTime;
 #endif
 
 Texture Phong_Mapping;

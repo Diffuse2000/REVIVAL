@@ -1058,7 +1058,7 @@ static dword V_Create(VESA_Surface *VS)
 	VS->CPP = (VS->BPP+1)>>3;
 	VS->BPSL = VS->CPP * VS->X;
 	VS->PageSize = VS->BPSL * VS->Y;
-	if (!(VS->Data = (byte *)_aligned_malloc(VS->PageSize, 16))) return 1;
+	if (!(VS->Data = (byte *)_aligned_malloc(VS->PageSize, 32))) return 1;
 	memset(VS->Data,0,VS->PageSize);
 //	VS->Flags = VSurf_Exists;
 

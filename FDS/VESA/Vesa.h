@@ -2,6 +2,10 @@
 
 #include "Base/FDS_VARS.H"
 
+#include <intrin.h>
+#include <immintrin.h>
+#include <simd/vectorclass.h>
+
 
 #define LFB_LIMIT 0x003FFFFF
 
@@ -144,714 +148,138 @@ extern char *ATable,*STable,*CTable,*TTable;
 
 void Build_YOffs_Table(VESA_Surface *VS);
 
-
-#ifdef _C_WATCOM
-
-
-// yeah
-void Kill_TMPointer();
-#pragma aux Kill_TMPointer=\
-  "Mov Ah,01h",\
-  "Mov Ch,20h",\
-  "Xor Cl,Cl",\
-  "Int 10h";
-
-void Flip_DPixel_8(VESA_Surface *VS)
-{
-  long I,J,K;
-  char C;
-  char *DWP = VS->Data;
-  for(J=0;J<YRes;J++)
-    for(I=0;I<XRes;I++)
-    {
-      C = *DWP++;
-      K = (I<<1)+(YOffs[J]<<2);
-      VGAPtr[K] = C;
-      VGAPtr[K+1] = C;
-      K+=XRes<<1;
-      VGAPtr[K] = C;
-      VGAPtr[K+1] = C;
-    }
-}
-
-void Flip_DPixel_16(VESA_Surface *VS)
-{
-  short *DWP = (short *)VS->Data;
-  short *DWS = (short *)VGAPtr;
-  long I,J,K;
-  short C;
-  for(J=0;J<YRes;J++)
-    for(I=0;I<XRes;I++)
-    {
-      C = *DWP++;
-      K = (I<<1)+(YOffs[J]<<2);
-      DWS[K] = C;
-      DWS[K+1] = C;
-      K+=XRes<<1;
-      DWS[K] = C;
-      DWS[K+1] = C;
-    }
-}
-
-void Flip_DPixel_32(VESA_Surface *VS)
-{
-  long *DWP = (long *)VS->Data;
-  long *DWS = (long *)VGAPtr;
-  long I,J,K;
-  long C;
-  for(J=0;J<YRes;J++)
-    for(I=0;I<XRes;I++)
-    {
-      C = *DWP++;
-      K = (I<<1)+(YOffs[J]<<2);
-      DWS[K] = C;
-      DWS[K+1] = C;
-      K+=XRes<<1;
-      DWS[K] = C;
-      DWS[K+1] = C;
-    }
-}
-
-void Flip_Fake14H(VESA_Surface *VS)
-{
-  // ok, for each 16bit pixel, we put two 7bit colors next to each other
-  unsigned short *DWP = (unsigned short *)VS->Data;
-  char *DWS = (char *)VGAPtr;
-  long I;
-  unsigned short C;
-  char R,G,B;
-  I=PageSizeW;
-  while(I--)
-  {
-    C = *DWP++;
-    R = C>>11;
-    G = ((C>>5)&0x3F)>>2;
-    B = C&0x1F;
-    *DWS++ = (R<<2)+(G>>2);
-    *DWS++ = ((G&0x3)<<5)+B+128;
-  }
-}
-
-void Flip_Fake14V(VESA_Surface *VS)
-{
-  // ok, for each 16bit pixel, we put two 7bit colors next to each other
-  unsigned short *DWP = (unsigned short *)VS->Data;
-  char *DWS = (char *)VGAPtr;
-  long I,J;
-  unsigned short C;
-  char R,G,B;
-  for(J=0;J<YRes;J++)
-  {
-    for(I=0;I<XRes;I++)
-    {
-      C = *DWP++;
-      R = C>>11;
-      G = ((C>>5)&0x3F)>>2;
-      B = C&0x1F;
-      *DWS = (R<<2)+(G>>2);
-      *(DWS+XRes) = ((G&0x3)<<5)+B+128;
-      DWS++;
-    }
-    DWS+=XRes;
-  }
-}
-
-// this SUX
-void Flip_Fake16_8(VESA_Surface *VS)
-{
-  long I,J;
-  short *DWP = (short *)VS->Data;
-  char *DWS = VGAPtr;
-  short C;
-  char R,G,B;
-  for(J=0;J<YRes;J++)
-    for(I=0;I<XRes;I++)
-    {
-      C = *DWP++;
-      R = C>>13;
-      G = ((C>>5)&0x3F)>>3;
-      B = (C&0x1F)>>3;
-      *DWS++ = (R<<5)+(G<<2)+B;
-    }
-}
-
-void Flip_Fake32_8(VESA_Surface *VS)
-{
-  long I,J;
-  DWord *DWP = (DWord *)VS->Data;
-  char *DWS = VGAPtr;
-  DWord C;
-  char R,G,B;
-  for(J=0;J<YRes;J++)
-    for(I=0;I<XRes;I++)
-    {
-      C = *DWP++;
-      R = (C&0x00FF0000)>>21;
-      G = (C&0x0000FF00)>>13;
-      B = (C&0x000000FF)>>6;
-      *DWS++ = (R<<5)+(G<<2)+B;
-    }
-}
-
-// crap
-// convertions from/to all pixel formats
-void Flip_Text15(VESA_Surface *VS) {}
-void Flip_Text16(VESA_Surface *VS) {}
-void Flip_Text24(VESA_Surface *VS) {}
-void Flip_Text32(VESA_Surface *VS)
-{
-  //YEAH.
-  long I,J;
-  unsigned short *ANSI_W = (unsigned short *)VGAPtr,C_W;
-  char R,G,B;
-  char *Data = VS->Data,*DE = Data + VS->PageSize;
-  while (Data<DE)
-  {
-    B = *Data++;
-    G = *Data++;
-    R = *Data++;
-    Data++;
-    C_W = 0;
-    if (R+G+B>=255) C_W |= 8;
-    if (R>=128) C_W |= 4;
-    if (G>=128) C_W |= 2;
-    if (B>=128) C_W |= 1;
-    C_W = (C_W<<8)+219; //219 = ASCII for '�'.
-    *ANSI_W++ = C_W;
-  }
-}
-
-
-// Emulation of Palettized/Packed Pixel format on a Hicolor mode - for kids
-void Flip_Emu8_15(VESA_Surface *VS) {}
-void Flip_Emu8_16(VESA_Surface *VS) {}
-void Flip_Emu8_24(VESA_Surface *VS) {}
-void Flip_Emu8_32(VESA_Surface *VS)
-{
-  char *Data = VS->Data,*DE = Data + VS->X*VS->Y;
-  char *Vid = VGAPtr;
-  char *PalTbl = VS->Pal,*CPal;
-  while(Data<DE)
-  {
-    CPal = PalTbl + 3*(*Data++)+2;
-    *Vid++ = (*CPal--)<<2;
-    *Vid++ = (*CPal--)<<2;
-    *Vid++ = (*CPal)<<2;
-    Vid++;
-  }
-}
-// Convertion between (almost) any two Hicolor/DAC modes.
-void Flip_Conv16_15(VESA_Surface *VS) {}
-void Flip_Conv16_24(VESA_Surface *VS) {}
-void Flip_Conv16_32(VESA_Surface *VS) {}
-
-void FlipConverter3215(char *,char *);
-#pragma aux FlipConverter3215=\
-  "mov  ecx, PageSize"\
-  "shr  ecx, 3"\
-  "sub  edi,4"\
-  "@@LoopBlast:"\
-  "mov eax,[esi]"\
-  "mov edx,[esi+4]"\
-  "ror eax,16"\
-  "add edi,4"\
-  "ror edx,16"\
-  "shr al,3"\
-  "shr dl,3"\
-  "rol eax,16"\
-  "add esi,8"\
-  "rol edx,16"\
-  "shr ah,3"\
-  "shr dh,3"\
-  "shl ax,3"\
-  "shl dx,3"\
-  "shr eax,6"\
-  "shr edx,6"\
-  "mov bx,dx"\
-  "rol ebx,16"\
-  "mov bx,ax"\
-  "mov [edi],ebx"\
-  "dec ecx"\
-  "jnz @@LoopBlast"\
-  parm [esi] [edi] modify exact [ecx edi esi];
-
-void Flip_Conv32_15(VESA_Surface *VS)
-{
-  FlipConverter3215(VS->Data,VS->Targ);
-}
-
-
-void FlipConverter3216(char *,char *);
-#pragma aux FlipConverter3216=\
-  "mov  ecx, PageSize"\
-  "shr  ecx, 3"\
-  "sub  edi,4"\
-  "@@LoopBlast:"\
-  "mov eax,[esi]"\
-  "mov edx,[esi+4]"\
-  "ror eax,16"\
-  "add edi,4"\
-  "ror edx,16"\
-  "shr al,3"\
-  "shr dl,3"\
-  "rol eax,16"\
-  "add esi,8"\
-  "rol edx,16"\
-  "shr ah,2"\
-  "shr dh,2"\
-  "shl ax,2"\
-  "shl dx,2"\
-  "shr eax,5"\
-  "shr edx,5"\
-  "mov bx,dx"\
-  "rol ebx,16"\
-  "mov bx,ax"\
-  "mov [edi],ebx"\
-  "dec ecx"\
-  "jnz @@LoopBlast"\
-  parm [esi] [edi] modify exact [ecx edi esi];
-
-
-void Flip_Conv32_16(VESA_Surface *VS)
-{
-  FlipConverter3216(VS->Data,VS->Targ);
-}
-
-
-void FlipConvertor2(char *Src,char *Dst);
-#pragma aux FlipConvertor2 =    \
-  "mov  ecx, [PageSize]" \
-  "shr  ecx, 4" \
-  "@@LoopBlast:"    \
-  "mov eax,[esi]"   \
-  "mov ebx,[esi+4]"  \
-  "mov [edi],eax"   \
-  "mov eax,[esi+8]"\
-  "mov [edi+3],bl"\
-  "mov [edi+6],ax"\
-  "shr ebx,8"\
-  "mov [edi+4],bx"\
-  "shr eax,16"\
-  "mov ebx,[esi+12]"\
-  "shl ebx,8"\
-  "mov bl,al"\
-  "mov [edi+8],ebx"\
-  "add esi,16"        \
-  "add edi,12"      \
-  "dec ecx"     \
-  "jnz @@LoopBlast"   \
-  parm [esi] [edi]             \
-  modify exact [ecx edi esi];
-
-void Flip_Conv32_24(VESA_Surface *VS)
-{
-  FlipConvertor2(VS->Data,VS->Targ);
-}
-
-void Flip_Impossible(VESA_Surface *VS)
-{
-  //Mission is impossible - we return instantly.
-}
-
-void ASM_Flip_Linear(char *Src,char *Dst);
-#pragma aux ASM_Flip_Linear=\
-  "Mov ECX,PageSizeDW",\
-  "Rep MovSD",\
-  parm [ESI] [EDI];
-
-void Flip_Linear(VESA_Surface *VS)
-{
-  ASM_Flip_Linear(VS->Data,VS->Targ);
-}
-
-void ASM_Flip_YMLinear(char *Src,char *Dst,long PS);
-#pragma aux ASM_Flip_YMLinear=\
-  "Rep MovSD",\
-  parm [ESI] [EDI] [ECX];
-
-void Flip_YMLinear(VESA_Surface *VS)
-{
-  long Y2;
-  if (Y2>Screen->Y) Y2=Screen->Y; else Y2=VS->Y;
-  ASM_Flip_YMLinear(VS->Data,VGAPtr,Y2*VS->X*(BPP+1>>3));
-}
-
-void ASM_Flip_BPSLCorrLinear(char *Src,char *Dst,long Ofs);
-#pragma aux ASM_Flip_BPSLCorrLinear=\
-  "Mov EDX,Screen",\
-  "Mov EAx,DWord Ptr [EDX+8]",\
-  "Mov EDx,DWord Ptr [EDX+20]",\
-  "Shr EDx,2",\
-  "@OUTER: Mov ECx,EDx",\
-  "  Rep MovSD",\
-  "  Add EDI,EBx",\
-  "  Dec EAx",\
-  "JNZ @OUTER",\
-  parm [ESI] [EDI] [EBx] modify exact [EAX EBX EDI ESI ECX EDX];
-
-void Flip_BPSLCorrLinear(VESA_Surface *VS)
-{
-  ASM_Flip_BPSLCorrLinear(VS->Data,VGAPtr,Screen->BPSL-Screen->X*Screen->CPP);
-}
-
-void BankS(char *Src,char *Dst);
-#pragma aux BankS =\
-  "Xor EDx,EDx",\
-  "Mov ECx,PageSize",\
-  "Shr ECx,16",\
-  "JZ @AfterBS",\
-  "@BS:Push ECx",\
-  "  Push EDI",\
-  "  Mov EAx,4F05h",\
-  "  Xor EBx,EBx",\
-  "  Int 10h",\
-  "  Add Dl,Granola",\
-  "  Mov ECx,16384",\
-  "  Rep MovSD",\
-  "  Pop EDI",\
-  "  Pop ECx",\
-  "  Dec ECx",\
-  "JNZ @BS",\
-  "@AfterBS: Xor EBx,EBx",\
-  "Mov EAx,4F05h",\
-  "Int 10h",\
-  "Mov ECx,PageSize",\
-  "And ECx,0FFFFh",\
-  "Shr ECx,2",\
-  "Rep MovSD",\
-	modify exact [EDI ESI EAX EBX ECX EDX] parm [ESI] [EDI];
-
-// 32Bit to 24Bit-Banked mode converter with BPSL support.
-// wrote due to the extremely annoying presence of the CIRRUS on my computer.
-void BankS32_24(char *Src,char *Dst)
-{
-	union REGS r;
-	long BankNum = 0;
-	long DataSize = PageSize;
-	long I;
-	long A = 0,Post = 2;
-
-	while (DataSize>65536)
-	{
-		r.w.ax = 0x4F05;
-		r.w.bx = 0;
-		r.w.dx = BankNum;
-		int386(0x10,&r,&r);
-		Dst = (char *)0xA0000+A;
-
-/*		if (A)
-		{
-			for(I=0;I<A;I++)
-				*Dst++ = *Src++;
-			*Dst++;
-		}*/
-		for(I=0;I<(65536-A)/3;I++)
-		{
-			*(DWord *)Dst = *(DWord *)Src;
-			Src+=4;
-			Dst+=3;
-		}
-/*		if (Post)
-		{
-			for(I=0;I<Post;I++)
-				*Dst++ = *Src++;
-		}*/
-
-		if (A==0) {
-			A=2;
-			Post = 1;
-		} else {
-			A--;
-			Post = A<<1;
-		}
-
-		DataSize-=65536;
-		BankNum += Granola;
-	}
-	r.w.ax = 0x4F05;
-	r.w.bx = 0;
-	r.w.dx = BankNum;
-	int386(0x10,&r,&r);
-	Dst = (char *)0xA0000;
-
-/*	if (A)
-	{
-		for(I=0;I<A;I++)
-			*Dst++ = *Src++;
-		*Dst++;
-	}*/
-	for(I=0;I<(DataSize-A)/3;I++)
-	{
-		*(DWord *)Dst = *(DWord *)Src;
-		Src+=4;
-		Dst+=3;
-	}
-}
-
-void Flip_Banks(VESA_Surface *VS)
-{
-	BankS(VS->Data,VGAPtr);
-}
-void Flip_Banks32_24(VESA_Surface *VS)
-{
-	BankS32_24(VS->Data,VGAPtr);
-}
-
-void FlipConverter(char *Src,char *Dst);
-#pragma aux FlipConverter=\
-  "mov  ecx, PageSizeDW"\
-  "@@LoopBlast:"\
-  "mov eax,[esi]"\
-  "add esi,4"\
-  "mov [edi],eax"\
-  "add edi,3"\
-  "dec ecx"\
-  "jnz @@LoopBlast"\
-  parm [esi] [edi] modify exact [ecx edi esi];
-
-// SUX - Keibinimat
-void BitBlt(VESA_Surface *VS,long X,long Y);
-#pragma aux BitBlt=\
-  "Mov EDI,VGAPtr",\
-  "Xor ECx,ECx",\
-  "Shl EAX,16",\
-  "Mov Cx,Word Ptr [EDx+14]",\
-  "Mov ESI,DWord Ptr [EDx]",\
-  "Shr ECX,2",\
-  "REP MovSD",\
-  "Mov Cx,Ax",\
-  "REP MovSB",\
-  "Shr EAX,16",\
-  "Add EDI,XRes",\
-  "Sub EDI,EAx",\
-  "Add ESI,DWord Ptr [EDX+4]",\
-  "Sub ESI,EAx",\
-  parm [EDx] [EAx] [EBx];
-
-void Flip_BitBlt(VESA_Surface *VS)
-{
-  long X=VS->X,Y=VS->Y;
-  if (Screen->X<X) X=Screen->X;
-  if (Screen->Y<Y) Y=Screen->Y;
-  BitBlt(VS,X,Y);
-}
-
-void PRAG_Set_RGB(char Reg,char R,char G,char B);
-#pragma aux PRAG_Set_RGB=\
-  "Mov Dx,3c8h",\
-  "Out Dx,Al",\
-  "Inc Dx",\
-  "Mov Al,Ah",\
-  "Out Dx,Al",\
-  "Mov Al,Bl",\
-  "Out Dx,Al",\
-  "Mov Al,Bh",\
-  "Out Dx,Al",\
-  parm [Al] [Ah] [Bl] [Bh] modify exact [EAX EBX EDX];
-
-void Set_RGB(char Reg,char R,char G,char B) {PRAG_Set_RGB(Reg,R,G,B);}
-
-void PRAG_Set_Palette(VPalette Pal);
-#pragma aux PRAG_Set_Palette=\
-  "Mov Dx,3c8h",\
-  "Xor Al,Al",\
-  "Out Dx,Al",\
-  "Inc Dx",\
-  "Mov ECx,300h",\
-  "Rep OutSB",\
-  parm [ESI] modify exact [EAX EBX ECX EDX ESI];
-
-void Set_Palette(VPalette Pal)
-{
-  if (!VESA_Pal) return;
-  if (Palette_Reserved&&Pal!=VESA_Pal) return;
-  if (VMode.Flags&VMode_TextMode) return;
-  PRAG_Set_Palette(Pal);
-}
-
-
-void SetVGAMode(unsigned short Mode)
-{
-  union REGS r;
-  r.w.ax = Mode;
-  int386 (0x10, &r, &r);
-}
-void GotoXY (char X, char Y)
-{
-  union REGS r;
-
-  r.h.ah = 2;
-  r.h.bh = 0;
-  r.h.dl = X;
-  r.h.dh = Y;
-
-  int386 (0x10, &r, &r);
-}
-
-void Put_Char(char C)
-{
-  union REGS r;
-  r.h.al = 0;
-  r.h.ah = 2;
-  r.h.dl = C;
-  int386(0x21, &r, &r);
-}
-
-// mask = f7de
-void Transparence_16(char *Source,char *Target);
-#pragma aux Transparence_16=\
-"mov ecx,[PageSize]"\
-"add esi,ecx"\
-"add edi,ecx"\
-"neg ecx"\
-"@@MotionBlurLoop:"\
-" mov eax,[esi+ecx]"\
-" mov ebx,[edi+ecx]"\
-" and eax,0f7deh"\
-" and ebx,0f7deh"\
-" add ebx,eax"\
-" shr ebx,1"\
-" mov word ptr [edi+ecx],bx"\
-" add ecx,2"\
-" jnz @@MotionBlurLoop"\
-parm [esi] [edi]\
-modify exact [eax ebx esi edi ecx]
-
-
-void Transparence_32(char *Source,char *Target);
-#pragma aux Transparence_32=\
-"mov ecx,[PageSize]"\
-"add esi,ecx"\
-"add edi,ecx"\
-"neg ecx"\
-"@@MotionBlurLoop:"\
-" mov eax,[esi+ecx]"\
-" mov ebx,[edi+ecx]"\
-" and eax,0fefefeh"\
-" and ebx,0fefefeh"\
-" add ebx,eax"\
-" shr ebx,1"\
-" mov [edi+ecx],ebx"\
-" add ecx,4"\
-" jnz @@MotionBlurLoop"\
-parm [esi] [edi]\
-modify exact [eax ebx esi edi ecx]
-
-
-void AlphaBlend(char *Source,char *Target,DWord PerSource,DWord PerTarget);
-#pragma aux AlphaBlend=\
-"emms"\
-"punpcklbw mm3,[ebx]"\
-"punpcklbw mm2,[ecx]"\
-"psrlw mm3,8"\
-"psrlw mm2,8"\
-"mov ecx,[PageSize]"\
-"add esi,ecx"\
-"add edi,ecx"\
-"neg ECX"\
-"@@AlphaBlendLoop:"\
-"punpcklbw mm1,[esi+ecx]"\
-"punpcklbw mm0,[edi+ecx]"\
-"psrlw mm1,8"\
-"psrlw mm0,8"\
-"pmullw mm1,mm3"\
-"pmullw mm0,mm2"\
-"psrlw mm1,8"\
-"psrlw mm0,8"\
-"packuswb mm1,mm1"\
-"packuswb mm0,mm0"\
-"paddusb  mm1,mm0"\
-" movd [edi+ecx],mm1"\
-" add ecx,4"\
-" jnz @@AlphaBlendLoop"\
-" emms"\
-parm [esi] [edi] [ebx] [ecx]\
-modify exact [eax ebx esi edi ecx 8087]
-
-#else
-
 #pragma pack(push, 1)
 __declspec(align(16)) struct uint128 {
 	uint64 low, high;
 };
 #pragma pack(pop)
 
+
 // 32bit MMX Alpha blending, 
 inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarget, dword page_size)
 {
-	uint128 perSrc;
-	perSrc.low = perSrc.high = PerSource | static_cast<uint64>(PerSource) << 32;
-	uint128 perDst;
-	perDst.low = perDst.high = PerTarget | static_cast<uint64>(PerTarget) << 32;
+	Vec16uc perSrc = Vec16uc(Vec4ui(PerSource));
+	Vec16uc perDst = Vec16uc(Vec4ui(PerTarget));
 
-	uint128 *perSrcRef = &perSrc;
-	uint128 *perDstRef = &perDst;
+	auto psrc = _mm_srli_epi16(_mm_unpacklo_epi8(perSrc, perSrc), 8);
+	auto pdst = _mm_srli_epi16(_mm_unpacklo_epi8(perDst, perDst), 8);
 
-	dword ps = page_size;
+	//uint128 perSrc;
+	//perSrc.low = perSrc.high = PerSource | static_cast<uint64>(PerSource) << 32;
+	//uint128 perDst;
+	//perDst.low = perDst.high = PerTarget | static_cast<uint64>(PerTarget) << 32;
 
-	__asm
-	{
-#ifdef __clang__
-		pushad
-		mov ebx, perSrcRef
-		mov ecx, perDstRef
-		mov edi, Target
-		mov esi, Source
-#else
-		pushad
-		mov edi, Target
-		mov esi, Source
-		mov eax, perSrcRef
-		mov edx, perDstRef
-		mov ebx, eax
-		mov ecx, edx
-#endif
-		punpcklbw xmm7, [ebx]
-		punpcklbw xmm6, [ecx]
-		psrlw xmm7, 8
-		psrlw xmm6, 8
-		mov ecx, ps
-		add esi, ecx
-		add edi, ecx
-		neg ECX
-#ifndef __clang__
-		Align 16
-#endif
-		AlphaBlendLoop :
-		punpcklbw xmm1, [esi + ecx]
-		punpcklbw xmm0, [edi + ecx]
-		pmulhuw xmm1, xmm7
-		punpckhbw xmm3, [esi + ecx]
-		pmulhuw xmm0, xmm6
-		pmulhuw xmm3, xmm7
-		punpckhbw xmm2, [edi + ecx]
-		paddusb  xmm1, xmm0
-		pmulhuw xmm2, xmm6
+	//uint128 *perSrcRef = &perSrc;
+	//uint128 *perDstRef = &perDst;
 
-		paddusb  xmm3, xmm2
-		packuswb xmm1, xmm3
-		movdqa [edi + ecx], xmm1
+	Vec16uc src, dst;
+	for (int ii = 0; ii < page_size; ii += 32) {
+		src.load_a(Source + ii);
+		dst.load_a(Target + ii);
 
-		punpcklbw xmm1, [esi + ecx + 16]
-		punpcklbw xmm0, [edi + ecx + 16]
-		pmulhuw xmm1, xmm7
-		punpckhbw xmm3, [esi + ecx + 16]
-		pmulhuw xmm0, xmm6
-		pmulhuw xmm3, xmm7
-		punpckhbw xmm2, [edi + ecx + 16]
-		paddusb  xmm1, xmm0
-		pmulhuw xmm2, xmm6
+		auto srcl_ = _mm_unpacklo_epi8(src, src);
+		auto srch_ = _mm_unpackhi_epi8(src, src);
+		auto dstl_ = _mm_unpacklo_epi8(dst, dst);
+		auto dsth_ = _mm_unpackhi_epi8(dst, dst);
 
-		paddusb  xmm3, xmm2
-		packuswb xmm1, xmm3
-		movdqa[edi + ecx + 16], xmm1
+		auto msl = _mm_mulhi_epu16(srcl_, psrc);
+		auto msh = _mm_mulhi_epu16(srch_, psrc);
+		auto mdl = _mm_mulhi_epu16(dstl_, pdst);
+		auto mdh = _mm_mulhi_epu16(dsth_, pdst);
 
+		auto l = _mm_adds_epu8(msl, mdl);
+		auto h = _mm_adds_epu8(msh, mdh);
 
-		add ecx, 32
-		jnz AlphaBlendLoop
-		popad
+		auto result = Vec16uc(_mm_packus_epi16(l, h));
 
+		result.store_a(Target + ii);
+
+		src.load_a(Source + ii + 16);
+		dst.load_a(Target + ii + 16);
+
+		srcl_ = _mm_unpacklo_epi8(src, src);
+		srch_ = _mm_unpackhi_epi8(src, src);
+		dstl_ = _mm_unpacklo_epi8(dst, dst);
+		dsth_ = _mm_unpackhi_epi8(dst, dst);
+
+		msl = _mm_mulhi_epu16(srcl_, psrc);
+		msh = _mm_mulhi_epu16(srch_, psrc);
+		mdl = _mm_mulhi_epu16(dstl_, pdst);
+		mdh = _mm_mulhi_epu16(dsth_, pdst);
+
+		l = _mm_adds_epu8(msl, mdl);
+		h = _mm_adds_epu8(msh, mdh);
+
+		result = Vec16uc(_mm_packus_epi16(l, h));
+
+		result.store_a(Target + ii + 16);
 	}
+//
+//	dword ps = page_size;
+//
+//	__asm
+//	{
+//#ifdef __clang__
+//		pushad
+//		mov ebx, perSrcRef
+//		mov ecx, perDstRef
+//		mov edi, Target
+//		mov esi, Source
+//#else
+//		pushad
+//		mov edi, Target
+//		mov esi, Source
+//		mov eax, perSrcRef
+//		mov edx, perDstRef
+//		mov ebx, eax
+//		mov ecx, edx
+//#endif
+//		punpcklbw xmm7, [ebx]
+//		punpcklbw xmm6, [ecx]
+//		psrlw xmm7, 8
+//		psrlw xmm6, 8
+//		mov ecx, ps
+//		add esi, ecx
+//		add edi, ecx
+//		neg ECX
+//#ifndef __clang__
+//		Align 16
+//#endif
+//		AlphaBlendLoop :
+//		punpcklbw xmm1, [esi + ecx]
+//		punpcklbw xmm0, [edi + ecx]
+//		pmulhuw xmm1, xmm7
+//		punpckhbw xmm3, [esi + ecx]
+//		pmulhuw xmm0, xmm6
+//		pmulhuw xmm3, xmm7
+//		punpckhbw xmm2, [edi + ecx]
+//		paddusb  xmm1, xmm0
+//		pmulhuw xmm2, xmm6
+//
+//		paddusb  xmm3, xmm2
+//		packuswb xmm1, xmm3
+//		movdqa [edi + ecx], xmm1
+//
+//		punpcklbw xmm1, [esi + ecx + 16]
+//		punpcklbw xmm0, [edi + ecx + 16]
+//		pmulhuw xmm1, xmm7
+//		punpckhbw xmm3, [esi + ecx + 16]
+//		pmulhuw xmm0, xmm6
+//		pmulhuw xmm3, xmm7
+//		punpckhbw xmm2, [edi + ecx + 16]
+//		paddusb  xmm1, xmm0
+//		pmulhuw xmm2, xmm6
+//
+//		paddusb  xmm3, xmm2
+//		packuswb xmm1, xmm3
+//		movdqa[edi + ecx + 16], xmm1
+//
+//
+//		add ecx, 32
+//		jnz AlphaBlendLoop
+//		popad
+//
+//	}
 
 
 //	__asm
@@ -977,8 +405,6 @@ inline void Transparence_32(byte *Source,byte *Target)
 		jnz MotionBlurLoop
 	}
 }
-
-#endif
 
 inline void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWord TrgMask, dword PageSize)
 {

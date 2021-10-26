@@ -9,8 +9,6 @@
 #pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "imm32.lib")
 #pragma comment(lib, "Setupapi.lib")
-#pragma comment(lib, "../libpng16/libpng16.lib")
-#pragma comment(lib, "../libpng16/zlib.lib")
 
 
 /******************************************************************************
@@ -495,6 +493,7 @@ long g_demoYRes;
 long g_fullScreenMode;
 long g_displayType;
 
+float dTime;
 
 struct ThreadLocalFillerInitializer;
 
@@ -787,7 +786,7 @@ struct Raindrop
 
 dword numDrops;
 Raindrop *RD;
-static float dTime;
+//static float dTime;
 
 inline void fist(long &r, float x)
 {

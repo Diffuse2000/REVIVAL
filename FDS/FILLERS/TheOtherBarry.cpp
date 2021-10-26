@@ -2,8 +2,9 @@
 
 #include <intrin.h>
 #include <immintrin.h>
-#include <SIMD/vectorclass.h>
+#include <simd/vectorclass.h>
 #include <cassert>
+#include <array>
 
 namespace barry {
 	constexpr const int32_t TILE_SIZE = 8;
@@ -124,11 +125,46 @@ namespace barry {
 		return a * b + x;
 	}
 
+	Vec32us mul_add(Vec32us a, Vec32us b, Vec32us x) {
+		return a * b + x;
+	}
+
 	template < typename T>
-	typename v8_type<T> v8_from_arith_seq(T x_, T d_) {
+	v8_type<T> v8_from_arith_seq(T x_, T d_) {
 		auto x = v8_type<T>{x_};
 		auto d = v8_type<T>{d_};
 		return mul_add(d, v8_trait<T>::arith_seq_mult, x);
+	}
+
+	inline static const auto v32_arith_seq_mult = Vec32us(0, 0, 0, 0, 
+														  1, 1, 1, 1, 
+														  2, 2, 2, 2, 
+														  3, 3, 3, 3,
+														  4, 4, 4, 4,
+														  5, 5, 5, 5,
+														  6, 6, 6, 6,
+														  7, 7, 7, 7);
+
+
+	Vec32s Vec32sFromVec4s(std::array<int16_t, 4> x_) {
+		return Vec32s{ x_[0], x_[1], x_[2], x_[3],
+					   x_[0], x_[1], x_[2], x_[3],
+					   x_[0], x_[1], x_[2], x_[3],
+					   x_[0], x_[1], x_[2], x_[3],
+					   x_[0], x_[1], x_[2], x_[3],
+					   x_[0], x_[1], x_[2], x_[3],
+					   x_[0], x_[1], x_[2], x_[3],
+					   x_[0], x_[1], x_[2], x_[3], };
+	}
+
+	Vec32s v32_from_arith_seq(std::array<int16_t, 4> x_, std::array<int16_t, 4> d_) {
+		auto x = Vec32sFromVec4s(x_);
+		auto d = Vec32sFromVec4s(d_);
+		return mul_add(d, v32_arith_seq_mult, x);
+	}
+
+	Vec32uc colorize(Vec32uc color1, Vec32us color2) {
+		return compress((extend(color1) * (color2>>6)) >> 8);
 	}
 
 	static inline Vec8ui gather(const Vec8ui index, void const* table, Vec8ib mask) {
@@ -214,199 +250,6 @@ namespace barry {
 			return std::min(std::max(y, 0), yres - 1);
 		}
 
-		// reference impl
-		//void apply(const barry::Tile& tile) {
-		//	float t0_dudy_f = (V[v1]->U - V[v0]->U) * tile.dady + (V[v2]->U - V[v0]->U) * tile.dbdy;
-		//	float t0_dvdy_f = (V[v1]->V - V[v0]->V) * tile.dady + (V[v2]->V - V[v0]->V) * tile.dbdy;
-
-		//	float t0_dudx_f = (V[v1]->U - V[v0]->U) * tile.dadx + (V[v2]->U - V[v0]->U) * tile.dbdx;
-		//	float t0_dvdx_f = (V[v1]->V - V[v0]->V) * tile.dadx + (V[v2]->V - V[v0]->V) * tile.dbdx;
-
-		//	float a0 = tile.a0;
-		//	float b0 = tile.b0;
-
-		//	float t0_u0_f = V[v0]->U + t0_dudy_f * (tile.y * TILE_SIZE - V[v0]->PY) + t0_dudx_f * (tile.x * TILE_SIZE - V[v0]->PX);
-		//	float t0_v0_f = V[v0]->V + t0_dvdy_f * (tile.y * TILE_SIZE - V[v0]->PY) + t0_dvdx_f * (tile.x * TILE_SIZE - V[v0]->PX);
-
-		//	int32_t t0_dudy = (int32_t)(2048.0 * t0_dudy_f * t0.UScaleFactor);
-		//	int32_t t0_dvdy = (int32_t)(2048.0 * t0_dvdy_f * t0.VScaleFactor);
-
-		//	int32_t t0_dudx = (int32_t)(2048.0 * t0_dudx_f * t0.UScaleFactor);
-		//	int32_t t0_dvdx = (int32_t)(2048.0 * t0_dvdx_f * t0.VScaleFactor);
-
-		//	int32_t t0_u0 = (int32_t)(2048.0 * t0_u0_f * t0.UScaleFactor);
-		//	int32_t t0_v0 = (int32_t)(2048.0 * t0_v0_f * t0.VScaleFactor);
-
-		//	int32_t t0_umask = (1 << t0.LogWidth) - 1;
-		//	int32_t t0_vmask = (1 << t0.LogHeight) - 1;
-
-		//	uint32_t t0_u0_bt = tile_u(t0_u0, t0.LogHeight, t0_umask);
-		//	uint32_t t0_v0_bt = tile_v(t0_v0, t0_vmask);
-
-		//	uint32_t t0_dudx_bt = tile_du(t0_dudx, t0.LogHeight, t0_umask);
-		//	uint32_t t0_dvdx_bt = tile_dv(t0_dvdx, t0_vmask);
-
-		//	uint32_t t0_dudy_bt = tile_du(t0_dudy, t0.LogHeight, t0_umask);
-		//	uint32_t t0_dvdy_bt = tile_dv(t0_dvdy, t0_vmask);
-
-		//	uint32_t t0_umask_bt = tile_umask(t0.LogHeight, t0_umask);
-		//	uint32_t t0_vmask_bt = tile_vmask(t0_vmask);
-
-		//	byte* scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
-		//	for (size_t j = 0; j != TILE_SIZE; ++j) {
-		//		float a = a0;
-		//		float b = b0;
-		//		uint32_t t0_u_bt = t0_u0_bt;
-		//		uint32_t t0_v_bt = t0_v0_bt;
-		//		dword* span = ((dword*)scanline) + tile.x * TILE_SIZE;
-		//		for (size_t i = 0; i != TILE_SIZE; ++i) {
-		//			auto t0_offset = (t0_v_bt >> 12); //(t0_u_bt + t0_v_bt) >> 12;
-		//			if (a >= 0 && b >= 0 && a + b < 1) {
-		//				span[i] = t0.TextureAddr[t0_offset];
-		//			}
-
-		//			a += tile.dadx;
-		//			b += tile.dbdx;
-		//			t0_u_bt += t0_dudx_bt;
-		//			t0_v_bt += t0_dvdx_bt;
-		//			t0_u_bt &= t0_umask_bt;
-		//			t0_v_bt &= t0_vmask_bt;
-		//		}
-		//		a0 += tile.dady;
-		//		b0 += tile.dbdy;
-		//		t0_u0_bt += t0_dudy_bt;
-		//		t0_v0_bt += t0_dvdy_bt;
-		//		t0_u0_bt &= t0_umask_bt;
-		//		t0_v0_bt &= t0_vmask_bt;
-
-		//		scanline += bpsl;
-		//	}
-		//}
-
-		/*void apply(const barry::Tile& tile) {
-			float a0 = tile.a0;
-			float b0 = tile.b0;
-
-			float t0_dudy_f = (V[v1]->U - V[v0]->U) * tile.dady + (V[v2]->U - V[v0]->U) * tile.dbdy;
-			float t0_dvdy_f = (V[v1]->V - V[v0]->V) * tile.dady + (V[v2]->V - V[v0]->V) * tile.dbdy;
-
-			float t0_dudx_f = (V[v1]->U - V[v0]->U) * tile.dadx + (V[v2]->U - V[v0]->U) * tile.dbdx;
-			float t0_dvdx_f = (V[v1]->V - V[v0]->V) * tile.dadx + (V[v2]->V - V[v0]->V) * tile.dbdx;
-
-			float t0_u0_f = V[v0]->U + t0_dudy_f * (tile.y * TILE_SIZE - V[v0]->PY) + t0_dudx_f * (tile.x * TILE_SIZE - V[v0]->PX);
-			float t0_v0_f = V[v0]->V + t0_dvdy_f * (tile.y * TILE_SIZE - V[v0]->PY) + t0_dvdx_f * (tile.x * TILE_SIZE - V[v0]->PX);
-
-			int32_t t0_dudy = (int32_t)(2048.0 * t0_dudy_f * t0.UScaleFactor);
-			int32_t t0_dvdy = (int32_t)(2048.0 * t0_dvdy_f * t0.VScaleFactor);
-
-			int32_t t0_dudx = (int32_t)(2048.0 * t0_dudx_f * t0.UScaleFactor);
-			int32_t t0_dvdx = (int32_t)(2048.0 * t0_dvdx_f * t0.VScaleFactor);
-
-			int32_t t0_u0 = (int32_t)(2048.0 * t0_u0_f * t0.UScaleFactor);
-			int32_t t0_v0 = (int32_t)(2048.0 * t0_v0_f * t0.VScaleFactor);
-
-			int32_t t0_umask = (1 << t0.LogWidth) - 1;
-			int32_t t0_vmask = (1 << t0.LogHeight) - 1;
-
-			uint32_t t0_u0_tiled = tile_u(t0_u0, t0.LogHeight, t0_umask);
-			uint32_t t0_v0_tiled = tile_v(t0_v0, t0_vmask);
-
-			uint32_t t0_dudx_tiled = tile_du(t0_dudx, t0.LogHeight, t0_umask);
-			uint32_t t0_dvdx_tiled = tile_dv(t0_dvdx, t0_vmask);
-
-			uint32_t t0_dudy_tiled = tile_du(t0_dudy, t0.LogHeight, t0_umask);
-			uint32_t t0_dvdy_tiled = tile_dv(t0_dvdy, t0_vmask);
-
-			uint32_t t0_umask_tiled = tile_umask(t0.LogHeight, t0_umask);
-			uint32_t t0_vmask_tiled = tile_vmask(t0_vmask);
-
-			// 8-pixel deltas are currently unused because TILE_SIZE = 8
-			//int32_t t0_dudx_8 = (int32_t)(2048.0 * t0_dudx_f * t0.UScaleFactor * 8.0);
-			//int32_t t0_dvdx_8 = (int32_t)(2048.0 * t0_dvdx_f * t0.VScaleFactor * 8.0);
-			//uint32_t t0_dudx_8_tiled = tile_du(t0_dudx_8, t0.LogHeight, t0_umask);
-			//uint32_t t0_dvdx_8_tiled = tile_dv(t0_dvdx_8, t0_vmask);
-
-			__m256 v_a0 = m256_from_arith_seq(a0, tile.dadx);
-			__m256 v_b0 = m256_from_arith_seq(b0, tile.dbdx);
-
-			const __m256 v_zero = _mm256_setzero_ps();
-			const __m256 v_one = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
-
-			__m256 v_dady = _mm256_set1_ps(tile.dady);
-			__m256 v_dbdy = _mm256_set1_ps(tile.dbdy);
-
-			auto v_t0_u0_tiled = m256i_from_arith_seq_tiled(t0_u0_tiled, t0_dudx_tiled, t0_umask_tiled);
-			auto v_t0_v0_tiled = m256i_from_arith_seq_tiled(t0_v0_tiled, t0_dvdx_tiled, t0_vmask_tiled);
-
-			auto v_t0_dudy_tiled = Vec8ui(t0_dudy_tiled);
-			auto v_t0_dvdy_tiled = Vec8ui(t0_dvdy_tiled);
-
-			auto v_t0_umask_tiled = Vec8ui(t0_umask_tiled);
-			auto v_t0_vmask_tiled = Vec8ui(t0_vmask_tiled);
-
-			byte* scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
-			for (size_t j = 0; j != TILE_SIZE; ++j) {
-				__m256 v_a = v_a0;
-				__m256 v_b = v_b0;
-				auto v_t0_u_tiled = v_t0_u0_tiled;
-				auto v_t0_v_tiled = v_t0_v0_tiled;
-				auto span = ((Vec8ui*)scanline) + tile.x * TILE_SIZE / 8;
-
-				for (size_t i = 0; i != TILE_SIZE; i += 8) {
-					//const __m256i v_t0_offsets_frac = v_t0_v_tiled;
-					const auto v_t0_offsets_frac = v_t0_u_tiled + v_t0_v_tiled;
-					const auto v_t0_offsets = v_t0_offsets_frac >> 12;
-					const __m256 v_ab = _mm256_add_ps(v_a, v_b);
-					const __m256 pass0 = _mm256_cmp_ps(v_a, v_zero, _CMP_NLE_UQ);
-					const __m256 pass1 = _mm256_cmp_ps(v_b, v_zero, _CMP_NLE_UQ);
-					const __m256 pass2 = _mm256_cmp_ps(v_ab, v_one, _CMP_NGE_UQ);
-
-					const __m256 pass = _mm256_and_ps(_mm256_and_ps(pass0, pass1), pass2);
-					const auto pass_mask = *(Vec8ib*)(&pass);
-
-					const auto texture_samples = gather(v_t0_offsets, t0.TextureAddr, pass_mask); // _mm256_i32gather_epi32((const int*)t0.TextureAddr, v_t0_offsets, 4);
-					//uint32_t texture_samples_i32[8] = {
-					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 0)],
-					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 1)],
-					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 2)],
-					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 3)],
-					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 4)],
-					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 5)],
-					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 6)],
-					//	t0.TextureAddr[_mm256_extract_epi32(v_t0_offsets, 7)]
-					//};
-					//__m256i texture_samples = _mm256_loadu_epi32(texture_samples_i32);
-
-					//__m256i output = _mm256_set1_epi32(0xffffff);
-					auto output = texture_samples;
-
-					//Vec8ui prior;
-					//prior.load_a(span);
-					//auto result = select(pass_mask, output, prior);
-					//auto result = _mm256_blendv_epi8(prior, output, pass_mask);
-//					auto result = output;
-
-					//result.store_a(span); // Fucking A!
-					_mm256_maskstore_ps((float*)span, *(__m256i*)(&pass), *(__m256*)(&output));
-//					_mm256_store_si256(span, result);
-					//if (a >= 0 && b >= 0 && a + b < 1) {
-					//	span[i] = 0xffffff; //t0.TextureAddr[t0_offset];
-					//}
-					// NOTE: removing per-8-pixel interpolation, we'll be stuck with TILE_SIZE = 8 for now
-				}
-				v_a0 = _mm256_add_ps(v_a0, v_dady);
-				v_b0 = _mm256_add_ps(v_b0, v_dbdy);
-
-				v_t0_u0_tiled += v_t0_dudy_tiled;
-				v_t0_v0_tiled += v_t0_dvdy_tiled;
-				v_t0_u0_tiled &= v_t0_umask_tiled;
-				v_t0_v0_tiled &= v_t0_vmask_tiled;
-
-
-				scanline += bpsl;
-			}
-		}*/
-
 		template <TBlendMode BlendMode = TBlendMode::OVERWRITE>
 		void apply_exact(const barry::Tile& tile) {
 			auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
@@ -430,6 +273,16 @@ namespace barry {
 			Vec8f p_uz = v8_from_arith_seq(tile.t0.uz0, t0.duzdx);
 			Vec8f p_vz = v8_from_arith_seq(tile.t0.vz0, t0.dvzdx);
 
+			// we need two 256 registers to handle coloring 8 pixels
+			// 256 / 16 bit per channel / 4 channels = 4 pixels
+			// 0..15	16..31	32..47	48..63	64..79	80..95	96..111	112..127	128..143	144..159	160..175	176..191	192..207	208..223	224..239	240..255
+			// r		g		b		a		r		g		b		a			r			g			b			a			r			g			b			a
+			
+			auto color = v32_from_arith_seq(
+				{ int16_t(tile.t0.r0 * 63.999f), int16_t(tile.t0.g0 * 63.999f), int16_t(tile.t0.b0 * 63.999f), int16_t(tile.t0.a0 * 63.999f) },
+				{ int16_t(drdx * 63.999f),	   int16_t(dgdx * 63.999f),		int16_t(dbdx * 63.999f),		 int16_t(dadx * 63.999f) });
+			
+			//Vec16s rg
 			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32, zspan += XRes) {
 				auto p_mask = (p_a | p_b | p_c) >= 0;
 				if (horizontal_or(p_mask)) {
@@ -458,7 +311,7 @@ namespace barry {
 
 						auto p_offset = tu + tv;
 
-						const auto texture_samples = gather(p_offset, t0.TextureAddr, p_mask);
+						const auto texture_samples = colorize(gather(p_offset, t0.TextureAddr, p_mask), color);
 
 						_mm256_maskstore_ps((float*)span, *(__m256i*)(&p_mask), *(__m256*)(&texture_samples));
 					}
@@ -467,6 +320,8 @@ namespace barry {
 				p_rz += Vec8f(drzdy);
 				p_uz += Vec8f(t0.duzdy);
 				p_vz += Vec8f(t0.dvzdy);
+
+				color += Vec32sFromVec4s({ int16_t(drdy*63.999f), int16_t(dgdy * 63.999f), int16_t(dbdy * 63.999f), int16_t(dady * 63.999f) });
 
 				p_a += Vec8i(tile.dady);
 				p_b += Vec8i(tile.dbdy);
@@ -708,7 +563,7 @@ namespace barry {
 	}
 
 	template <typename TTileRasterizer>
-	void rasterize_triangle(TTileRasterizer rasterizer, const Vertex& v1, const Vertex& v2, const Vertex& v3) {
+	void rasterize_triangle(TTileRasterizer &rasterizer, const Vertex& v1, const Vertex& v2, const Vertex& v3) {
 		// FIXME: raster conventions (it is doing floor right now)
 		const int tile_mx = rasterizer.clampedX(std::min({ v1.PX, v2.PX, v3.PX })) / TILE_SIZE;
 		const int tile_Mx = rasterizer.clampedX(std::max({ v1.PX, v2.PX, v3.PX })) / TILE_SIZE;
@@ -787,10 +642,14 @@ namespace barry {
 							.r0 = (v1.LR + (x * TILE_SIZE - v1.PX) * rasterizer.drdx + (y * TILE_SIZE - v1.PY) * rasterizer.drdy),
 							.g0 = (v1.LG + (x * TILE_SIZE - v1.PX) * rasterizer.dgdx + (y * TILE_SIZE - v1.PY) * rasterizer.dgdy),
 							.b0 = (v1.LB + (x * TILE_SIZE - v1.PX) * rasterizer.dbdx + (y * TILE_SIZE - v1.PY) * rasterizer.dbdy),
+							.a0 = (v1.LA + (x * TILE_SIZE - v1.PX) * rasterizer.dbdx + (y * TILE_SIZE - v1.PY) * rasterizer.dady),
 						}
 					};
 
-					rasterizer.apply_exact<TBlendMode::OVERWRITE>(tile);
+					//if ((((x ^ y) ) & 1)) 
+					{
+						rasterizer.apply_exact(tile);
+					}
 					//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::OVERWRITE>(tile);
 					//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::XOR>(tile);
 					//for (int py = y * TILE_SIZE; py <= (y + 1) * TILE_SIZE - 1; ++py) {
@@ -909,15 +768,17 @@ void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 		r.t0.dvzdx = im[0] * (v2.VZ - v1.VZ) + im[1] * (v3.VZ - v1.VZ);
 		r.t0.dvzdy = im[2] * (v2.VZ - v1.VZ) + im[3] * (v3.VZ - v1.VZ);
 
-		r.drdx = im[0] * float(v2.LR - v1.LR) + im[1] * float(v3.LR - v1.LR);
-		r.drdy = im[2] * float(v2.LR - v1.LR) + im[3] * float(v3.LR - v1.LR);
-		r.dgdx = im[0] * float(v2.LG - v1.LG) + im[1] * float(v3.LG - v1.LG);
-		r.dgdy = im[2] * float(v2.LG - v1.LG) + im[3] * float(v3.LG - v1.LG);
-		r.dbdx = im[0] * float(v2.LB - v1.LB) + im[1] * float(v3.LB - v1.LB);
-		r.dbdy = im[2] * float(v2.LB - v1.LB) + im[3] * float(v3.LB - v1.LB);
+		r.dadx = (im[0] * (float(v2.LA) - float(v1.LA)) + im[1] * (float(v3.LA) - float(v1.LA)));
+		r.dady = (im[2] * (float(v2.LA) - float(v1.LA)) + im[3] * (float(v3.LA) - float(v1.LA)));
+		r.drdx = (im[0] * (float(v2.LR) - float(v1.LR)) + im[1] * (float(v3.LR) - float(v1.LR)));
+		r.drdy = (im[2] * (float(v2.LR) - float(v1.LR)) + im[3] * (float(v3.LR) - float(v1.LR)));
+		r.dgdx = (im[0] * (float(v2.LG) - float(v1.LG)) + im[1] * (float(v3.LG) - float(v1.LG)));
+		r.dgdy = (im[2] * (float(v2.LG) - float(v1.LG)) + im[3] * (float(v3.LG) - float(v1.LG)));
+		r.dbdx = (im[0] * (float(v2.LB) - float(v1.LB)) + im[1] * (float(v3.LB) - float(v1.LB)));
+		r.dbdy = (im[2] * (float(v2.LB) - float(v1.LB)) + im[3] * (float(v3.LB) - float(v1.LB)));
 		r.umask = (1 << r.t0.LogWidth) - 1;
 		r.vmask = (1 << r.t0.LogHeight) - 1;
 
-		barry::rasterize_triangle(r, v1, v2, v3);
+		barry::rasterize_triangle<barry::TileRasterizer>(r, v1, v2, v3);
 	}
 }

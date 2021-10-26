@@ -2126,14 +2126,14 @@ extern "C"
 	extern dword Seven_UP_MMX_32_Size;
 	extern dword WobMMX_Size;
 
-	extern dword IX_TGZM_Code_Start;
-	extern dword IX_TGZM_Code_Size;
-	extern dword IX_TGZTM_Code_Start;
-	extern dword IX_TGZTM_Code_Size;
-	extern dword IX_TGZTAM_Code_Start;
-	extern dword IX_TGZTAM_Code_Size;
-	extern dword IX_TGZSAM_Code_Start;
-	extern dword IX_TGZSAM_Code_Size;
+	//extern dword IX_TGZM_Code_Start;
+	//extern dword IX_TGZM_Code_Size;
+	//extern dword IX_TGZTM_Code_Start;
+	//extern dword IX_TGZTM_Code_Size;
+	//extern dword IX_TGZTAM_Code_Start;
+	//extern dword IX_TGZTAM_Code_Size;
+	//extern dword IX_TGZSAM_Code_Start;
+	//extern dword IX_TGZSAM_Code_Size;
 }
 
 void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
@@ -2205,24 +2205,24 @@ void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
 					   &OldProtection);
 #endif
 
-	VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZM_Code_Start),
-					   IX_TGZM_Code_Size,
-					   Protection,
-					   &OldProtection);
+	//VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZM_Code_Start),
+	//				   IX_TGZM_Code_Size,
+	//				   Protection,
+	//				   &OldProtection);
 
-	VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZTM_Code_Start),
-					   IX_TGZTM_Code_Size,
-					   Protection,
-					   &OldProtection);
+	//VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZTM_Code_Start),
+	//				   IX_TGZTM_Code_Size,
+	//				   Protection,
+	//				   &OldProtection);
 
-	VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZTAM_Code_Start),
-					   IX_TGZTAM_Code_Size,
-					   Protection,
-					   &OldProtection);
+	//VirtualProtectFunc(reinterpret_cast<void *>(IX_TGZTAM_Code_Start),
+	//				   IX_TGZTAM_Code_Size,
+	//				   Protection,
+	//				   &OldProtection);
 
-	VirtualProtectFunc(reinterpret_cast<void*>(IX_TGZSAM_Code_Start),
-		IX_TGZSAM_Code_Size,
-		Protection,
-		&OldProtection);
+	//VirtualProtectFunc(reinterpret_cast<void*>(IX_TGZSAM_Code_Start),
+	//	IX_TGZSAM_Code_Size,
+	//	Protection,
+	//	&OldProtection);
 }
 #endif

@@ -141,11 +141,11 @@ void Initialize_Glato()
 	Convert_Texture2Image(SfxTexture,SfxImage);
 
 
-	Page1 = new byte[PageSize];
-	Page2 = new byte[PageSize];
-	Page3 = new byte[PageSize];
-	Page4 = new byte[PageSize];
-	FinalPage = new byte[PageSize];
+	Page1 = (byte*)_aligned_malloc(PageSize, 32);
+	Page2 = (byte*)_aligned_malloc(PageSize, 32);
+	Page3 = (byte*)_aligned_malloc(PageSize, 32);
+	Page4 = (byte*)_aligned_malloc(PageSize, 32);
+	FinalPage = (byte*)_aligned_malloc(PageSize, 32);
 
 	// only last YRes - YRes & (~7) lines should be cleared
 	memset(Page1, 0, PageSize);
@@ -679,8 +679,8 @@ void Run_Glato(void)
 	delete Code_GP;
 	delete Gfx_GP;
 	delete Sfx_GP;
-	delete Page1;
-	delete Page2;
-	delete Page3;
-	delete Page4;
+	_aligned_free(Page1);
+	_aligned_free(Page2);
+	_aligned_free(Page3);
+	_aligned_free(Page4);
 }

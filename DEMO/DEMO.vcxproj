@@ -132,8 +132,8 @@
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">C:\DXSDK\include;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\DXSDK\include;$(IncludePath);$(ProjectDir)\FDS</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">C:\DXSDK\include;$(IncludePath);$(ProjectDir)\FDS</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\DXSDK\lib;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">C:\DXSDK\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\DXSDK\lib;C:\Projects\REVIVAL;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">C:\DXSDK\lib;C:\Projects\REVIVAL\Release Library;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\DXSDK\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='llvm|x64'">C:\DXSDK\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -160,7 +160,7 @@
     <ClCompile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <PreprocessorDefinitions>PORTABLE_COD=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PORTABLE_CODE=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -221,14 +221,14 @@ copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
       <Culture>0x040d</Culture>
     </ResourceCompile>
     <ProjectReference>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='llvm|Win32'">
     <ClCompile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <PreprocessorDefinitions>PORTABLE_COD=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PORTABLE_CODE=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -254,17 +254,19 @@ copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>delayimp.lib;IJLD.lib;d3dx8.lib;winmm.lib;ddraw.lib;dxguid.lib;d3d8.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Release/DEMO.exe</OutputFile>
+      <OutputFile>.\llvm/DEMO.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCI;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <ProgramDatabaseFile>.\Release/DEMO.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\llvm/DEMO.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <PreventDllBinding>true</PreventDllBinding>
+      <AdditionalLibraryDirectories>C:\Projects\REVIVAL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -274,8 +276,8 @@ copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
       <TypeLibraryName>.\Release/DEMO.tlb</TypeLibraryName>
     </Midl>
     <PostBuildEvent>
-      <Command>copy $(ConfigurationName)\DEMO.exe ..\Runtime
-copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
+      <Command>
+copy llvm\DEMO.exe ..\Runtime</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -582,6 +584,9 @@ copy $(ConfigurationName)\DEMO.exe ..\Runtime</Command>
     </ProjectReference>
     <ProjectReference Include="..\Modplayer\Modplayer.vcxproj">
       <Project>{65292fb5-9235-4bf6-9b45-0ffc88978d96}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\pngread\pngread.vcxproj">
+      <Project>{795b4650-b9af-442f-828e-7ca7ac9e3f91}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
