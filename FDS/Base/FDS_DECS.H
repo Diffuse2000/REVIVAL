@@ -280,7 +280,7 @@ void DisplayMouse();
 void Hierarchy_Sort(Scene *Sc);
 void Detect_MMX();
 
-void *getAlignedBlock(mword size, mword alignment = 64);
+void *getAlignedBlock(uintptr_t size, uintptr_t alignment = 64);
 void freeAlignedBlock(void *ptr);
 
 #endif
@@ -509,7 +509,7 @@ T* getAlignedArray(size_t N, size_t alignment) {
 }
 
 template <typename T>
-T* getAlignedType(size_t alignment) {
+T* getAlignedType(uintptr_t alignment) {
 	T* block = (T*)getAlignedBlock(sizeof(T), alignment);
 	return new(block) T();
 }

@@ -38,6 +38,7 @@
     <ClCompile Include="dxutil.cpp">
       <Filter>D3D8</Filter>
     </ClCompile>
+    <ClCompile Include="SDL2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DDRAW.h">
@@ -72,5 +73,6 @@
     <ClInclude Include="dxutil.h">
       <Filter>D3D8</Filter>
     </ClInclude>
+    <ClInclude Include="SDL2.h" />
   </ItemGroup>
 </Project>

@@ -42,7 +42,7 @@ struct Spline
 	DWord Flags					= 0;
 	void print() {
 		printf("Flags: %X\n", Flags);
-		for (int i = 0; i < NumKeys; ++i) {
+		for (auto i = 0UL; i < NumKeys; ++i) {
 			Keys[i].print();
 			printf("\n");
 		}

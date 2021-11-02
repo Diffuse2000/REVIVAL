@@ -1008,20 +1008,31 @@ void Assign_Fillers(Scene *Sc)
 			//			F->Txtr->ZBufferWrite = !(F->Txtr->Flags & Mat_SkipZ);
 
 			//if (F->Txtr->Flags & Mat_UseTextureAlpha) rasterFlags += 8;
+			//RasterFunc stdFillers[10] = {
+			//	IX_Prefiller_FZ, // Flat (impl. gouraud)
+			//	IX_Prefiller_TZ, // Texture
+			//	IX_Prefiller_GZ, // Gouraud
+			//	//IX_Prefiller_TGZM, // Txtr/Gouraud
+			//	TheOtherBarry,
+			//	IX_Prefiller_FAcZ, // transparent Flat
+			//	IX_Prefiller_TAcZ, // transparent Texture
+			//	IX_Prefiller_GAcZ, // transparent Gouraud
+			//	IX_Prefiller_TGZTM,//TGAcZ, // transparent Texture/Gouraud
+			//	IX_Prefiller_TGZTAM, //TGAcZ, // transparent Texture/Gouraud with Alpha blending
+			//	IX_Prefiller_TGZSAM,
+			//};
 			RasterFunc stdFillers[10] = {
 				IX_Prefiller_FZ, // Flat (impl. gouraud)
-				IX_Prefiller_TZ, // Texture
-				IX_Prefiller_GZ, // Gouraud
-				//IX_Prefiller_TGZM, // Txtr/Gouraud
 				TheOtherBarry,
-//				IX_Prefiller_TGZ, // Txtr/Gouraud
+				IX_Prefiller_GZ, // Gouraud
+				TheOtherBarry,
 				IX_Prefiller_FAcZ, // transparent Flat
-				IX_Prefiller_TAcZ, // transparent Texture
+				TheOtherBarry,
 				IX_Prefiller_GAcZ, // transparent Gouraud
-				IX_Prefiller_TGZTM,//TGAcZ, // transparent Texture/Gouraud
-				IX_Prefiller_TGZTAM, //TGAcZ, // transparent Texture/Gouraud with Alpha blending
-				IX_Prefiller_TGZSAM,
+				TheOtherBarry,
+				TheOtherBarry,
 			};
+
 			//if (rasterFlags > 0 && rasterFlags < 3) {
 			//	volatile int banama = 1;
 			//}

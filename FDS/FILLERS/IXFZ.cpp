@@ -42,7 +42,7 @@ struct deltas
 
 #define L2SPANSIZE 4
 #define SPANSIZE 16
-#define fSPANSIZE 16.0
+#define fSPANSIZE 16.0f
 thread_local static deltas ddx;
 thread_local static deltas ddx32;
 
@@ -87,13 +87,13 @@ void SavePolyStats(const char *fileName)
 	fprintf(F, "Width Stats:\n");
 	for(i=0; i<cells; i++)
 	{
-		float width = (i+0.5)*XRes/IX_PolyStats.numCells;		
+		float width = (i+0.5f)*XRes/IX_PolyStats.numCells;		
 		fprintf(F, "\t%f\t%d\n", width, IX_PolyStats.widthHist[i]);
 	}
 	fprintf(F, "Height Stats:\n");
 	for(i=0; i<cells; i++)
 	{
-		float height = (i+0.5)*YRes/IX_PolyStats.numCells;
+		float height = (i+0.5f)*YRes/IX_PolyStats.numCells;
 		fprintf(F, "\t%f\t%d\n", height, IX_PolyStats.heightHist[i]);
 	}
 
@@ -112,8 +112,8 @@ static void CalcRightSection (IXVertexG *V1, IXVertexG *V2)
 	dword iy1, iy2;
 	//Fist(iy1,V1->y);
 	//Fist(iy2,V2->y);
-	iy1 = ceilf(V1->y);
-	iy2 = ceilf(V2->y);
+	iy1 = dword(ceilf(V1->y));
+	iy2 = dword(ceilf(V2->y));
 
 	Right.ScanLines = iy2 - iy1;
 	
@@ -145,8 +145,8 @@ static void CalcLeftSection (IXVertexG *V1, IXVertexG *V2)
 	//Fist(iy1,V1->y);
 	//Fist(iy2,V2->y);
 
-	iy1 = ceilf(V1->y);
-	iy2 = ceilf(V2->y);
+	iy1 = dword(ceilf(V1->y));
+	iy2 = dword(ceilf(V2->y));
 
 
 	Left.ScanLines = iy2 - iy1;
@@ -176,7 +176,6 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 {
 	int i = 0;
 
-	int _w0, _w1, _w2, _w3;
 	float _z0, _z1, _z2, _z3;
 	word _Z0, _Z1;
 	short _dZ;
@@ -189,13 +188,13 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 	int SpanWidth = Width;
 	if (Width > SPANSIZE) SpanWidth = SPANSIZE;
 
-	_z0 = 256.0 / RZ;
+	_z0 = 256.0f / RZ;
 	RZ += ddx32.dRZdx;
-	_z1 = 256.0 / RZ;
+	_z1 = 256.0f / RZ;
 	RZ += ddx32.dRZdx;
-	_z2 = 256.0 / RZ;
+	_z2 = 256.0f / RZ;
 	RZ += ddx32.dRZdx;
-	_z3 = 256.0 / RZ;
+	_z3 = 256.0f / RZ;
 	RZ += ddx32.dRZdx;
 	
 	_Z0 = 0xFF80 - Fist(g_zscale256 * _z0);
@@ -216,8 +215,6 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 		
 		while (SpanWidth--)
 		{
-			dword r,g,b, tex;
-
 			// ZBuffer test			
 			if (_Z0 > *ZSpanPtr)
 			{
@@ -268,9 +265,6 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 {
 	int i = 0;
 
-	//F4Vec _u, _v, _z;
-	int _w0, _w1, _w2, _w3;
-
 	float _z0, _z1, _z2, _z3;
 	word _Z0, _Z1;
 	short _dZ;
@@ -284,13 +278,13 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 	int SpanWidth = Width;
 	if (Width > SPANSIZE) SpanWidth = SPANSIZE;
 
-	_z0 = 256.0 / RZ;
+	_z0 = 256.0f / RZ;
 	RZ += ddx32.dRZdx;
-	_z1 = 256.0 / RZ;
+	_z1 = 256.0f / RZ;
 	RZ += ddx32.dRZdx;
-	_z2 = 256.0 / RZ;
+	_z2 = 256.0f / RZ;
 	RZ += ddx32.dRZdx;
-	_z3 = 256.0 / RZ;
+	_z3 = 256.0f / RZ;
 	RZ += ddx32.dRZdx;
 	
 	_Z0 = 0xFF80 - Fist(g_zscale256 * _z0);
@@ -311,8 +305,6 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 		
 		while (SpanWidth--)
 		{
-			dword r,g,b, tex;
-
 			// ZBuffer test			
 			if (_Z0 > *ZSpanPtr)
 			{
@@ -365,16 +357,16 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 
 static void IXFiller(IXVertexG *Verts, dword numVerts, void *Page)
 {
-	int r = Verts->R,
-		g = Verts->G,
-		b = Verts->B;
+	int r = int(Verts->R),
+		g = int(Verts->G),
+		b = int(Verts->B);
 	IX_FlatColor = (r<<16)+(g<<8)+b;
 	IX_TFlatColor = (IX_FlatColor&0xFEFEFEFE)>>1;
 
 	IX_Page = Page;
 
 	// ZBuffer data starts at the end of framebuffer
-	IX_ZBuffer = (word *) ((dword)Page + PageSize);
+	IX_ZBuffer = (word *) ((uintptr_t)Page + PageSize);
 
 	Left.Index = 1;
 	Right.Index = numVerts - 1;
@@ -424,8 +416,8 @@ static void IXFiller(IXVertexG *Verts, dword numVerts, void *Page)
 
 	dword y, SectionHeight;
 	y = Fist(Verts[0].y);
-	dword *Scanline = (dword *)((dword)Page + VESA_BPSL * y);
-	word *ZScanline = (word *)((dword)Page + PageSize + sizeof(word) * XRes * y);
+	dword *Scanline = (dword *)((uintptr_t)Page + VESA_BPSL * y);
+	word *ZScanline = (word *)((uintptr_t)Page + PageSize + sizeof(word) * XRes * y);
 	long Width;
 	
 	// Iterate over sections
@@ -507,7 +499,7 @@ AfterScanConv:
 const dword maximalNgon = 16;
 thread_local static dword *l_TestTexture = NULL;
 thread_local static char l_IXMemBlock[sizeof(IXVertexG) * (maximalNgon+1)];
-thread_local static IXVertexG *l_IXArray = (IXVertexG *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
+thread_local static IXVertexG *l_IXArray = (IXVertexG *)( ((uintptr_t)l_IXMemBlock + 0xF) & (~0xF) );
 thread_local static Material DummyMat;
 thread_local static Texture DummyTex;
 
@@ -527,19 +519,19 @@ static void PrefillerCommon(Vertex **V, dword numVerts)
 			//Fist(l_IXArray[i].G, V[i]->LG * 256.0f);
 			//Fist(l_IXArray[i].B, V[i]->LB * 256.0f);
 			float fogRate;
-			fogRate = 1.0 - 1.0 * C_rFZP * V[i]->TPos.z;
-			if (fogRate < 0.0)
+			fogRate = 1.0f - 1.0f * C_rFZP * V[i]->TPos.z;
+			if (fogRate < 0.0f)
 			{
-				fogRate = 0.0;
+				fogRate = 0.0f;
 			}
 			l_IXArray[i].R = V[i]->LR * fogRate;
 			l_IXArray[i].G = V[i]->LG * fogRate;
 			l_IXArray[i].B = V[i]->LB * fogRate;
 
 			// protect against gouraud interpolation underflows
-			if (l_IXArray[i].R < 2.0) l_IXArray[i].R = 2.0;
-			if (l_IXArray[i].G < 2.0) l_IXArray[i].G = 2.0;
-			if (l_IXArray[i].B < 2.0) l_IXArray[i].B = 2.0;
+			if (l_IXArray[i].R < 2.0) l_IXArray[i].R = 2.0f;
+			if (l_IXArray[i].G < 2.0) l_IXArray[i].G = 2.0f;
+			if (l_IXArray[i].B < 2.0) l_IXArray[i].B = 2.0f;
 
 			l_IXArray[i].y = V[i]->PY;
 		}

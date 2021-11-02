@@ -39,7 +39,7 @@ void ReadMaterialName(unsigned int EndPos)
     Cur_Mat=Cur_Mat->Next;
   }
   Cur_Mat->RelScene = Host;
-  Cur_Mat->Name = strdup(MatName);
+  Cur_Mat->Name = _strdup(MatName);
   delete []MatName;
   ReadTextureToo = 1;
 }
@@ -71,7 +71,7 @@ void ReadMapFile(unsigned int EndPos)
   Cur_Mat->Txtr = new Texture;
   Tx = Cur_Mat->Txtr;
   memset(Tx,0,sizeof(Texture));
-  Tx->FileName = strdup(NewFile);
+  Tx->FileName = _strdup(NewFile);
   Identify_Texture(Tx);
 
   if (!Tx->BPP) printf("<3DS:T>: Identification Failure for Texture %s at Material %s.\n",NewFile,Cur_Mat->Name); //else printf("<3DS:T>: Texture %s was Identified correctly\n         for Material %s as a %d BPP image file.\n",NewFile,Cur_Mat->Name,Cur_Mat->Txtr->BPP);

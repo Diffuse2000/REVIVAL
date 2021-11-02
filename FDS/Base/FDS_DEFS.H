@@ -366,5 +366,4 @@ enum OmniFlags
 #pragma warning(disable : 4731)
 #endif
 
-
 #endif //FDS_DEFS_H_INCLUDED

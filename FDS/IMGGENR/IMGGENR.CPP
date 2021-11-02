@@ -69,7 +69,7 @@ void Make_Noise()
 	}
 	for(I=0;I<=6283;I++)
 	{
-		f = I/100.0;
+		f = I/100.0f;
 		NoiseTbl[I] = Noise1D(f);
 	}
 }
@@ -533,7 +533,7 @@ long J1 = XRes-Grid_Subsamp,J2 = YOffs[Grid_Subsamp];
 void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword xres, dword yres)
 {
 	// hopefully, paragraph aligned
-	mmreg c0, c1, dc0dy, dc1dy, c, dcdx, t;
+//	mmreg c0, c1, dc0dy, dc1dy, c, dcdx, t;
 
 	mword i, j, x, y, gx = (xres / Grid_Subsamp)+1;
 	dword *tex = Img->Data;
@@ -607,6 +607,7 @@ __declspec(align(16)) struct uint128 {
 void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YRes)
 {
 	// hopefully, paragraph aligned
+#ifdef NON_PORTABLE_CODE
 	mmreg c0, c1, dc0dy, dc1dy, c, dcdx, t;
 
 	mword i, j, x, y, gx = (XRes / Grid_Subsamp)+1;
@@ -732,10 +733,13 @@ void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YR
 		p[3]++;
 	}
 	//mmreg::clearstate();
+#endif
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 		emms
 	}
+#endif
 }
 
 #ifdef _C_WATCOM
@@ -849,6 +853,7 @@ void Grid_Texture_Mapper_TV(char *Texture, GridPointT *Points, char *VirScr)
 #define u_ofs		0
 #define v_ofs		4
 #define ElementSize 8
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 		mov esi, [Points]
@@ -1012,6 +1017,7 @@ void Grid_Texture_Mapper_TV(char *Texture, GridPointT *Points, char *VirScr)
 			emms
 
 	}
+#endif
 #undef	u_ofs
 #undef	v_ofs
 #undef	ElementSize
@@ -1046,6 +1052,7 @@ void Grid_Texture_Mapper_TGV(char *Texture,GridPointTG *Points,char *VirScr)
 #define v_ofs		4
 #define RGBA_ofs	8
 #define ElementSize 16
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 		mov esi, [Points]
@@ -1272,6 +1279,7 @@ Inner8:
 		emms
 
 	}
+#endif
 #undef	u_ofs
 #undef	v_ofs
 #undef	RGBA_ofs
@@ -1307,6 +1315,7 @@ void Grid_Texture_Mapper_TGV_XMM(char *Texture, GridPointTG *Points, char *VirSc
 #define v_ofs		4
 #define RGBA_ofs	8
 #define ElementSize 16
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 		mov esi, [Points]
@@ -1541,6 +1550,7 @@ void Grid_Texture_Mapper_TGV_XMM(char *Texture, GridPointTG *Points, char *VirSc
 			emms
 
 	}
+#endif
 #undef	u_ofs
 #undef	v_ofs
 #undef	RGBA_ofs
@@ -1738,6 +1748,7 @@ extern "C" void __cdecl _P_Texture_32(Bi_Triangle * BT, char * Bitmap,unsigned i
 extern "C" void __cdecl P_Texture_32_(void);
 static void P_Texture_32V(Bi_Triangle * BTM, char * Bitmap,unsigned int u)
 {
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 		mov ebx, [BTM]
@@ -1745,6 +1756,7 @@ static void P_Texture_32V(Bi_Triangle * BTM, char * Bitmap,unsigned int u)
 			mov ecx, [u]
 			call	P_Texture_32_
 	}
+#endif
 }
 #endif
 

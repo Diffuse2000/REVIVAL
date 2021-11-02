@@ -10,6 +10,7 @@
 #include "Base/FDS_DECS.H"
 #include "Base/FDS_DEFS.H"
 #include <Threads.h>
+#include <mmintrin.h>
 
 float CParticle_ISize;
 float ImageSize = 1000.0;
@@ -1559,6 +1560,7 @@ void The_Seven_UP_HALFSIZE(Vertex **V, dword numVerts)
 extern "C" void Seven_UP_64_(void);
 void Seven_UP_64V(int X, int Y, int SizeX, int SizeY, byte* Txtr, byte* Page)
 {
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 		pushad
@@ -1571,6 +1573,7 @@ void Seven_UP_64V(int X, int Y, int SizeX, int SizeY, byte* Txtr, byte* Page)
 		call Seven_UP_64_
 		popad
 	}
+#endif
 }
 
 void The_Seven_UP_64(long X, long Y, long SX, long SY, DWord* Bitmap, byte* Page)
@@ -1583,6 +1586,7 @@ void The_Seven_UP_64(long X, long Y, long SX, long SY, DWord* Bitmap, byte* Page
 extern "C" void Seven_UP_MMX_(void);
 void Seven_UP_MMXV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page, dword Color, dword Z)
 {
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 	mov eax, [X]
@@ -1599,6 +1603,7 @@ void Seven_UP_MMXV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page, dwor
 	pop eax
 	popad
 	}
+#endif
 }
 
 
@@ -1707,7 +1712,7 @@ void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage,
 	v0 += dv * (iy1 - y1);
 
 	//dword *ScanLine  = (dword *)((dword)VPage + VESA_BPSL * iy1) + ix1;
-	dword ScanLine  = (dword)VPage + VESA_BPSL * iy1 + ix1*4;
+	uintptr_t ScanLine  = (uintptr_t)VPage + VESA_BPSL * iy1 + ix1*4;
 
 	iu = Fist(u0 * 65536.0);
 	iv = Fist(v0 * 65536.0);
@@ -1722,7 +1727,9 @@ void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage,
 #if defined(PORTABLE_CODE) && defined(PIG_VOMIT)
 	__m64 mm4 { Color };
 	__m64 mm1 = {};
+#ifdef NON_PORTABLE_CODE
 	mm4 = _m_punpcklbw(mm4, mm1);
+#endif
 #else
 	__asm
 	{
@@ -1835,7 +1842,7 @@ EndScanline:
 		}
 
 #else
-		dword ofs = ((v >> 11) & 0x3E0);
+		uintptr_t ofs = ((v >> 11) & 0x3E0);
 		//__m64 x = { 0 };
 		for(int j = 0;j<LineWidth; j++)
 		{
@@ -1850,12 +1857,14 @@ EndScanline:
 			//mm0 = _m_pxor(mm0, mm0);
 //			mm0 = _m_punpcklbw(mm0, *(__m64*)&tex[(u >> 16) + ((v >> 11) & 0x3E0)]);
 			__m64 mm0 = { 0 };
+#ifdef NON_PORTABLE_CODE
 			mm0 = _m_punpcklbw(mm0, _mm_set_pi32(0, tex[(u >> 16) + ofs]));
 			mm0 = _m_psrlwi(mm0, 8);
 			mm0 = _m_pmullw(mm0, mm4);
 			mm0 = _m_psrlwi(mm0, 8);
 			mm0 = _m_packuswb(mm0, mm0);
 			mm0 = _m_paddusb(mm0, _mm_set_pi32(0, ((dword*)ScanLine)[j]));
+#endif
 			//*x = mm0.m64_u32[0];
 #ifdef __clang__
 			((dword*)ScanLine)[j] = (dword)mm0[0];
@@ -1887,7 +1896,9 @@ EndScanline:
 		v += idv;
 	}
 #ifdef PORTABLE_CODE
+#ifdef NON_PORTABLE_CODE
 	_mm_empty();
+#endif
 #else
 	__asm
 	{
@@ -2122,7 +2133,10 @@ extern "C"
 	extern dword P_Texture_32_CodeStart;
 	extern dword PG_Texture_32_Size;
 	extern dword PT_Texture_32_Size;
-	extern dword Seven_UP_MMX_Size;
+#ifdef NON_PORTABLE_CODE
+	extern 
+#endif	
+	dword Seven_UP_MMX_Size;
 	extern dword Seven_UP_MMX_32_Size;
 	extern dword WobMMX_Size;
 
@@ -2193,10 +2207,14 @@ void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
 	//				   Protection,
 	//				   &OldProtection);
 
+#ifdef NON_PORTABE_CODE
+
 	VirtualProtectFunc(reinterpret_cast<void *>(Seven_UP_MMX_), 
 					   Seven_UP_MMX_Size,
 					   Protection,
 					   &OldProtection);
+
+#endif // NON_PORTABE_CODE
 
 #if 0
 	VirtualProtectFunc(reinterpret_cast<void *>(Seven_UP_MMX_32_),

@@ -21,7 +21,7 @@ union FCDW
 };
 
 DWord TblFlags = 0;
-char *ModTbl;
+uint8_t*ModTbl;
 
 /// Table Handlers
 
@@ -32,80 +32,80 @@ char *ModTbl;
 void Make_Modulation()
 {
 	long I,J,K;
-	char *W;
+	uint8_t *W;
 	if (TblFlags&TblMod_Made) return;
 	TblFlags|=TblMod_Made;
 	// Generate a Multiplicative (Modulation) table
-	ModTbl = new char[65536]; // should have been aligned.
+	ModTbl = new uint8_t[65536]; // should have been aligned.
 	W = ModTbl;
 	for(J=0;J<256;J++)
 		for(I=0;I<256;I++)
 		{
 			K = I*J*3>>9;
-			if (K>255) *W++ = 255; else *W++ = K;
+			if (K>255) *W++ = 255; else *W++ = uint8_t(K);
 		}
 }
 
-void Fast16232(DWord *Dst,Word *Src,long Num)
-{
-	__asm
-	{
-		Mov ECx,Num
-			Mov EDI,Dst
-			Mov ESI,Src
-			LEA EDI,[EDI+ECx*4]
-			LEA ESI,[ESI+ECx*2]
-			Xor ECx,-1
-			Inc ECx
-Inner:
-			mov ax, word ptr [ESI+ECx*2]
-			Shl EAx,3
-			Ror EAx,8
-			Shl Ax,2
-			Shl Ah,3
-			Rol EAx,8
-			Mov dword ptr [EDI+ECx*4],EAx
-			Inc ECx
-			JNZ Inner
-	}
-}
-
-void Fast32216(Word *Dst,DWord *Src,long Num)
-{
-	__asm
-	{
-		Mov ECx,Num
-			Mov EDI,Dst
-			Mov ESI,Src
-			LEA EDI,[EDI+ECx*2]
-			LEA ESI,[ESI+ECx*4]
-			Xor ECx,-1
-			Inc ECx
-Inner:
-			Mov EAx,dword ptr [ESI+ECx*4]
-			Shr Ah,2
-			Shl Ax,2
-			Ror EAx,16 //; Partial stall - 6 Cycles
-			Shr Al,3
-			Rol EAx,11 //; Partial stall - 6 Cycles
-			Mov word ptr [EDI+ECx*2],Ax
-			Inc ECx
-			JNZ Inner
-	}
-}
-
-void T16Conv(Word **Data,long OldX,long OldY,long X,long Y)
-{
-	Image Img;
-	New_Image(&Img,OldX,OldY);
-	Fast16232(Img.Data,*Data,OldX*OldY);
-	delete *Data;
-	Scale_Image(&Img,X,Y);
-	*Data = (Word *)Img.Data;
-	*Data = new Word[X*Y];
-	Fast32216(*Data,Img.Data,X*Y);
-	delete Img.Data;
-}
+//void Fast16232(DWord *Dst,Word *Src,long Num)
+//{
+//	__asm
+//	{
+//		Mov ECx,Num
+//			Mov EDI,Dst
+//			Mov ESI,Src
+//			LEA EDI,[EDI+ECx*4]
+//			LEA ESI,[ESI+ECx*2]
+//			Xor ECx,-1
+//			Inc ECx
+//Inner:
+//			mov ax, word ptr [ESI+ECx*2]
+//			Shl EAx,3
+//			Ror EAx,8
+//			Shl Ax,2
+//			Shl Ah,3
+//			Rol EAx,8
+//			Mov dword ptr [EDI+ECx*4],EAx
+//			Inc ECx
+//			JNZ Inner
+//	}
+//}
+//
+//void Fast32216(Word *Dst,DWord *Src,long Num)
+//{
+//	__asm
+//	{
+//		Mov ECx,Num
+//			Mov EDI,Dst
+//			Mov ESI,Src
+//			LEA EDI,[EDI+ECx*2]
+//			LEA ESI,[ESI+ECx*4]
+//			Xor ECx,-1
+//			Inc ECx
+//Inner:
+//			Mov EAx,dword ptr [ESI+ECx*4]
+//			Shr Ah,2
+//			Shl Ax,2
+//			Ror EAx,16 //; Partial stall - 6 Cycles
+//			Shr Al,3
+//			Rol EAx,11 //; Partial stall - 6 Cycles
+//			Mov word ptr [EDI+ECx*2],Ax
+//			Inc ECx
+//			JNZ Inner
+//	}
+//}
+//
+//void T16Conv(Word **Data,long OldX,long OldY,long X,long Y)
+//{
+//	Image Img;
+//	New_Image(&Img,OldX,OldY);
+//	Fast16232(Img.Data,*Data,OldX*OldY);
+//	delete *Data;
+//	Scale_Image(&Img,X,Y);
+//	*Data = (Word *)Img.Data;
+//	*Data = new Word[X*Y];
+//	Fast32216(*Data,Img.Data,X*Y);
+//	delete Img.Data;
+//}
 
 // Mip-maps a given Image by simple Texel averaging
 void MipmapXY(Image *Img)
@@ -235,7 +235,7 @@ void Convert_Texture2Image(Texture *Tx,Image *Img)
 	Img->x = 1 << Tx->LSizeX;
 	Img->y = 1 << Tx->LSizeY;
 	
-	size_t nPixels = 1 << (Tx->LSizeX + Tx->LSizeY);
+	size_t nPixels = size_t{ 1 } << (Tx->LSizeX + Tx->LSizeY);
 	if (TT->BPP!=32)
 	{
 		// make a new texture, convert it, and hand over the data
@@ -280,21 +280,21 @@ void Convert_Image2Texture(Image *Img,Texture *Tx)
 		W = (byte *)Tx->Data;
 		X4 = TI->x<<2;
 		X4_4 = X4+4;
-		dX = (float)(TI->x-1.0)/256.0;
-		dY = (float)(TI->y-1.0)/256.0;
+		dX = (float)(TI->x-1.0)/256.0f;
+		dY = (float)(TI->y-1.0)/256.0f;
 		Y = 0.0;
 		for(J=0;J<256;J++)
 		{
 			X = 0.0;
-			iY = floor(Y);
+			iY = floorf(Y);
 			lY = Y-iY;
-			rY = 1.0-lY;
+			rY = 1.0f-lY;
 			RY = R+((((int)iY)*TI->x)<<2);
 			for(I=0;I<256;I++)
 			{
-				iX = floor(X);
+				iX = floorf(X);
 				lX = X-iX;
-				rX = 1.0-lX;
+				rX = 1.0f-lX;
 				RO = RY+((int)iX<<2);
 				rXrY = rX*rY; lXrY=lX*rY; rXlY = rX*lY; lXlY = lX*lY;
 				
@@ -611,7 +611,7 @@ void Image_Enhance(Image *Img)
 void Bump_Image_2D(Image *Prim,Image *BMap,Image *BTbl,long LX,long LY)
 {
 	long X,Y,CX,CY,mx,my,MX,MY,FX,FY,YOL,YOU,Mod;
-	char *Modulation;
+	uint8_t *Modulation;
 	byte *D1,*D2,*D3;
 	
 	// Several Checks on the passed parameters.

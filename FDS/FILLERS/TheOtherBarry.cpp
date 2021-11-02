@@ -279,8 +279,8 @@ namespace barry {
 			// r		g		b		a		r		g		b		a			r			g			b			a			r			g			b			a
 			
 			auto color = v32_from_arith_seq(
-				{ int16_t(tile.t0.r0 * 63.999f), int16_t(tile.t0.g0 * 63.999f), int16_t(tile.t0.b0 * 63.999f), int16_t(tile.t0.a0 * 63.999f) },
-				{ int16_t(drdx * 63.999f),	   int16_t(dgdx * 63.999f),		int16_t(dbdx * 63.999f),		 int16_t(dadx * 63.999f) });
+				{ int16_t(tile.t0.r0 * 63.0f), int16_t(tile.t0.g0 * 63.0f), int16_t(tile.t0.b0 * 63.0f), int16_t(tile.t0.a0 * 63.0f) },
+				{ int16_t(drdx * 63.0f),	   int16_t(dgdx * 63.0f),		int16_t(dbdx * 63.0f),		 int16_t(dadx * 63.0f) });
 			
 			//Vec16s rg
 			for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32, zspan += XRes) {
@@ -321,7 +321,7 @@ namespace barry {
 				p_uz += Vec8f(t0.duzdy);
 				p_vz += Vec8f(t0.dvzdy);
 
-				color += Vec32sFromVec4s({ int16_t(drdy*63.999f), int16_t(dgdy * 63.999f), int16_t(dbdy * 63.999f), int16_t(dady * 63.999f) });
+				color += Vec32sFromVec4s({ int16_t(drdy*63.0f), int16_t(dgdy * 63.0f), int16_t(dbdy * 63.0f), int16_t(dady * 63.0f) });
 
 				p_a += Vec8i(tile.dady);
 				p_b += Vec8i(tile.dbdy);

@@ -108,9 +108,11 @@ void DO_NOP();
 #ifdef WIN32
 void DO_NOP()
 {
+#ifdef NON_PORTABLE_CODE
 	__asm {
 		NOP
 	}
+#endif
 }
 #endif
 

@@ -479,8 +479,8 @@ material global ID or ptr
 #include "Config.h"
 #include "Fillers/IX.h"
 #include "threads.h"
-//#include "FModWrapper.h"
 #include "../Modplayer/Modplayer.h"
+//#include <SDL.h>
 
 // global configuration db
 static ConfigurationDB *g_cfg;
@@ -622,8 +622,10 @@ void SysSleep(dword ticks)
 
 #ifdef WIN32
 #include "GDI.H"
+#ifdef NON_PORTABLE_CODE
 #include "DDRAW.h"
 #include "D3D8.h"
+#endif
 
 FILE *Stub_Log;
 DWORD Stub_Disable;
@@ -663,7 +665,7 @@ void FlipRequest(VESA_Surface *VS)
 
 // Timer code.
 static void CALLBACK TimerProc(UINT wTimerID, UINT msg, 
-    DWORD dwUser, DWORD dw1, DWORD dw2) 
+    DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
 { 
     (*TimerPtr)++;
 } 
@@ -674,7 +676,7 @@ int TimerInit(long Freq)
 	DWORD msInterval = 1000/Timer_Freq; //millisecond accuracy.
 	DWORD wTimerRes = 0;
 
-	TimerID = timeSetEvent(msInterval,wTimerRes,TimerProc,NULL,TIME_PERIODIC );
+	TimerID = timeSetEvent(msInterval,wTimerRes,TimerProc,NULL,TIME_PERIODIC);
 
 	if (!TimerID)
 	{
@@ -699,7 +701,12 @@ static dword InitDisplayDevice()
 {
 	long rv = -1;
 	char *displayAPI = g_cfg->extractString("DisplayAPI");
-	if (!strcmp(displayAPI, "D3D8"))
+#ifdef NON_PORTABLE_CODE
+	if (!strcmp(displayAPI, "SDL2")) {
+		// initialize Direct3D 8.0 based display
+		g_displayType = 3;
+		//rv = SDL_InitDisplay();
+	} else if (!strcmp(displayAPI, "D3D8"))
 	{
 		// initialize Direct3D 8.0 based display
 		g_displayType = 0;
@@ -709,7 +716,9 @@ static dword InitDisplayDevice()
 		// initialize DDRAW based display.
 		g_displayType = 1;
 		rv = DDRAW_InitDisplay();
-	} else if (!strcmp(displayAPI, "GDI"))
+	} else 
+#endif
+	if (!strcmp(displayAPI, "GDI"))
 	{
 		// initialize GDI based display
 		g_displayType = 2;
@@ -1123,6 +1132,7 @@ void VolTrace(Image &Im)
 	}
 }
 
+#ifdef NON_PORTABLE_CODE
 #include <CoffReader/CoffReader.h>
 //extern "C" {	void IX_TGZSAM_AsmFiller(); }
 
@@ -1155,6 +1165,7 @@ struct ThreadLocalFillerInitializer {
 	CoffReader IXTGZTAM;
 	CoffReader IXTGZTM;
 };
+#endif
 
 struct ThreadPoolCleanup {
 	~ThreadPoolCleanup() {
@@ -1165,33 +1176,10 @@ struct ThreadPoolCleanup {
 void CodeEntry(void *var)
 {
 	_controlfp(_EM_INEXACT, _MCW_EM);
-	ConfigurationDB cfg;
-	g_cfg = &cfg;
-	if (0)
-	{
-		// Write ConfigurationDB.
-		cfg.setCategory("Primary");	
-		cfg.addEntry(new CFGInteger("MusicEnable", 1));
-		cfg.addEntry(new CFGInteger("ResolutionX", 640));
-		cfg.addEntry(new CFGInteger("ResolutionY", 480));
-		cfg.addEntry(new CFGInteger("FullScreenMode", 1));
-		cfg.addEntry(new CFGInteger("ProfilerEnable", 1));
-		cfg.toFile("rev.cfg");		
-	} else
-	{
-		// Read ConfigurationDB.
-		cfg.fromFile("rev.cfg");
-	}
-	
-	g_playMusic = cfg.extractInteger("MusicEnable");
-	g_profilerActive = cfg.extractInteger("ProfilerEnable");
-	g_demoXRes = cfg.extractInteger("ResolutionX");	
-	g_demoYRes = cfg.extractInteger("ResolutionY");
-
 	int yadda = 0;
 
-	int internalXRes = g_demoXRes;
-	int internalYRes = g_demoYRes;
+	const int internalXRes = g_demoXRes;
+	const int internalYRes = g_demoYRes;
 	LogFile = fopen("Runtime.LOG","wt");
 
 	if (!FDS_Init(internalXRes, internalYRes,32))    // Initialize FDS
@@ -1202,7 +1190,9 @@ void CodeEntry(void *var)
 	
 	//if (g_playMusic)
 	//	FModInit();
+#ifdef NON_PORTABLE_CODE
 	InitFillers(VirtualProtect, PAGE_EXECUTE_READWRITE);
+#endif
 
 	// device init parameters
 	g_DIP.hInst = G_hInst;
@@ -1212,7 +1202,6 @@ void CodeEntry(void *var)
 	g_DIP.bpp = 32;
 	g_DIP.flags = 0;
 
-	g_fullScreenMode = cfg.extractInteger("FullScreenMode");
 	if (g_fullScreenMode)
 		g_DIP.flags |= DISP_FULLSCREEN;
 
@@ -1239,11 +1228,15 @@ void CodeEntry(void *var)
 	}
 	g_RevModuleHandle = sh;
 
+#ifdef NON_PORTABLE_CODE
 	filler_initializer = new ThreadLocalFillerInitializer();
 	filler_initializer->Apply();
+#endif
 
 	ThreadPool::instance().init([]() {
+#ifdef NON_PORTABLE_CODE
 		filler_initializer->Apply();
+#endif
 		InitPolyStats(200);
 		_control87(_PC_24 | _RC_UP, _MCW_PC | _MCW_RC);
 		FPU_LPrecision();
@@ -1258,7 +1251,9 @@ void CodeEntry(void *var)
 	//Initialize_Nova();
 
 	std::thread t1([]() {
+#ifdef NON_PORTABLE_CODE
 		filler_initializer->Apply();
+#endif
 		InitPolyStats(200);
 		_control87(_PC_24 | _RC_UP, _MCW_PC | _MCW_RC);
 		FPU_LPrecision();
@@ -1328,11 +1323,18 @@ static dword RemoveDisplayDevice(void)
 	switch (g_displayType)
 	{
 	case 0:
+#ifdef NON_PORTABLE_CODE
 		return D3D8_RemoveDisplay();
+#endif
 	case 1:
+#ifdef NON_PORTABLE_CODE
 		return DDRAW_RemoveDisplay();
+#endif
 	case 2:
 		// TODO: GDI_RemoveDisplay();
+		break;
+	case 3:
+		//return SDL2_RemoveDisplay();
 		break;
 	}
 	return 0;
@@ -1478,8 +1480,51 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      LPSTR     lpCmdLine,
                      int       nCmdShow)
 {
-	MID = GetCurrentThreadId();
-	
+	ConfigurationDB cfg;
+	g_cfg = &cfg;
+	if (0) {
+		// Write ConfigurationDB.
+		cfg.setCategory("Primary");
+		cfg.addEntry(new CFGInteger("MusicEnable", 1));
+		cfg.addEntry(new CFGInteger("ResolutionX", 640));
+		cfg.addEntry(new CFGInteger("ResolutionY", 480));
+		cfg.addEntry(new CFGInteger("FullScreenMode", 1));
+		cfg.addEntry(new CFGInteger("ProfilerEnable", 1));
+		cfg.toFile("rev.cfg");
+	} else {
+		// Read ConfigurationDB.
+		cfg.fromFile("rev.cfg");
+	}
+
+	g_playMusic = cfg.extractInteger("MusicEnable");
+	g_profilerActive = cfg.extractInteger("ProfilerEnable");
+	g_demoXRes = cfg.extractInteger("ResolutionX");
+	g_demoYRes = cfg.extractInteger("ResolutionY");
+	g_fullScreenMode = cfg.extractInteger("FullScreenMode");
+
+
+	//MID = GetCurrentThreadId();
+	//
+	//SDL_Window* window;                    // Declare a pointer
+
+	//SDL_Init(SDL_INIT_VIDEO);              // Initialize SDL2
+
+	//uint32_t flags = SDL_WINDOW_ALWAYS_ON_TOP;
+
+	//if (g_fullScreenMode) {
+	//	flags |= SDL_WINDOW_FULLSCREEN;
+	//}
+
+	//// Create an application window with the following settings:
+	//window = SDL_CreateWindow(
+	//	G_TitleStr,		                   // window title
+	//	SDL_WINDOWPOS_CENTERED,           // initial x position
+	//	SDL_WINDOWPOS_CENTERED,           // initial y position
+	//	g_demoXRes,                               // width, in pixels
+	//	g_demoYRes,                               // height, in pixels
+	//	flags                   // flags - see below
+	//);
+
 	MSG msg;
 	G_hInst = hInstance;
 	WNDCLASSEX wcex;
