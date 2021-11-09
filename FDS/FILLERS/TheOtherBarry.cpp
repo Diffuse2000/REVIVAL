@@ -5,6 +5,7 @@
 #include <simd/vectorclass.h>
 #include <cassert>
 #include <array>
+#include "SimdHelpers.h"
 
 namespace barry {
 	constexpr const int32_t TILE_SIZE = 8;
@@ -49,7 +50,8 @@ namespace barry {
 
 	enum class TBlendMode {
 		XOR,
-		OVERWRITE
+		OVERWRITE,
+		TRANSPARENT,
 	};
 
 	// block-tiling adjustment functions
@@ -81,120 +83,6 @@ namespace barry {
 
 	uint32_t tile_du(uint32_t u, uint32_t vbits, uint32_t umask) {
 		return tile_u(u, vbits, umask) | 0x800 | (((1 << vbits) - 1) << 14);
-	}
-
-	// block-tiling adjustment functions, V2
-	// Example for 256x256 texture
-	//    3         2         1         0
-	//   10987654321098765432109876543210
-	// U 0000000000000000UUUUUU00000000uu
-	// V 0000000000000000000000VVVVVVvv00
-
-	Vec8i packed_tile_v(Vec8i& v, uint32_t vmask) {
-		return (v & vmask) << 2;
-	}
-
-	uint32_t swizzle_umask(int32_t vbits, uint32_t umask) {
-		return (umask >> 2) << (2 + vbits);
-	}
-
-	Vec8i packed_tile_u(Vec8i& u, int32_t vbits, uint32_t swizzled_umask) {
-		return (u & 3) | ((u << vbits) & swizzled_umask);
-	}
-
-
-	template <typename T>
-	struct v8_trait {};
-
-	template <>
-	struct v8_trait<float> {
-		using value_type = Vec8f;
-		inline static const auto arith_seq_mult = value_type(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
-	};
-
-	template <>
-	struct v8_trait<int32_t> {
-		using value_type = Vec8i;
-		inline static const auto arith_seq_mult = value_type(0, 1, 2, 3, 4, 5, 6, 7);
-	};
-
-	template <typename V>
-	using v8_type = typename v8_trait<V>::value_type;
-
-	Vec8i mul_add(Vec8i a, Vec8i b, Vec8i x) {
-		return a * b + x;
-	}
-
-	Vec32us mul_add(Vec32us a, Vec32us b, Vec32us x) {
-		return a * b + x;
-	}
-
-	template < typename T>
-	v8_type<T> v8_from_arith_seq(T x_, T d_) {
-		auto x = v8_type<T>{x_};
-		auto d = v8_type<T>{d_};
-		return mul_add(d, v8_trait<T>::arith_seq_mult, x);
-	}
-
-	inline static const auto v32_arith_seq_mult = Vec32us(0, 0, 0, 0, 
-														  1, 1, 1, 1, 
-														  2, 2, 2, 2, 
-														  3, 3, 3, 3,
-														  4, 4, 4, 4,
-														  5, 5, 5, 5,
-														  6, 6, 6, 6,
-														  7, 7, 7, 7);
-
-
-	Vec32s Vec32sFromVec4s(std::array<int16_t, 4> x_) {
-		return Vec32s{ x_[0], x_[1], x_[2], x_[3],
-					   x_[0], x_[1], x_[2], x_[3],
-					   x_[0], x_[1], x_[2], x_[3],
-					   x_[0], x_[1], x_[2], x_[3],
-					   x_[0], x_[1], x_[2], x_[3],
-					   x_[0], x_[1], x_[2], x_[3],
-					   x_[0], x_[1], x_[2], x_[3],
-					   x_[0], x_[1], x_[2], x_[3], };
-	}
-
-	Vec32s v32_from_arith_seq(std::array<int16_t, 4> x_, std::array<int16_t, 4> d_) {
-		auto x = Vec32sFromVec4s(x_);
-		auto d = Vec32sFromVec4s(d_);
-		return mul_add(d, v32_arith_seq_mult, x);
-	}
-
-	Vec32uc colorize(Vec32uc color1, Vec32us color2) {
-		return compress((extend(color1) * (color2>>6)) >> 8);
-	}
-
-	static inline Vec8ui gather(const Vec8ui index, void const* table, Vec8ib mask) {
-#if INSTRSET >= 8
-		return _mm256_mask_i32gather_epi32((const int*)table, static_cast<__m256i>(index), static_cast<__m256i>(mask), 4);
-#else
-		auto t = (const uint32_t *)table;
-		uint32_t ind[8];
-		index.store(ind);
-		uint32_t m[8];
-		mask.store(m);
-
-		//return Vec8ui(t[ind[0]], t[ind[1]], t[ind[2]], t[ind[3]],
-		//			  t[ind[4]], t[ind[5]], t[ind[6]], t[ind[7]]); // ignore mask
-
-		return Vec8ui(m[0] ? t[ind[0]] : 0, m[1] ? t[ind[1]] : 0, m[2] ? t[ind[2]] : 0, m[3] ? t[ind[3]] : 0,
-					  m[4] ? t[ind[4]] : 0, m[5] ? t[ind[5]] : 0, m[6] ? t[ind[6]] : 0, m[7] ? t[ind[7]] : 0);
-#endif
-	}
-
-
-	Vec8ui m256i_from_arith_seq_tiled(uint32_t x0, uint32_t dx, uint32_t mask) {
-		const uint32_t x1 = (x0 + dx) & mask;
-		const uint32_t x2 = (x1 + dx) & mask;
-		const uint32_t x3 = (x2 + dx) & mask;
-		const uint32_t x4 = (x3 + dx) & mask;
-		const uint32_t x5 = (x4 + dx) & mask;
-		const uint32_t x6 = (x5 + dx) & mask;
-		const uint32_t x7 = (x6 + dx) & mask;
-		return Vec8ui{ x0, x1, x2, x3, x4, x5, x6, x7 };
 	}
 
 	struct TileRasterizer {
@@ -312,6 +200,12 @@ namespace barry {
 						auto p_offset = tu + tv;
 
 						const auto texture_samples = colorize(gather(p_offset, t0.TextureAddr, p_mask), color);
+
+						if constexpr (BlendMode == TBlendMode::TRANSPARENT) {
+							Vec32uc dst;
+							dst.load_a(span);
+							texture_samples = (texture_samples >> 1) + (dst >> 1)
+						}
 
 						_mm256_maskstore_ps((float*)span, *(__m256i*)(&p_mask), *(__m256*)(&texture_samples));
 					}
@@ -562,7 +456,7 @@ namespace barry {
 		return (int64_t(bx - ax) * int64_t(cy - ay) - int64_t(by - ay) * int64_t(cx - ax)) >> SUBPIXEL_BITS;
 	}
 
-	template <typename TTileRasterizer>
+	template <typename TTileRasterizer, TBlendMode BlendMode>
 	void rasterize_triangle(TTileRasterizer &rasterizer, const Vertex& v1, const Vertex& v2, const Vertex& v3) {
 		// FIXME: raster conventions (it is doing floor right now)
 		const int tile_mx = rasterizer.clampedX(std::min({ v1.PX, v2.PX, v3.PX })) / TILE_SIZE;
@@ -648,7 +542,7 @@ namespace barry {
 
 					//if ((((x ^ y) ) & 1)) 
 					{
-						rasterizer.apply_exact(tile);
+						rasterizer.apply_exact<BlendMode>(tile);
 					}
 					//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::OVERWRITE>(tile);
 					//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::XOR>(tile);
@@ -735,7 +629,7 @@ namespace barry {
 
 } // namespace barry
 
-
+template <TBlendMode BlendMode>
 void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 	//for (dword i = 0; i < numVerts; ++i) {
 	//	float z = 1.0f / V[i]->RZ;

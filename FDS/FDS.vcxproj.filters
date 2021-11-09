@@ -190,9 +190,6 @@
     <ClCompile Include="CoffReader\CoffReader.cpp">
       <Filter>CoffReader</Filter>
     </ClCompile>
-    <ClCompile Include="Fillers\TheOtherBarry.cpp">
-      <Filter>Fillers</Filter>
-    </ClCompile>
     <ClCompile Include="simd\instrset_detect.cpp">
       <Filter>SIMD</Filter>
     </ClCompile>
@@ -397,6 +394,9 @@
     </ClInclude>
     <ClInclude Include="simd\vectormath_trig.h">
       <Filter>SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="Fillers\SimdHelpers.h">
+      <Filter>Fillers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

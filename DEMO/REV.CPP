@@ -1,7 +1,7 @@
 #pragma comment(lib, "delayimp")  
-#ifndef _DEBUG
-#pragma comment(lib, "Modplayer")  
-#endif // !DEBUG
+//#ifndef _DEBUG
+//#pragma comment(lib, "Modplayer")  
+//#endif // !DEBUG
 
 #pragma comment(lib, "WS2_32")
 #pragma comment(lib, "userenv.lib")

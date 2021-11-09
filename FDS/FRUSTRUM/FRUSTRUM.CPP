@@ -208,12 +208,16 @@ void FrustumClipper::Near()
 		newVert->LB = _IA->LB + t * (_IB->LB - _IA->LB);
 		newVert->U = _IA->U + t * (_IB->U - _IA->U);
 		newVert->V = _IA->V + t * (_IB->V - _IA->V);
+		newVert->EU = _IA->EU + t * (_IB->EU - _IA->EU);
+		newVert->EV = _IA->EV + t * (_IB->EV - _IA->EV);
 
 		newVert->PX = newVert->TPos.x * C_VP.iNearZ;
 		newVert->PY = newVert->TPos.y * C_VP.iNearZ;
 		newVert->RZ = C_VP.iNearZ;
 		newVert->UZ = newVert->U * C_VP.iNearZ;
 		newVert->VZ = newVert->V * C_VP.iNearZ;
+		newVert->EUZ = newVert->EU * C_VP.iNearZ;
+		newVert->EVZ = newVert->EV * C_VP.iNearZ;
 
 		Calc_Flags(newVert);
 		C_Scnd[j++] = newVert++;
@@ -253,6 +257,10 @@ void FrustumClipper::Far()
 		newVert->V = _IA->V + t * (_IB->V-_IA->V);
 		newVert->UZ = C_VP.iFarZ * newVert->U;
 		newVert->VZ = C_VP.iFarZ * newVert->V;
+		newVert->EU = _IA->EU + t * (_IB->EU - _IA->EU);
+		newVert->EV = _IA->EV + t * (_IB->EV - _IA->EV);
+		newVert->EUZ = C_VP.iFarZ * newVert->EU;
+		newVert->EVZ = C_VP.iFarZ * newVert->EV;
 		Calc_Flags(newVert);
 		C_Scnd[j++] = newVert++;
 	}
@@ -275,12 +283,16 @@ void FrustumClipper::FInterpolator(Vertex *V, float t)
 	V->RZ = _IA->RZ + t * (_IB->RZ - _IA->RZ);
 	V->UZ = _IA->UZ + t * (_IB->UZ - _IA->UZ);
 	V->VZ = _IA->VZ + t * (_IB->VZ - _IA->VZ);
+	V->EUZ = _IA->EUZ + t * (_IB->EUZ - _IA->EUZ);
+	V->EVZ = _IA->EVZ + t * (_IB->EVZ - _IA->EVZ);
 	V->i = _IA->i;
 
 	// calculate (U,V)
 	V->TPos.z = 1.0 / V->RZ;
 	V->U = V->UZ * V->TPos.z;
 	V->V = V->VZ * V->TPos.z;
+	V->EU = V->EUZ * V->TPos.z;
+	V->EV = V->EVZ * V->TPos.z;
 }
 
 void FrustumClipper::Left()
@@ -695,18 +707,24 @@ void FrustumClipper::Render(Face *F, RasterFunc filler, bool isEnvCoords)
 	*C = *F->C;
 	newVert = &C_Verts[3];
 
-	if (isEnvCoords) {
-		A->U = F->EU1; A->V = F->EV1;
-		B->U = F->EU2; B->V = F->EV2;
-		C->U = F->EU3; C->V = F->EV3;
-	} else {
-		A->U = F->U1; A->V = F->V1;
-		B->U = F->U2; B->V = F->V2;
-		C->U = F->U3; C->V = F->V3;
+	A->U = F->U1; A->V = F->V1;
+	B->U = F->U2; B->V = F->V2;
+	C->U = F->U3; C->V = F->V3;
+
+	if (F->Flags & Face_Reflective) {
+		A->EU = F->EU1; A->EV = F->EV1;
+		B->EU = F->EU2; B->EV = F->EV2;
+		C->EU = F->EU3; C->EV = F->EV3;
 	}
+
 	A->UZ = A->U * A->RZ; A->VZ = A->V * A->RZ;
 	B->UZ = B->U * B->RZ; B->VZ = B->V * B->RZ;
 	C->UZ = C->U * C->RZ; C->VZ = C->V * C->RZ;
+	if (F->Flags & Face_Reflective) {
+		A->EUZ = A->EU * A->RZ; A->EVZ = A->EV * A->RZ;
+		B->EUZ = B->EU * B->RZ; B->EVZ = B->EV * B->RZ;
+		C->EUZ = C->EU * C->RZ; C->EVZ = C->EV * C->RZ;
+	}
 
 	auto [Af, Bf, Cf] = std::tuple(A->Flags, B->Flags, C->Flags);
 	Calc_Flags(A);

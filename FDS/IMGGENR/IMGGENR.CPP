@@ -9,6 +9,8 @@
 #include "Base/FDS_DECS.H"
 #include "Base/Omni.H"
 #include <memory>
+#include <simd/vectorclass.h>
+#include <FILLERS/SimdHelpers.h>
 
 dword WobNumOfHorizontalBlocks;
 dword WobNumOfVerticalBlocks;
@@ -606,7 +608,92 @@ __declspec(align(16)) struct uint128 {
 // texture/gouraud grid renderer.
 void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YRes)
 {
+	const auto UScaleFactor = 256.0f;
+	const auto VScaleFactor = 256.0f;
+	int32_t t0_umask = (1 << 8) - 1;
+	int32_t t0_vmask = (1 << 8) - 1;
+	int32_t t0_umask_swizzled = swizzle_umask(8, t0_umask);
+
+
 	// hopefully, paragraph aligned
+
+//	Vec8ui c0, c1, dc0dy, dc1dy, c, dcdx, t;
+	dword i, j, x, y, gx = (XRes / Grid_Subsamp) + 1;
+	dword* tex = Img->Data;
+	GridPointTG* p[4];
+	//	GridPointTG *p00, *p01, *p10, *p11;		
+
+	p[0] = GP;
+	p[1] = GP + 1;
+	p[2] = GP + gx;
+	p[3] = GP + gx + 1;
+
+	dword* block = page, * scanline;
+
+	long YLimit = YRes - Grid_Subsamp;
+	for (j = 0; j <= YLimit; j += Grid_Subsamp) {
+		for (i = 0; i < XRes; i += Grid_Subsamp) {
+			auto c0 = p[0]->BGRA;
+			auto c1 = p[1]->BGRA;
+			auto dc0dy = ((p[2]->BGRA) - c0) >> Grid_LOGSubsamp;
+			auto dc1dy = ((p[3]->BGRA) - c1) >> Grid_LOGSubsamp;
+
+
+			auto u0 = p[0]->u;
+			auto v0 = p[0]->v;
+			auto u1 = p[1]->u;
+			auto v1 = p[1]->v;
+
+			auto du0dy = (p[2]->u - u0) / Grid_Subsamp;
+			auto dv0dy = (p[2]->v - v0) / Grid_Subsamp;
+			auto du1dy = (p[3]->u - u1) / Grid_Subsamp;
+			auto dv1dy = (p[3]->v - v1) / Grid_Subsamp;
+
+			scanline = block;
+			for (y = 0; y < Grid_Subsamp; y++) {
+				auto dudx = (u1 - u0) / Grid_Subsamp;
+				auto dvdx = (v1 - v0) / Grid_Subsamp;
+				Vec8f p_u = v8_from_arith_seq(u0, dudx);
+				Vec8f p_v = v8_from_arith_seq(v0, dvdx);
+
+				Vec8i u = roundi(p_u);
+				Vec8i v = roundi(p_v);
+
+				auto c = c0;
+				auto dcdx = (c1 - c0) >> Grid_LOGSubsamp;
+				auto color = v32_from_arith_seq(c0, dcdx);
+
+
+				Vec8i tu = packed_tile_u(u, 8, t0_umask_swizzled);
+				Vec8i tv = packed_tile_v(v, t0_vmask);
+
+				auto p_offset = tu + tv;
+				const auto texture_samples = colorize(gather(p_offset, tex), color);
+
+				texture_samples.store(scanline);
+
+				scanline += XRes;
+
+				u0 += du0dy;
+				v0 += dv0dy;
+				u1 += du1dy;
+				v1 += dv1dy;
+				c0 += dc0dy;
+				c1 += dc1dy;
+			}
+			block += Grid_Subsamp;
+			p[0]++;
+			p[1]++;
+			p[2]++;
+			p[3]++;
+		}
+		block += (Grid_Subsamp - 1) * XRes;
+		p[0]++;
+		p[1]++;
+		p[2]++;
+		p[3]++;
+	}
+
 #ifdef NON_PORTABLE_CODE
 	mmreg c0, c1, dc0dy, dc1dy, c, dcdx, t;
 
@@ -769,7 +856,7 @@ extern "C" void _Grid_Texture_Mapper_TG(char *Texture,GridPoint *Points,char *Vi
 #define CGrid_Texture_MapASM_320	Grid_Texture_MapASM_320V
 #define CGrid_Texture_MapASM_XXX	Grid_Texture_MapASM_XXXV
 #define CGrid_Texture_MapASMMX		Grid_Texture_MapASMMXV
-#define CGrid_Texture_Mapper_TG		Grid_Texture_Mapper_TGV
+#define CGrid_Texture_Mapper_TG		GridRendererTG // Grid_Texture_Mapper_TGV
 #define CGrid_Texture_Mapper_T		Grid_Texture_Mapper_TV
 
 //extern "C" void Grid_Texture_MapASM_(void);
@@ -1604,9 +1691,10 @@ void Grid_Texture_MapASMMX(GridPoint *GP,Image *Img,DWord *DAC)
 	CGrid_Texture_MapASMMX((char *)Img->Data,GP,(char *)DAC);
 }
 */
-void Grid_Texture_Mapper_TG(GridPointTG *GP,Image *Img,DWord *DAC)
+void Grid_Texture_Mapper_TG(GridPointTG *GP,Image *Img,DWord *DAC, dword x, dword y)
 {
-	CGrid_Texture_Mapper_TG((char *)Img->Data,GP,(char *)DAC);
+	GridRendererTG(GP, Img, DAC, x, y);
+	//CGrid_Texture_Mapper_TG((char *)Img->Data,GP,(char *)DAC, XRes, YRes);
 }
 
 void Grid_Texture_Mapper_T(GridPointT *GP, Image *Img, DWord *DAC)
@@ -2197,7 +2285,7 @@ void Phong_Map(Image *Img,float R,float G,float B,float Power)
 		{
 			Z = Y2-X*X; //so the Magnitude of (X,Y,Z) will be 1
 			if (Z<0.0) {*Ptr++ = 0; X += dX; continue;}
-			Z = 255.0*pow(Z,Power);
+			Z = 255.0f*powf(Z,Power);
 			*Ptr++ = ((int)(R*Z)<<16)+((int)(G*Z)<<8)+(int)(B*Z);
 			X += dX;
 		}

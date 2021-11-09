@@ -155,7 +155,7 @@
       <PreprocessorDefinitions>PORTABLE_CODE=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <PrecompiledHeaderOutputFile>.\Release/FDS.pch</PrecompiledHeaderOutputFile>
@@ -171,7 +171,6 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <FloatingPointModel>Fast</FloatingPointModel>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <OmitFramePointers>true</OmitFramePointers>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -181,6 +180,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <IntelJCCErratum>true</IntelJCCErratum>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -268,10 +268,13 @@
       <SDLCheck>false</SDLCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <IntelJCCErratum>true</IntelJCCErratum>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -322,7 +325,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>PORTABLE_CODE;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PORTABLE_CODE=1;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
@@ -421,7 +424,6 @@
     <ClCompile Include="FILLERS\IXGZ.cpp" />
     <ClCompile Include="FILLERS\IXTGZ.cpp" />
     <ClCompile Include="FILLERS\IXTZ.cpp" />
-    <ClCompile Include="Fillers\TheOtherBarry.cpp" />
     <ClCompile Include="FLD\FLD_CONV.CPP" />
     <ClCompile Include="FLD\FLD_MAT.CPP" />
     <ClCompile Include="FLD\FLD_READ.CPP" />
@@ -484,6 +486,7 @@
     <ClInclude Include="FILLERS\F4Vec.h" />
     <ClInclude Include="Fillers\FILLERS.H" />
     <ClInclude Include="FILLERS\IX.h" />
+    <ClInclude Include="Fillers\SimdHelpers.h" />
     <ClInclude Include="Fillers\TheOtherBarry.h" />
     <ClInclude Include="FLD\FLD_READ.H" />
     <ClInclude Include="FLD\LWREAD.H" />

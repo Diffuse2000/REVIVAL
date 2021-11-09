@@ -75,4 +75,8 @@
     </ClInclude>
     <ClInclude Include="SDL2.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\Modplayer\modplayer-32.lib" />
+    <Library Include="..\Modplayer\modplayer-64.lib" />
+  </ItemGroup>
 </Project>

@@ -37,7 +37,9 @@ struct  Vertex
 	Vector			N;          // PseudoNormal
 //	float			EU,EV;      // Environment mapping coordinates
 //	float			REU,REV;    // EU/Z, EV/Z.
+	float			EUZ = 0.0f, EVZ = 0.0f;
 	float			U = 0.0f, V = 0.0f;        // Original mapping coordinates
+	float			EU = 0.0f, EV = 0.0f;        // Original mapping coordinates
 	DWord			Flags = 0;
 	int i = -1;
 

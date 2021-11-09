@@ -19,6 +19,7 @@
 #include "jpeglib.h"
 #include "jdhuff.h"		/* Declarations shared with jdphuff.c */
 
+#pragma warning(disable:4146)
 
 /*
  * Expanded entropy decoder object for Huffman decoding.

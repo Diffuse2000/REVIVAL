@@ -19,6 +19,7 @@
 #include "jpeglib.h"
 #include "jdhuff.h"		/* Declarations shared with jdhuff.c */
 
+#pragma warning(disable:4146)
 
 #ifdef D_PROGRESSIVE_SUPPORTED
 

@@ -99,6 +99,7 @@ VESA_Surface Layer2;
 #include "GENERAL.H"
 #include "SORTS.H"
 #include <Threads.h>
+#include <FILLERS/TheOtherBarry.h>
 
 // RULEZ
 #ifdef _C_WATCOM
@@ -1752,14 +1753,13 @@ void RenderInner(float x1, float y1, float x2, float y2) {
 			if (flags & Vtx_Visible) continue;
 			RasterFunc filler;
 			if (F->Flags & Face_Reflective) {
-				filler = IX_Prefiller_TGZM;
+				clipper.Render(F, TheOtherBarry<barry::TBlendMode::OVERWRITE, barry::TTextureMode::TEXTURETEXTURE>, false);
 			} else {
-				filler = F->Filler;
+				clipper.Render(F, F->Filler, false);
 			}
-			clipper.Render(F, filler, false);
-			if (F->Flags & Face_Reflective) {
-				clipper.Render(F, IX_Prefiller_Reflective, true);
-			}
+			//if (F->Flags & Face_Reflective) {
+			//	clipper.Render(F, IX_Prefiller_Reflective, true);
+			//}
 		}
 	}
 

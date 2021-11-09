@@ -1023,14 +1023,14 @@ void Assign_Fillers(Scene *Sc)
 			//};
 			RasterFunc stdFillers[10] = {
 				IX_Prefiller_FZ, // Flat (impl. gouraud)
-				TheOtherBarry,
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>,
 				IX_Prefiller_GZ, // Gouraud
-				TheOtherBarry,
+				TheOtherBarry<barry::TBlendMode::OVERWRITE, barry::TTextureMode::NORMAL>,
 				IX_Prefiller_FAcZ, // transparent Flat
-				TheOtherBarry,
-				IX_Prefiller_GAcZ, // transparent Gouraud
-				TheOtherBarry,
-				TheOtherBarry,
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
 			};
 
 			//if (rasterFlags > 0 && rasterFlags < 3) {

@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <atomic>
 #include <float.h>
+#include <array>
+#include <simd/vectorclass.h>
 
 // _data must be allocated
 class mmreg
@@ -151,8 +153,8 @@ typedef struct
 
 struct GridPointTG
 {
-	long u, v;	
-	mmreg BGRA;
+	float u, v;	
+	Vec8s BGRA; // we are only using lower 4 shorts
 };
 
 struct GridPointT
