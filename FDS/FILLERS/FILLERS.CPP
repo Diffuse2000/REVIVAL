@@ -1661,6 +1661,46 @@ void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel)
 }
 
 
+template <int TextureRes = 32>
+void Spriter(float x, float y, float width, float height, void* txtr, void* VPage, dword Color, float spriteClipX1, float spriteClipY1, float spriteClipX2, float spriteClipY2) {
+	float x1, y1, x2, y2;
+	float du, dv;
+	float u0 = 0, v0 = 0;
+	int32_t  iu, iv, idu, idv;
+	int32_t  LineWidth;
+	int32_t  Height;
+
+	x1 = (x - width);
+	x2 = (x + width);
+	y1 = (y - height);
+	y2 = (y + height);
+
+	if (x2 <= spriteClipX1 || x1 >= spriteClipX2 || y2 <= spriteClipY1 || y1 >= spriteClipY2) return;
+
+	du = float(TextureRes) / 2.0f / width;
+	dv = float(TextureRes) / 2.0f / height;
+
+	if (x1 < 0.0) {
+		u0 = du * (-x1);
+		x1 = 0.0;
+	}
+
+	if (x1 < spriteClipY1) {
+		v0 = dv * (spriteClipY1 - y1);
+		y1 = spriteClipY1;
+	}
+
+	if (y1 < spriteClipY1) {
+		v0 = dv * (spriteClipY1 - y1);
+		y1 = spriteClipY1;
+	}
+
+	if (x2 > XRes) x2 = XRes;
+	if (y2 > spriteClipY2) y2 = spriteClipY2;
+
+}
+
+
 #define PIG_VOMIT
 //void The_MMX_Spriter_32(Vertex **V, dword numVerts)
 
