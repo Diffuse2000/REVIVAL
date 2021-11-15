@@ -29,15 +29,6 @@
     <ClCompile Include="PhotonTracer.cpp" />
     <ClCompile Include="Raytracer.cpp" />
     <ClCompile Include="REV.CPP" />
-    <ClCompile Include="D3D8.CPP">
-      <Filter>D3D8</Filter>
-    </ClCompile>
-    <ClCompile Include="d3dutil.cpp">
-      <Filter>D3D8</Filter>
-    </ClCompile>
-    <ClCompile Include="dxutil.cpp">
-      <Filter>D3D8</Filter>
-    </ClCompile>
     <ClCompile Include="SDL2.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -61,18 +52,6 @@
     <ClInclude Include="Raytracer.h" />
     <ClInclude Include="REV.H" />
     <ClInclude Include="Win32Display.h" />
-    <ClInclude Include="D3D8.h">
-      <Filter>D3D8</Filter>
-    </ClInclude>
-    <ClInclude Include="D3D8i.h">
-      <Filter>D3D8</Filter>
-    </ClInclude>
-    <ClInclude Include="d3dutil.h">
-      <Filter>D3D8</Filter>
-    </ClInclude>
-    <ClInclude Include="dxutil.h">
-      <Filter>D3D8</Filter>
-    </ClInclude>
     <ClInclude Include="SDL2.h" />
   </ItemGroup>
   <ItemGroup>

@@ -37,6 +37,12 @@ struct v8_trait<int32_t> {
 	inline static const auto arith_seq_mult = value_type(0, 1, 2, 3, 4, 5, 6, 7);
 };
 
+template <>
+struct v8_trait<uint32_t> {
+	using value_type = Vec8ui;
+	inline static const auto arith_seq_mult = value_type(0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u);
+};
+
 template <typename V>
 using v8_type = typename v8_trait<V>::value_type;
 
@@ -99,7 +105,7 @@ inline Vec32uc colorize(Vec32uc color1, Vec32us color2) {
 
 inline Vec8ui gather(const Vec8ui index, void const* table, Vec8ib mask) {
 #if INSTRSET >= 8
-	return _mm256_mask_i32gather_epi32((const int*)table, static_cast<__m256i>(index), static_cast<__m256i>(mask), 4);
+	return _mm256_mask_i32gather_epi32(Vec8ui(0), (const int *)table, static_cast<__m256i>(index), static_cast<__m256i>(mask), 4);
 #else
 	auto t = (const uint32_t*)table;
 	uint32_t ind[8];
@@ -117,7 +123,7 @@ inline Vec8ui gather(const Vec8ui index, void const* table, Vec8ib mask) {
 
 inline Vec8ui gather(const Vec8ui index, void const* table) {
 #if INSTRSET >= 8
-	return _mm256_mask_i32gather_epi32((const int*)table, static_cast<__m256i>(index), static_cast<__m256i>(Vec8ib(true)), 4);
+	return _mm256_i32gather_epi32((const int*)table, static_cast<__m256i>(index), 4);
 #else
 	auto t = (const uint32_t*)table;
 	uint32_t ind[8];

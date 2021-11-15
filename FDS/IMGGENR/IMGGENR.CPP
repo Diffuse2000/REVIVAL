@@ -668,7 +668,7 @@ void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YR
 				Vec8i tv = packed_tile_v(v, t0_vmask);
 
 				auto p_offset = tu + tv;
-				const auto texture_samples = colorize(gather(p_offset, tex), color);
+				const auto texture_samples = colorize(Vec32uc(gather(Vec8ui(p_offset), tex)), color);
 
 				texture_samples.store(scanline);
 

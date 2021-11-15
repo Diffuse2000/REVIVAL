@@ -255,7 +255,7 @@
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WarningLevel>Level3</WarningLevel>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1079,6 +1079,9 @@
   <ItemGroup>
     <ProjectReference Include="..\jpeg\jpeg.vcxproj">
       <Project>{347aee74-acd3-4375-a363-8e4d51890afe}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\pngread\pngread.vcxproj">
+      <Project>{e3531dba-7121-4548-a0b9-d147d1a310d2}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

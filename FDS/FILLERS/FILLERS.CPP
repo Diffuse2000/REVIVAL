@@ -9,6 +9,7 @@
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
 #include "Base/FDS_DEFS.H"
+#include "SimdHelpers.h"
 #include <Threads.h>
 #include <mmintrin.h>
 
@@ -1660,6 +1661,11 @@ void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel)
 
 }
 
+constexpr size_t clog2(size_t n)
+{
+	return ((n < 2) ? 0 : 1 + clog2(n / 2));
+}
+
 
 template <int TextureRes = 32>
 void Spriter(float x, float y, float width, float height, void* txtr, void* VPage, dword Color, float spriteClipX1, float spriteClipY1, float spriteClipX2, float spriteClipY2) {
@@ -1695,9 +1701,48 @@ void Spriter(float x, float y, float width, float height, void* txtr, void* VPag
 		y1 = spriteClipY1;
 	}
 
-	if (x2 > XRes) x2 = XRes;
+	if (x2 > spriteClipX2) x2 = spriteClipX2;
 	if (y2 > spriteClipY2) y2 = spriteClipY2;
 
+	const constexpr int32_t TILE_SIZE = 8;
+	int32_t ix1 = Fist(x1);
+	int32_t ix2 = Fist(x2);
+	int32_t iy1 = Fist(y1);
+	int32_t iy2 = Fist(y2);
+	int32_t tile_x1 = ix1 / TILE_SIZE;
+	int32_t tile_x2 = (ix2 + TILE_SIZE - 1) / TILE_SIZE;
+
+	Vec8i v_u0 = roundi(v8_from_arith_seq(u0 + (tile_x1 * TILE_SIZE - x1) * du, du) * 65536.0f);
+	Vec8i v_du = roundi(Vec8f(du * TILE_SIZE * 65536.0f));
+
+	Vec8i v_v = roundi(Vec8f(v0 + (iy1 - y1) * dv * 65536.0f));
+	Vec8i v_dv = roundi(Vec8f(dv * 65536.0f/64.0f));
+
+	Vec8i v_x0 = v8_from_arith_seq(tile_x1 * TILE_SIZE, 1);
+	//dstSurface + tile.y * TILE_SIZE * bpsl
+	dword* scanline = (dword*)(((byte*)VPage) + iy1 * VESA_BPSL);
+	for (int32_t y = iy1; y != iy2; ++y) {
+		Vec8i v_x = v_x0;
+		Vec8i v_u = v_u0;
+		Vec8i v_v_ofs = ((v_v >> 16) & (TextureRes - 1)) << clog2(TextureRes);
+		dword* span = scanline + tile_x1 * TILE_SIZE;
+		for (int32_t tile_x = tile_x1; tile_x != tile_x2; ++tile_x) {
+			Vec8ib mask = (ix1 <= v_x) & (v_x < ix2);
+			auto p_offset = ((v_u >> 16) & (TextureRes - 1)) | v_v_ofs;
+			auto texture_samples = gather(Vec8ui(p_offset), txtr, mask);
+			Vec32uc dst;
+			dst.load_a(span);
+			texture_samples = add_saturated(Vec32uc(texture_samples), dst);
+
+			_mm256_maskstore_ps((float*)span, *(__m256i*)(&mask), *(__m256*)(&texture_samples));
+
+			v_x += 8u;
+			v_u += v_du;
+			span += TILE_SIZE;
+		}
+		scanline += VESA_BPSL / 4;
+		v_v += v_dv;
+	}
 }
 
 
@@ -2129,14 +2174,16 @@ void TBR_Render(Scene *Sc)
 				B = V->LB;
 				dword Color = (R << 16) + (G << 8) + B;
 
-				Spriter32(V->PX,
+				Spriter(V->PX,
 					V->PY,
 					edgeLen,
 					edgeLen,
 					F->Txtr->Txtr->Data,
 					VPage,
 					Color, 
+					0,
 					spriteClipY1,
+					XRes,
 					spriteClipY2);
 				n = Sc->SBuffer[n].next;
 			}

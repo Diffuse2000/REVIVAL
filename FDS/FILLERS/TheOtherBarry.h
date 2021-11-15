@@ -202,8 +202,6 @@ struct TileRasterizer {
 		for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32, zspan += XRes) {
 			auto p_mask = (p_a | p_b | p_c) >= 0;
 			if (horizontal_or(p_mask)) {
-
-				// TODO? if mask is all zeroed, continue
 				Vec8f p_z = approx_recipr(p_rz);
 
 				auto z_candidate = (Vec8ui(0xFF80) - static_cast<Vec8ui>(roundi(g_zscale * p_z)));
@@ -228,11 +226,8 @@ struct TileRasterizer {
 					auto p_offset = tu + tv;
 
 					auto blend_color = color;
-					if constexpr (BlendMode == TBlendMode::TRANSPARENT) {
-						blend_color = add_saturated(blend_color, blend_color);
-					}
 
-					auto texture0_samples = gather(p_offset, t0.TextureAddr, p_mask);
+					auto texture0_samples = gather(Vec8ui(p_offset), t0.TextureAddr, p_mask);
 					if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
 						Vec8i u1 = roundi(p_u1z * p_z * 1024.0f);
 						Vec8i v1 = roundi(p_v1z * p_z * 1024.0f);
@@ -241,17 +236,16 @@ struct TileRasterizer {
 						Vec8i tv1 = packed_tile_v(v1, t1_vmask);
 
 						auto p_offset1 = tu1 + tv1;
-						auto texture1_samples = gather(p_offset1, t0.TextureAddr1, p_mask);
-						texture0_samples = Vec8ui(add_saturated(Vec32uc(texture1_samples) >> 1, Vec32uc(texture0_samples) >> 1));
-//						blend_color = add_saturated(blend_color, blend_color);
+						auto texture1_samples = gather(Vec8ui(p_offset1), t0.TextureAddr1, p_mask);
+						texture0_samples = Vec8ui(add_saturated(Vec32uc(texture1_samples), Vec32uc(texture0_samples) >> 1));
 					}
 
-					auto texture_samples = colorize(texture0_samples, blend_color);
+					auto texture_samples = colorize(Vec32uc(texture0_samples), blend_color);
 
 					if constexpr (BlendMode == TBlendMode::TRANSPARENT) {
 						Vec32uc dst;
 						dst.load_a(span);
-						texture_samples = add_saturated(texture_samples >> 1, dst >> 1);
+						texture_samples = add_saturated(texture_samples, dst >> 1);
 					}
 
 					_mm256_maskstore_ps((float*)span, *(__m256i*)(&p_mask), *(__m256*)(&texture_samples));
@@ -598,87 +592,9 @@ void rasterize_triangle(TTileRasterizer& rasterizer, const Vertex& v1, const Ver
 				{
 					rasterizer.apply_exact<BlendMode, TextureMode>(tile);
 				}
-				//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::OVERWRITE>(tile);
-				//rasterizer.apply<TInterpolationType::QUADRATIC, TBlendMode::XOR>(tile);
-				//for (int py = y * TILE_SIZE; py <= (y + 1) * TILE_SIZE - 1; ++py) {
-				//	byte* scanline = rasterizer.dstSurface + py * rasterizer.bpsl;
-				//	for (int px = x * TILE_SIZE; px <= (x + 1) * TILE_SIZE - 1; ++px) {
-				//		uint32_t& pixel = ((uint32_t*)scanline)[px];
-				//		pixel += 0x2c1cde;
-				//	}
-				//}
 			}
 		}
-	} //*/
-
-	/*const float m[4] = {
-		(v2.x - v1.x) / TILE_SIZE, (v2.y - v1.y) / TILE_SIZE,
-		(v3.x - v1.x) / TILE_SIZE, (v3.y - v1.y) / TILE_SIZE
-	};
-	const float det = m[0] * m[3] - m[1] * m[2];
-	const float r[4] = {
-		 m[3] / det, -m[1] / det,
-		-m[2] / det,  m[0] / det
-	};
-
-	// interpolants for alpha*w (alpha/z)
-	const float w_dx = r[0] * (v2.w - v1.w) + r[1] * (v3.w - v1.w);
-	const float w_dy = r[2] * (v2.w - v1.w) + r[3] * (v3.w - v1.w);
-	const float aw_dx = r[0] * v2.w;
-	const float aw_dy = r[2] * v2.w;
-	const float bw_dx = r[1] * v3.w;
-	const float bw_dy = r[3] * v3.w;
-
-	// set the origin at (mx, my) for convenience
-	float w_0 = v1.w + (tile_mx - v1.x / TILE_SIZE) * w_dx + (tile_my - v1.y / TILE_SIZE) * w_dy;
-	float aw_0 = (tile_mx - v1.x / TILE_SIZE) * aw_dx + (tile_my - v1.y / TILE_SIZE) * aw_dy;
-	float bw_0 = (tile_mx - v1.x / TILE_SIZE) * bw_dx + (tile_my - v1.y / TILE_SIZE) * bw_dy;
-
-	// per-pixel deltas
-
-	for (int y = tile_my; y <= tile_My; ++y, w_0 += w_dy, aw_0 += aw_dy, bw_0 += bw_dy) {
-		// tile vertices are numbered like this
-		// 0 1
-		// 2 3
-		// in each iteration on the x axis, we move the values for 1, 3 into 0, 2 and calc new 1, 3
-		float a1 = aw_0 / w_0;
-		float b1 = bw_0 / w_0;
-		float a3 = (aw_0 + aw_dy) / (w_0 + w_dy);
-		float b3 = (bw_0 + bw_dy) / (w_0 + w_dy);
-		int x = tile_mx; float w = w_0 + w_dx; float aw = aw_0 + aw_dx; float bw = bw_0 + bw_dx;
-		for (
-			;
-			x <= tile_Mx;
-			++x, w += w_dx, aw += aw_dx, bw += bw_dx
-			) {
-			const float a0 = a1;
-			const float b0 = b1;
-			const float a2 = a3;
-			const float b2 = b3;
-			a1 = aw / w;
-			b1 = bw / w;
-			a3 = (aw + aw_dy) / (w + w_dy);
-			b3 = (bw + bw_dy) / (w + w_dy);
-			Tile tile = {
-				.x = x,
-				.y = y,
-				.a0 = a0,
-				.dadx = (a1 - a0) / TILE_SIZE,
-				.dady = (a2 - a0) / TILE_SIZE,
-				.b0 = b0,
-				.dbdx = (b1 - b0) / TILE_SIZE,
-				.dbdy = (b2 - b0) / TILE_SIZE
-			};
-			float min_a = a0 + ((tile.dadx < 0) ? tile.dadx * TILE_SIZE : 0) + ((tile.dady < 0) ? tile.dady * TILE_SIZE : 0);
-			float max_a = a0 + ((tile.dadx > 0) ? tile.dadx * TILE_SIZE : 0) + ((tile.dady > 0) ? tile.dady * TILE_SIZE : 0);
-			float min_b = b0 + ((tile.dbdx < 0) ? tile.dbdx * TILE_SIZE : 0) + ((tile.dbdy < 0) ? tile.dbdy * TILE_SIZE : 0);
-			float max_b = b0 + ((tile.dbdx > 0) ? tile.dbdx * TILE_SIZE : 0) + ((tile.dbdy > 0) ? tile.dbdy * TILE_SIZE : 0);
-
-			if (max_a > 0 && max_b > 0 && min_a + min_b < 1) {
-				rasterizer.apply(tile);
-			}
-		}
-	}*/
+	} 
 }
 
 } // namespace barry

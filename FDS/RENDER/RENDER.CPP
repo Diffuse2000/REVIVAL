@@ -1770,8 +1770,8 @@ void RenderInner(float x1, float y1, float x2, float y2) {
 
 void Render()
 {
-	constexpr auto		numTilesX = 5;
-	constexpr auto		numTilesY = 3;
+	constexpr auto		numTilesX = 6;
+	constexpr auto		numTilesY = 4;
 	const auto			tileSizeX = (XRes + (numTilesX - 1)) / numTilesX;
 	const auto			tileSizeY = (YRes + (numTilesY - 1)) / numTilesY;
 
