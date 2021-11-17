@@ -1031,6 +1031,7 @@ void Assign_Fillers(Scene *Sc)
 				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
 				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
 				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
+				TheOtherBarry<barry::TBlendMode::ADDITIVE, barry::TTextureMode::NORMAL>, // transparent TG
 			};
 
 			//if (rasterFlags > 0 && rasterFlags < 3) {

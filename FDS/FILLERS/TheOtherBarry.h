@@ -59,6 +59,7 @@ enum class TBlendMode {
 	XOR,
 	OVERWRITE,
 	TRANSPARENT,
+	ADDITIVE,
 };
 
 enum class TTextureMode {
@@ -215,7 +216,9 @@ struct TileRasterizer {
 
 				if (horizontal_or(p_mask)) {
 
-					*(__m128i*)zspan = _mm_blendv_epi8(*(__m128i*)zspan, compress(z_candidate), compress(p_mask));
+//					if constexpr (BlendMode != TBlendMode::TRANSPARENT) {
+						*(__m128i*)zspan = _mm_blendv_epi8(*(__m128i*)zspan, compress(z_candidate), compress(p_mask));
+//					}
 
 					Vec8i u = roundi(p_uz * p_z * t0.UScaleFactor);
 					Vec8i v = roundi(p_vz * p_z * t0.VScaleFactor);
@@ -247,6 +250,13 @@ struct TileRasterizer {
 						dst.load_a(span);
 						texture_samples = add_saturated(texture_samples, dst >> 1);
 					}
+
+					if constexpr (BlendMode == TBlendMode::ADDITIVE) {
+						Vec32uc dst;
+						dst.load_a(span);
+						texture_samples = add_saturated(texture_samples, dst);
+					}
+
 
 					_mm256_maskstore_ps((float*)span, *(__m256i*)(&p_mask), *(__m256*)(&texture_samples));
 				}
