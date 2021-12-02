@@ -9,9 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DDRAW.cpp">
-      <Filter>DDRAW</Filter>
-    </ClCompile>
     <ClCompile Include="CHASE.CPP" />
     <ClCompile Include="CITY.CPP" />
     <ClCompile Include="Config.cpp" />
@@ -32,9 +29,6 @@
     <ClCompile Include="SDL2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DDRAW.h">
-      <Filter>DDRAW</Filter>
-    </ClInclude>
     <ClInclude Include="CHASE.H" />
     <ClInclude Include="CITY.H" />
     <ClInclude Include="Config.h" />

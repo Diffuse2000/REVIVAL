@@ -1127,20 +1127,21 @@ void Hierarchy_Sort(Scene *Sc)
 	ObjSort = new Object * [Objs];
 	ObjPtr = ObjSort;
 	
-	for(Obj = Sc->ObjectHead; Obj ; Obj=Obj->Next)
+	for (Obj = Sc->ObjectHead; Obj; Obj = Obj->Next) {
 		if (!Obj->Parent) Hierarchy_TreeSort(Obj);
+	}
 		
-		Sc->ObjectHead = ObjSort[0];
+	Sc->ObjectHead = ObjSort[0];
 		
-		ObjSort[0]->Prev = NULL; ObjSort[0]->Next = ObjSort[1];
-		for(I=1;I<Objs-1;I++)
-		{
-			ObjSort[I]->Prev = ObjSort[I-1];
-			ObjSort[I]->Next = ObjSort[I+1];
-		}
-		ObjSort[I]->Prev = ObjSort[I-1]; ObjSort[I]->Next = NULL;
+	ObjSort[0]->Prev = NULL; ObjSort[0]->Next = ObjSort[1];
+	for(I=1;I<Objs-1;I++)
+	{
+		ObjSort[I]->Prev = ObjSort[I-1];
+		ObjSort[I]->Next = ObjSort[I+1];
+	}
+	ObjSort[I]->Prev = ObjSort[I-1]; ObjSort[I]->Next = NULL;
 		
-		delete ObjSort;
+	delete ObjSort;
 }
 
 void SetPointFlare(Omni *O)

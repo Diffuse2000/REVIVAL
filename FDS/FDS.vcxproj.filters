@@ -61,9 +61,6 @@
     <Filter Include="Base">
       <UniqueIdentifier>{135c1895-4a3a-4483-be6b-32acee897848}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CoffReader">
-      <UniqueIdentifier>{d9e82236-db56-4f82-962c-b2e647f0b807}</UniqueIdentifier>
-    </Filter>
     <Filter Include="SIMD">
       <UniqueIdentifier>{1d18de85-e9f5-4493-9a1c-2b9b64c15249}</UniqueIdentifier>
     </Filter>
@@ -187,9 +184,6 @@
       <Filter>IMGGENR</Filter>
     </ClCompile>
     <ClCompile Include="Clipper.cpp" />
-    <ClCompile Include="CoffReader\CoffReader.cpp">
-      <Filter>CoffReader</Filter>
-    </ClCompile>
     <ClCompile Include="simd\instrset_detect.cpp">
       <Filter>SIMD</Filter>
     </ClCompile>
@@ -326,9 +320,6 @@
       <Filter>FRUSTRUM</Filter>
     </ClInclude>
     <ClInclude Include="Clipper.h" />
-    <ClInclude Include="CoffReader\CoffReader.h">
-      <Filter>CoffReader</Filter>
-    </ClInclude>
     <ClInclude Include="Threads.h">
       <Filter>Base</Filter>
     </ClInclude>
@@ -398,87 +389,13 @@
     <ClInclude Include="Fillers\SimdHelpers.h">
       <Filter>Fillers</Filter>
     </ClInclude>
+    <ClInclude Include="IMGCODE\stb_image.h">
+      <Filter>IMGCODE</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="MISC\mmreg.inl">
       <Filter>MISC</Filter>
     </None>
-    <None Include="FILLERS\IXTGZTTAM.ASM">
-      <Filter>Fillers</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="FILLERS\BIHI.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\BILINEAR.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\BITRFLAT.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\BITRUE.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\BITTRUE.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\GOURAUD.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\GOURMMX.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\GOURMMXT.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\IXTGZM.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\IXTGZTAM.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\IXTGZTM.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\SCALE.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\SCALE64.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\TEXTGOUR.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\TRNSGOUR.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\ZSCALE.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="IMGGENR\WOBTR.ASM">
-      <Filter>IMGGENR</Filter>
-    </CustomBuild>
-    <CustomBuild Include="IMGGENR\WOBTR320.ASM">
-      <Filter>IMGGENR</Filter>
-    </CustomBuild>
-    <CustomBuild Include="IMGGENR\WOBTRMMX.asm">
-      <Filter>IMGGENR</Filter>
-    </CustomBuild>
-    <CustomBuild Include="IMGGENR\WOBTRnew.asm">
-      <Filter>IMGGENR</Filter>
-    </CustomBuild>
-    <CustomBuild Include="IMGGENR\WOBTRXXX.ASM">
-      <Filter>IMGGENR</Filter>
-    </CustomBuild>
-    <CustomBuild Include="RENDER\PackedVars.ASM">
-      <Filter>RENDER</Filter>
-    </CustomBuild>
-    <CustomBuild Include="IXTGZSAM.asm">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FILLERS\SCALEMMX.ASM">
-      <Filter>Fillers</Filter>
-    </CustomBuild>
   </ItemGroup>
 </Project>

@@ -289,11 +289,6 @@ void freeAlignedBlock(void *ptr);
 #define ImageCodeIncluded
 char Identify_Texture(Texture *Tx);
 char Load_Texture(Texture *Tx);
-#ifdef C_WATCOM
-extern "C++" char *LoadJPEG(const char *argv1,unsigned int SeekPos);
-#else
-char *LoadJPEG(const char *argv1,unsigned int SeekPos);
-#endif
 void View_Texture(Texture *Tx);
 void BPPConvert_Texture(Texture *Tx, byte TB);
 void FilterLSB_Texture(Texture *T);

@@ -50,6 +50,9 @@ struct Tile {
 
 using Triangle = RVector4[3];
 
+constexpr const int8_t SUBPIXEL_BITS = 8;
+constexpr const float SUBPIXEL_MULT = 256.0f;
+
 enum class TInterpolationType {
 	AFFINE,
 	QUADRATIC
@@ -66,6 +69,14 @@ enum class TTextureMode {
 	NORMAL,
 	TEXTURETEXTURE,
 };
+
+inline TScreenCoord orient2d(
+	TScreenCoord ax, TScreenCoord ay,
+	TScreenCoord bx, TScreenCoord by,
+	TScreenCoord cx, TScreenCoord cy)
+{
+	return (int64_t(bx - ax) * int64_t(cy - ay) - int64_t(by - ay) * int64_t(cx - ax)) >> SUBPIXEL_BITS;
+}
 
 // block-tiling adjustment functions
 // Example for 256x256 texture
@@ -98,6 +109,7 @@ inline uint32_t tile_du(uint32_t u, uint32_t vbits, uint32_t umask) {
 	return tile_u(u, vbits, umask) | 0x800 | (((1 << vbits) - 1) << 14);
 }
 
+template <barry::TBlendMode BlendMode, barry::TTextureMode TextureMode>
 struct TileRasterizer {
 	TileRasterizer(Vertex** V, byte* dstSurface, int32_t bpsl, int32_t xres, int32_t yres, Texture* Txtr, int miplevel)
 		: V(V)
@@ -154,7 +166,6 @@ struct TileRasterizer {
 		return std::min(std::max(y, 0), yres - 1);
 	}
 
-	template <TBlendMode BlendMode, barry::TTextureMode TextureMode>
 	void apply_exact(const barry::Tile& tile) {
 		auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
 		auto zscanline = dstSurface + PageSize + tile.y * TILE_SIZE * XRes * 2;
@@ -218,7 +229,7 @@ struct TileRasterizer {
 
 //					if constexpr (BlendMode != TBlendMode::TRANSPARENT) {
 						*(__m128i*)zspan = _mm_blendv_epi8(*(__m128i*)zspan, compress(z_candidate), compress(p_mask));
-//					}
+					//}
 
 					Vec8i u = roundi(p_uz * p_z * t0.UScaleFactor);
 					Vec8i v = roundi(p_vz * p_z * t0.VScaleFactor);
@@ -277,335 +288,102 @@ struct TileRasterizer {
 		}
 	}
 
-	uint32_t quantize_z(float z) {
-		constexpr const float M = 0xff80 * 1024;
-		float zrem = fmod(z * g_zscale * 1024.0f, M);
-		if (zrem < 0.0f) {
-			zrem += M;
-		}
-		return M - zrem;
-	}
+	
+	void rasterize_triangle(const Vertex& v1, const Vertex& v2, const Vertex& v3) {
+		// FIXME: raster conventions (it is doing floor right now)
+		const int tile_mx = clampedX(std::min({ v1.PX, v2.PX, v3.PX })) / TILE_SIZE;
+		const int tile_Mx = clampedX(std::max({ v1.PX, v2.PX, v3.PX })) / TILE_SIZE;
+		const int tile_my = clampedY(std::min({ v1.PY, v2.PY, v3.PY })) / TILE_SIZE;
+		const int tile_My = clampedY(std::max({ v1.PY, v2.PY, v3.PY })) / TILE_SIZE;
 
-	uint32_t quantize_dz(float z) {
-		constexpr const float M = 0xff80 * 1024;
-		float zrem = fmod(z * g_zscale * 1024.0f, M);
-		if (zrem < 0.0f) {
-			zrem += M;
-		}
-		return -zrem;
-	}
+		TScreenCoord v1x = TScreenCoord(v1.PX * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v1y = TScreenCoord(v1.PY * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v2x = TScreenCoord(v2.PX * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v2y = TScreenCoord(v2.PY * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v3x = TScreenCoord(v3.PX * SUBPIXEL_MULT + 0.5);
+		TScreenCoord v3y = TScreenCoord(v3.PY * SUBPIXEL_MULT + 0.5);
 
+		TScreenCoord x0 = tile_mx * TILE_SIZE << SUBPIXEL_BITS;
+		TScreenCoord y0 = tile_my * TILE_SIZE << SUBPIXEL_BITS;
+		TScreenCoord _a0 = orient2d(v2x, v2y, v1x, v1y, x0, y0);
+		TScreenCoord _b0 = orient2d(v3x, v3y, v2x, v2y, x0, y0);
+		TScreenCoord _c0 = orient2d(v1x, v1y, v3x, v3y, x0, y0);
 
-	template <TInterpolationType IType = TInterpolationType::QUADRATIC, TBlendMode BlendMode = TBlendMode::OVERWRITE>
-	void apply(const barry::Tile& tile) {
-		auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
-		auto zscanline = dstSurface + PageSize + tile.y * TILE_SIZE * XRes * 2;
-		auto span = ((uint32_t*)scanline) + tile.x * TILE_SIZE;
-		auto zspan = ((uint16_t*)zscanline) + tile.x * TILE_SIZE;
-		auto bpsl_u32 = bpsl / sizeof(uint32_t);
+		TScreenCoord dadx = (v2y - v1y);
+		TScreenCoord dady = (v1x - v2x);
+		TScreenCoord dbdx = (v3y - v2y);
+		TScreenCoord dbdy = (v2x - v3x);
+		TScreenCoord dcdx = (v1y - v3y);
+		TScreenCoord dcdy = (v3x - v1x);
 
-		TScreenCoord a0 = tile.a0;
-		TScreenCoord b0 = tile.b0;
-		TScreenCoord c0 = tile.c0;
+		// flat without tiling
+		//for (int y = tile_my * TILE_SIZE; y <= tile_My * TILE_SIZE + TILE_SIZE - 1; ++y) {
+		//	byte* scanline = dstSurface + y * bpsl;
+		//	for (int x = tile_mx * TILE_SIZE; x <= tile_Mx * TILE_SIZE + TILE_SIZE - 1; ++x) {
+		//		TScreenCoord alpha = orient2d(v2x, v2y, v1x, v1y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
+		//		TScreenCoord beta = orient2d(v3x, v3y, v2x, v2y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
+		//		TScreenCoord gamma = orient2d(v1x, v1y, v3x, v3y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
+		//		uint32_t& pixel = ((uint32_t*)scanline)[x];
+		//		if (alpha >= 0 && beta >= 0 && gamma >= 0) {
+		//			pixel = 0xcdefab;
+		//		} /*else if (pixel == 0) {
+		//			pixel = 0x123456;
+		//		}*/
+		//	}
+		//}
+	//		/*
+			// this is constant across entire triangle
+		int i = 0;
+		float zoltek = 1.0f / (_a0 + _b0 + _c0);
+		for (int y = tile_my; y <= tile_My; ++y, _a0 += TILE_SIZE * dady, _b0 += TILE_SIZE * dbdy, _c0 += TILE_SIZE * dcdy, ++i) {
+			TScreenCoord a0 = _a0;
+			TScreenCoord b0 = _b0;
+			TScreenCoord c0 = _c0;
+			for (int x = tile_mx; x <= tile_Mx; ++x, a0 += TILE_SIZE * dadx, b0 += TILE_SIZE * dbdx, c0 += TILE_SIZE * dcdx, ++i) {
+				TScreenCoord max_a = a0 + ((dadx > 0) ? dadx * TILE_SIZE : 0) + ((dady > 0) ? dady * TILE_SIZE : 0);
+				TScreenCoord max_b = b0 + ((dbdx > 0) ? dbdx * TILE_SIZE : 0) + ((dbdy > 0) ? dbdy * TILE_SIZE : 0);
+				TScreenCoord max_c = c0 + ((dcdx > 0) ? dcdx * TILE_SIZE : 0) + ((dcdy > 0) ? dcdy * TILE_SIZE : 0);
 
-		float rz0 = tile.rz0;
-		float uz0 = tile.t0.uz0;
-		float vz0 = tile.t0.vz0;
-		float cr0 = tile.t0.r0;
-		float cg0 = tile.t0.g0;
-		float cb0 = tile.t0.b0;
-
-		uint32_t t0_umask = (1 << t0.LogWidth) - 1;
-		uint32_t t0_vmask = (1 << t0.LogHeight) - 1;
-		uint32_t t0_umask_tiled = tile_umask(t0.LogHeight, t0_umask);
-		uint32_t t0_vmask_tiled = tile_vmask(t0_vmask);
-
-		auto au = int32_t(uz0 / rz0 * 2048.0f * t0.UScaleFactor);
-		auto av = int32_t(vz0 / rz0 * 2048.0f * t0.VScaleFactor);
-		auto bu = int32_t((uz0 + t0.du0zdx * 8.0f) / (rz0 + drzdx * 8.0f) * 2048.0f * t0.UScaleFactor);
-		auto bv = int32_t((vz0 + t0.dv0zdx * 8.0f) / (rz0 + drzdx * 8.0f) * 2048.0f * t0.VScaleFactor);
-		auto cu = int32_t((uz0 + t0.du0zdy * 8.0f) / (rz0 + drzdy * 8.0f) * 2048.0f * t0.UScaleFactor);
-		auto cv = int32_t((vz0 + t0.dv0zdy * 8.0f) / (rz0 + drzdy * 8.0f) * 2048.0f * t0.VScaleFactor);
-		auto du = int32_t((uz0 + t0.du0zdx * 8.0f + t0.du0zdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 2048.0f * t0.UScaleFactor);
-		auto dv = int32_t((vz0 + t0.dv0zdx * 8.0f + t0.dv0zdy * 8.0f) / (rz0 + drzdx * 8.0f + drzdy * 8.0f) * 2048.0f * t0.VScaleFactor);
-
-		auto az = 1.0f / rz0;
-		auto bz = 1.0f / (rz0 + drzdx * 8.0f);
-		auto cz = 1.0f / (rz0 + drzdy * 8.0f);
-		auto dz = 1.0f / (rz0 + drzdx * 8.0f + drzdy * 8.0f);
-
-
-		auto ar = uint32_t(cr0 * 2048.0f);
-		auto ag = uint32_t(cg0 * 2048.0f);
-		auto ab = uint32_t(cb0 * 2048.0f);
-		auto br = uint32_t((cr0 + drdx * 8.0f) * 2048.0f);
-		auto bg = uint32_t((cg0 + dgdx * 8.0f) * 2048.0f);
-		auto bb = uint32_t((cb0 + dbdx * 8.0f) * 2048.0f);
-		auto cr = uint32_t((cr0 + drdy * 8.0f) * 2048.0f);
-		auto cg = uint32_t((cg0 + dgdy * 8.0f) * 2048.0f);
-		auto cb = uint32_t((cb0 + dbdy * 8.0f) * 2048.0f);
-		auto dr = uint32_t((cr0 + drdx * 8.0f + drdy * 8.0f) * 2048.0f);
-		auto dg = uint32_t((cg0 + dgdx * 8.0f + dgdy * 8.0f) * 2048.0f);
-		auto db = uint32_t((cb0 + dbdx * 8.0f + dbdy * 8.0f) * 2048.0f);
-
-		auto aut = tile_u(au, t0.LogHeight, t0_umask);
-		auto avt = tile_v(av, t0_vmask);
-
-		auto au00 = au;
-		auto au10 = (bu - au) / 8;
-		auto au01 = (cu - au) / 8;
-		auto av00 = av;
-		auto av10 = (bv - av) / 8;
-		auto av01 = (cv - av) / 8;
-
-		auto az00 = quantize_z(az);
-		auto az10 = quantize_dz((bz - az) / 8.0f);
-		auto az01 = quantize_dz((cz - az) / 8.0f);
-
-		auto ar00 = ar;
-		auto ar10 = (br - ar) / 8;
-		auto ar01 = (cr - ar) / 8;
-
-		auto ag00 = ag;
-		auto ag10 = (bg - ag) / 8;
-		auto ag01 = (cg - ag) / 8;
-
-		auto ab00 = ab;
-		auto ab10 = (bb - ab) / 8;
-		auto ab01 = (cb - ab) / 8;
-
-		int32_t au11, av11, az11, ar11, ag11, ab11;
-		if constexpr (IType == TInterpolationType::QUADRATIC) {
-			au11 = (du - bu - cu + au) / 64;
-			av11 = (dv - bv - cv + av) / 64;
-			ar11 = (dr - br - cr + ar) / 64;
-			ag11 = (dg - bg - cg + ag) / 64;
-			ab11 = (db - bb - cb + ab) / 64;
-		}
-		//az11 = quantize_ddz((dz - bz - cz + az) / 64.0f);
-		az11 = 0;
-
-		auto dux0 = tile_du(au10, t0.LogHeight, t0_umask);
-		auto dvx0 = tile_dv(av10, t0_vmask);
-		auto duy = tile_du(au01, t0.LogHeight, t0_umask);
-		auto dvy = tile_dv(av01, t0_umask);
-		uint32_t dzx0 = az10;
-		uint32_t dzy = az01;
-
-		uint32_t drx0 = ar10;
-		uint32_t dry = ar01;
-		uint32_t dgx0 = ag10;
-		uint32_t dgy = ag01;
-		uint32_t dbx0 = ab10;
-		uint32_t dby = ab01;
-
-		uint32_t dduxy, ddvxy, ddzxy, ddrxy, ddgxy, ddbxy;
-		if constexpr (IType == TInterpolationType::QUADRATIC) {
-			// we can't use tile_d? here as that would mess up the carry trick
-			dduxy = tile_u(0, t0.LogHeight, t0_umask);
-			ddvxy = tile_v(0, t0_vmask);
-			ddrxy = ddgxy = ddbxy = 0;
-		}
-		ddzxy = 0;
-
-		uint32_t u0 = aut;
-		uint32_t v0 = avt;
-		//uint32_t z0 = az00;
-		uint32_t r0_ = ar;
-		uint32_t g0_ = ag;
-		uint32_t b0_ = ab;
-		for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32, zspan += XRes) {
-			TScreenCoord a = a0;
-			TScreenCoord b = b0;
-			TScreenCoord c = c0;
-
-			auto u = u0;
-			auto v = v0;
-			//auto z = z0;
-			auto rz = rz0;
-			auto r_ = r0_;
-			auto g_ = g0_;
-			auto b_ = b0_;
-			auto dux = dux0;
-			auto dvx = dvx0;
-			auto dzx = dzx0;
-			auto drx = drx0;
-			auto dgx = dgx0;
-			auto dbx = dbx0;
-
-			uint16_t* pz = zspan;
-			for (uint32_t* p = span; p != span + TILE_SIZE; ++p, ++pz, a += tile.dadx, b += tile.dbdx, c += tile.dcdx) {
-				if ((a | b | c) >= 0) {
-					auto z = quantize_z(1.0f / rz);
-					auto wz = (z >> 10) & 0xffff;
-					if (wz > *pz) {
-						*pz = wz;
-						auto offset = (u + v) >> 12;
-						auto output = t0.TextureAddr[offset];
-						byte* color = (byte*)&output;
-						color[0] = ((uint16_t(color[0]) * (uint16_t((r_) >> 11) & 0xff))) >> 8;
-						color[1] = ((uint16_t(color[1]) * (uint16_t((g_) >> 11) & 0xff))) >> 8;
-						color[2] = ((uint16_t(color[2]) * (uint16_t((b_) >> 11) & 0xff))) >> 8;
-
-
-						if constexpr (BlendMode == TBlendMode::XOR) {
-							*p ^= output;
-						} else {
-							*p = output;
+				if ((max_a | max_b | max_c) >= 0) {
+					// FIXME: define outside and maintain
+					Tile tile = {
+						.x = x,
+						.y = y,
+						.a0 = a0,
+						.dadx = dadx,
+						.dady = dady,
+						.b0 = b0,
+						.dbdx = dbdx,
+						.dbdy = dbdy,
+						.c0 = c0,
+						.dcdx = dcdx,
+						.dcdy = dcdy,
+						.rz0 = (v1.RZ + (x * TILE_SIZE - v1.PX) * drzdx + (y * TILE_SIZE - v1.PY) * drzdy),
+						//.rz0 = (v1.RZ * b0 + v2.RZ * c0 + v3.RZ * a0) * zoltek,
+						.t0 = {
+							.uz0 = (v1.UZ + (x * TILE_SIZE - v1.PX) * t0.du0zdx + (y * TILE_SIZE - v1.PY) * t0.du0zdy),
+							.vz0 = (v1.VZ + (x * TILE_SIZE - v1.PX) * t0.dv0zdx + (y * TILE_SIZE - v1.PY) * t0.dv0zdy),
+							//.uz0 = (v1.UZ * b0 + v2.UZ * c0 + v3.UZ * a0) * zoltek,
+							//.vz0 = (v1.VZ * b0 + v2.VZ * c0 + v3.VZ * a0) * zoltek,
+							.r0 = (v1.LR + (x * TILE_SIZE - v1.PX) * this->drdx + (y * TILE_SIZE - v1.PY) * this->drdy),
+							.g0 = (v1.LG + (x * TILE_SIZE - v1.PX) * this->dgdx + (y * TILE_SIZE - v1.PY) * this->dgdy),
+							.b0 = (v1.LB + (x * TILE_SIZE - v1.PX) * this->dbdx + (y * TILE_SIZE - v1.PY) * this->dbdy),
+							.a0 = (v1.LA + (x * TILE_SIZE - v1.PX) * this->dadx + (y * TILE_SIZE - v1.PY) * this->dady),
 						}
+					};
+
+					if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
+						tile.t0.uz1 = (v1.EUZ + (x * TILE_SIZE - v1.PX) * t0.du1zdx + (y * TILE_SIZE - v1.PY) * t0.du1zdy);
+						tile.t0.vz1 = (v1.EVZ + (x * TILE_SIZE - v1.PX) * t0.dv1zdx + (y * TILE_SIZE - v1.PY) * t0.dv1zdy);
 					}
-				}
 
-				if constexpr (IType == TInterpolationType::QUADRATIC) {
-					dux += dduxy;
-					dux &= t0_umask_tiled;
-					dvx += ddvxy;
-					dvx &= t0_vmask_tiled;
-					drx += ddrxy;
-					dgx += ddgxy;
-					dbx += ddbxy;
+					apply_exact(tile);
 				}
-				dzx += ddzxy;
-				u += dux;
-				u &= t0_umask_tiled;
-				v += dvx;
-				v &= t0_vmask_tiled;
-				//z += dzx;
-				rz += drzdx;
-				r_ += drx;
-				g_ += dgx;
-				b_ += dbx;
 			}
-
-			u0 += duy;
-			u0 &= t0_umask_tiled;
-			v0 += dvy;
-			v0 &= t0_vmask_tiled;
-			//z0 += dzy;
-			rz0 += drzdy;
-			r0_ += dry;
-			g0_ += dgy;
-			b0_ += dby;
-			if constexpr (IType == TInterpolationType::QUADRATIC) {
-				dduxy += au11;
-				ddvxy += av11;
-				ddrxy += ar11;
-				ddgxy += ag11;
-				ddbxy += ab11;
-			}
-			ddzxy += az11;
 		}
 	}
+
 };
-
-constexpr const int8_t SUBPIXEL_BITS = 8;
-constexpr const float SUBPIXEL_MULT = 256.0f;
-
-inline TScreenCoord orient2d(
-	TScreenCoord ax, TScreenCoord ay,
-	TScreenCoord bx, TScreenCoord by,
-	TScreenCoord cx, TScreenCoord cy)
-{
-	return (int64_t(bx - ax) * int64_t(cy - ay) - int64_t(by - ay) * int64_t(cx - ax)) >> SUBPIXEL_BITS;
-}
-
-template <typename TTileRasterizer, TBlendMode BlendMode, barry::TTextureMode TextureMode>
-void rasterize_triangle(TTileRasterizer& rasterizer, const Vertex& v1, const Vertex& v2, const Vertex& v3) {
-	// FIXME: raster conventions (it is doing floor right now)
-	const int tile_mx = rasterizer.clampedX(std::min({ v1.PX, v2.PX, v3.PX })) / TILE_SIZE;
-	const int tile_Mx = rasterizer.clampedX(std::max({ v1.PX, v2.PX, v3.PX })) / TILE_SIZE;
-	const int tile_my = rasterizer.clampedY(std::min({ v1.PY, v2.PY, v3.PY })) / TILE_SIZE;
-	const int tile_My = rasterizer.clampedY(std::max({ v1.PY, v2.PY, v3.PY })) / TILE_SIZE;
-
-	TScreenCoord v1x = TScreenCoord(v1.PX * SUBPIXEL_MULT + 0.5);
-	TScreenCoord v1y = TScreenCoord(v1.PY * SUBPIXEL_MULT + 0.5);
-	TScreenCoord v2x = TScreenCoord(v2.PX * SUBPIXEL_MULT + 0.5);
-	TScreenCoord v2y = TScreenCoord(v2.PY * SUBPIXEL_MULT + 0.5);
-	TScreenCoord v3x = TScreenCoord(v3.PX * SUBPIXEL_MULT + 0.5);
-	TScreenCoord v3y = TScreenCoord(v3.PY * SUBPIXEL_MULT + 0.5);
-
-	TScreenCoord x0 = tile_mx * TILE_SIZE << SUBPIXEL_BITS;
-	TScreenCoord y0 = tile_my * TILE_SIZE << SUBPIXEL_BITS;
-	TScreenCoord _a0 = orient2d(v2x, v2y, v1x, v1y, x0, y0);
-	TScreenCoord _b0 = orient2d(v3x, v3y, v2x, v2y, x0, y0);
-	TScreenCoord _c0 = orient2d(v1x, v1y, v3x, v3y, x0, y0);
-
-	TScreenCoord dadx = (v2y - v1y);
-	TScreenCoord dady = (v1x - v2x);
-	TScreenCoord dbdx = (v3y - v2y);
-	TScreenCoord dbdy = (v2x - v3x);
-	TScreenCoord dcdx = (v1y - v3y);
-	TScreenCoord dcdy = (v3x - v1x);
-
-	// flat without tiling
-	//for (int y = tile_my * TILE_SIZE; y <= tile_My * TILE_SIZE + TILE_SIZE - 1; ++y) {
-	//	byte* scanline = rasterizer.dstSurface + y * rasterizer.bpsl;
-	//	for (int x = tile_mx * TILE_SIZE; x <= tile_Mx * TILE_SIZE + TILE_SIZE - 1; ++x) {
-	//		TScreenCoord alpha = orient2d(v2x, v2y, v1x, v1y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
-	//		TScreenCoord beta = orient2d(v3x, v3y, v2x, v2y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
-	//		TScreenCoord gamma = orient2d(v1x, v1y, v3x, v3y, x << SUBPIXEL_BITS, y << SUBPIXEL_BITS);
-	//		uint32_t& pixel = ((uint32_t*)scanline)[x];
-	//		if (alpha >= 0 && beta >= 0 && gamma >= 0) {
-	//			pixel = 0xcdefab;
-	//		} /*else if (pixel == 0) {
-	//			pixel = 0x123456;
-	//		}*/
-	//	}
-	//}
-//		/*
-		// this is constant across entire triangle
-	int i = 0;
-	float zoltek = 1.0f / (_a0 + _b0 + _c0);
-	for (int y = tile_my; y <= tile_My; ++y, _a0 += TILE_SIZE * dady, _b0 += TILE_SIZE * dbdy, _c0 += TILE_SIZE * dcdy, ++i) {
-		TScreenCoord a0 = _a0;
-		TScreenCoord b0 = _b0;
-		TScreenCoord c0 = _c0;
-		for (int x = tile_mx; x <= tile_Mx; ++x, a0 += TILE_SIZE * dadx, b0 += TILE_SIZE * dbdx, c0 += TILE_SIZE * dcdx, ++i) {
-			TScreenCoord max_a = a0 + ((dadx > 0) ? dadx * TILE_SIZE : 0) + ((dady > 0) ? dady * TILE_SIZE : 0);
-			TScreenCoord max_b = b0 + ((dbdx > 0) ? dbdx * TILE_SIZE : 0) + ((dbdy > 0) ? dbdy * TILE_SIZE : 0);
-			TScreenCoord max_c = c0 + ((dcdx > 0) ? dcdx * TILE_SIZE : 0) + ((dcdy > 0) ? dcdy * TILE_SIZE : 0);
-
-			if ((max_a | max_b | max_c) >= 0) {
-				// FIXME: define outside and maintain
-				Tile tile = {
-					.x = x,
-					.y = y,
-					.a0 = a0,
-					.dadx = dadx,
-					.dady = dady,
-					.b0 = b0,
-					.dbdx = dbdx,
-					.dbdy = dbdy,
-					.c0 = c0,
-					.dcdx = dcdx,
-					.dcdy = dcdy,
-					.rz0 = (v1.RZ + (x * TILE_SIZE - v1.PX) * rasterizer.drzdx + (y * TILE_SIZE - v1.PY) * rasterizer.drzdy),
-					//.rz0 = (v1.RZ * b0 + v2.RZ * c0 + v3.RZ * a0) * zoltek,
-					.t0 = {
-						.uz0 = (v1.UZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.du0zdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.du0zdy),
-						.vz0 = (v1.VZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.dv0zdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.dv0zdy),
-						//.uz0 = (v1.UZ * b0 + v2.UZ * c0 + v3.UZ * a0) * zoltek,
-						//.vz0 = (v1.VZ * b0 + v2.VZ * c0 + v3.VZ * a0) * zoltek,
-						.r0 = (v1.LR + (x * TILE_SIZE - v1.PX) * rasterizer.drdx + (y * TILE_SIZE - v1.PY) * rasterizer.drdy),
-						.g0 = (v1.LG + (x * TILE_SIZE - v1.PX) * rasterizer.dgdx + (y * TILE_SIZE - v1.PY) * rasterizer.dgdy),
-						.b0 = (v1.LB + (x * TILE_SIZE - v1.PX) * rasterizer.dbdx + (y * TILE_SIZE - v1.PY) * rasterizer.dbdy),
-						.a0 = (v1.LA + (x * TILE_SIZE - v1.PX) * rasterizer.dbdx + (y * TILE_SIZE - v1.PY) * rasterizer.dady),
-					}
-				};
-
-				if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
-					tile.t0.uz1 = (v1.EUZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.du1zdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.du1zdy);
-					tile.t0.vz1 = (v1.EVZ + (x * TILE_SIZE - v1.PX) * rasterizer.t0.dv1zdx + (y * TILE_SIZE - v1.PY) * rasterizer.t0.dv1zdy);
-				}
-
-				//if ((((x ^ y) ) & 1)) 
-				{
-					rasterizer.apply_exact<BlendMode, TextureMode>(tile);
-				}
-			}
-		}
-	} 
-}
 
 } // namespace barry
 
@@ -616,18 +394,38 @@ void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 	//	V[i]->U = V[i]->UZ * z;
 	//	V[i]->V = V[i]->VZ * z;
 	//}
-	barry::TileRasterizer r(V, VPage, VESA_BPSL, XRes, YRes, F->Txtr->Txtr, miplevel);
+	barry::TileRasterizer<BlendMode, TextureMode> r(V, VPage, VESA_BPSL, XRes, YRes, F->Txtr->Txtr, miplevel);
 
 	if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
 		r.t0.TextureAddr1 = (dword*)F->ReflectionTexture->Data;
 	}
 
+	Vertex vc[12];
+
+	for (dword i = 0; i < numVerts; ++i) {
+		vc[i] = *V[i];
+
+		if (CurScene->Flags & Scn_Fogged)
+		{
+			float fogRate;
+			fogRate = sqrtf(1.0 - C_rFZP * V[i]->TPos.z);
+			if (fogRate < 0.0)
+			{
+				fogRate = 0.0;
+			}
+			vc[i].LR = std::max(vc[i].LR * fogRate, 2.0f);
+			vc[i].LG = std::max(vc[i].LG * fogRate, 2.0f);
+			vc[i].LB = std::max(vc[i].LB * fogRate, 2.0f);
+		}
+	}
+
+
 	for (dword i = 2; i < numVerts; ++i) {
 		//r.setVertexIndexes(0, i - 1, i);
 
-		const auto& v1 = *(V[0]);
-		const auto& v2 = *(V[i - 1]);
-		const auto& v3 = *(V[i]);
+		const auto& v1 = (vc[0]);
+		const auto& v2 = (vc[i - 1]);
+		const auto& v3 = (vc[i]);
 
 		float m[4] = {
 			v2.PX - v1.PX, v2.PY - v1.PY,
@@ -664,6 +462,6 @@ void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 		r.umask = (1 << r.t0.LogWidth) - 1;
 		r.vmask = (1 << r.t0.LogHeight) - 1;
 
-		barry::rasterize_triangle<barry::TileRasterizer, BlendMode, TextureMode>(r, v1, v2, v3);
+		r.rasterize_triangle(v1, v2, v3);
 	}
 }
