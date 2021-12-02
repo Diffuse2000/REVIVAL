@@ -380,8 +380,6 @@ ImageDetectResult JPGDetect(const char *FN)
 	return Res;
 }
 
-#include "../../libpng16/png.h"
-
 ImageDetectResult PNGDetect(const char* FN)
 {
 	ImageDetectResult Res;
