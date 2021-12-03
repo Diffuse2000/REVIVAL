@@ -447,19 +447,7 @@ void Run_Glato(void)
 
 				Plane_GP[j].u=u;
 				Plane_GP[j].v=v;
-//				Plane_GP[j].R=127.0 * 256.0;
-//				Plane_GP[j].G=127.0 * 256.0;
-//				Plane_GP[j].B=127.0 * 256.0;
-
-//				Plane_GP[j].R=0;
-//				Plane_GP[j].G=0;
-//				Plane_GP[j].B=0;				
-				//Plane_GP[j].BGRA[2]=r;
-				//Plane_GP[j].BGRA[1]=g;
-				//Plane_GP[j].BGRA[0]=b;
 				Plane_GP[j].BGRA = Vec8us{ uint16_t(b) , uint16_t(g), uint16_t(r) , 0, uint16_t(b) , uint16_t(g), uint16_t(r) , 0};
-
-//				Plane_GP[j].RGB = ((long)r<<16)+((long)g<<8)+(long)b;
 
 
 				X = x - xres * 0.5;

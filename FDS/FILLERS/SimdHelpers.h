@@ -98,7 +98,7 @@ inline Vec32s v32_from_arith_seq(Vec8s x_, Vec8s d_) {
 	return mul_add(d, v32_arith_seq_mult, x);
 }
 
-template <uint8_t Shift = 6>
+template <uint8_t Shift = 0>
 inline Vec32uc colorize(Vec32uc color1, Vec32us color2) {
 	return compress((extend(color1) * (color2 >> Shift)) >> 8);
 }

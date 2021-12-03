@@ -1691,7 +1691,7 @@ void Spriter(float x, float y, float width, float height, void* txtr, void* vpag
 
 			auto p_offset = ((v_u >> 16) & (TextureRes - 1)) | v_v_ofs;
 			auto texture_samples = gather(Vec8ui(p_offset), txtr, mask);
-			texture_samples = colorize<0>(texture_samples, blend_color);
+			texture_samples = colorize(texture_samples, blend_color);
 			Vec32uc dst;
 			dst.load_a(span);
 			texture_samples = add_saturated(Vec32uc(texture_samples), dst);

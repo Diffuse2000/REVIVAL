@@ -166,6 +166,10 @@ struct TileRasterizer {
 		return std::min(std::max(y, 0), yres - 1);
 	}
 
+	inline int16_t FixedPoint(float f) {
+		return int16_t(f);
+	}
+
 	void apply_exact(const barry::Tile& tile) {
 		auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
 		auto zscanline = dstSurface + PageSize + tile.y * TILE_SIZE * XRes * 2;
@@ -207,8 +211,8 @@ struct TileRasterizer {
 		// r		g		b		a		r		g		b		a			r			g			b			a			r			g			b			a
 
 		auto color = v32_from_arith_seq(
-			{ int16_t(tile.t0.r0 * 63.0f), int16_t(tile.t0.g0 * 63.0f), int16_t(tile.t0.b0 * 63.0f), int16_t(tile.t0.a0 * 63.0f) },
-			{ int16_t(drdx * 63.0f),	   int16_t(dgdx * 63.0f),		int16_t(dbdx * 63.0f),		 int16_t(dadx * 63.0f) });
+			{ FixedPoint(tile.t0.r0), FixedPoint(tile.t0.g0), FixedPoint(tile.t0.b0), FixedPoint(tile.t0.a0) },
+			{ FixedPoint(drdx),	   FixedPoint(dgdx),		FixedPoint(dbdx),		 FixedPoint(dadx) });
 
 		//Vec16s rg
 		for (int32_t y = 0; y != TILE_SIZE; ++y, a0 += tile.dady, b0 += tile.dbdy, c0 += tile.dcdy, span += bpsl_u32, zspan += XRes) {
@@ -239,7 +243,7 @@ struct TileRasterizer {
 
 					auto p_offset = tu + tv;
 
-					auto blend_color = color;
+					auto blend_color = Vec32us(color);
 
 					auto texture0_samples = gather(Vec8ui(p_offset), t0.TextureAddr, p_mask);
 					if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
@@ -280,7 +284,7 @@ struct TileRasterizer {
 				p_u1z += Vec8f(t0.du1zdy);
 				p_v1z += Vec8f(t0.dv1zdy);
 			}
-			color += Vec32sFromVec4s({ int16_t(drdy * 63.0f), int16_t(dgdy * 63.0f), int16_t(dbdy * 63.0f), int16_t(dady * 63.0f) });
+			color += Vec32sFromVec4s({ FixedPoint(drdy), FixedPoint(dgdy), FixedPoint(dbdy), FixedPoint(dady) });
 
 			p_a += Vec8i(tile.dady);
 			p_b += Vec8i(tile.dbdy);
@@ -365,10 +369,10 @@ struct TileRasterizer {
 							.vz0 = (v1.VZ + (x * TILE_SIZE - v1.PX) * t0.dv0zdx + (y * TILE_SIZE - v1.PY) * t0.dv0zdy),
 							//.uz0 = (v1.UZ * b0 + v2.UZ * c0 + v3.UZ * a0) * zoltek,
 							//.vz0 = (v1.VZ * b0 + v2.VZ * c0 + v3.VZ * a0) * zoltek,
-							.r0 = (v1.LR + (x * TILE_SIZE - v1.PX) * this->drdx + (y * TILE_SIZE - v1.PY) * this->drdy),
-							.g0 = (v1.LG + (x * TILE_SIZE - v1.PX) * this->dgdx + (y * TILE_SIZE - v1.PY) * this->dgdy),
-							.b0 = (v1.LB + (x * TILE_SIZE - v1.PX) * this->dbdx + (y * TILE_SIZE - v1.PY) * this->dbdy),
-							.a0 = (v1.LA + (x * TILE_SIZE - v1.PX) * this->dadx + (y * TILE_SIZE - v1.PY) * this->dady),
+							.r0 = (float(v1.LR) + float(x * TILE_SIZE - v1.PX) * this->drdx + float(y * TILE_SIZE - v1.PY) * this->drdy),
+							.g0 = (float(v1.LG) + float(x * TILE_SIZE - v1.PX) * this->dgdx + float(y * TILE_SIZE - v1.PY) * this->dgdy),
+							.b0 = (float(v1.LB) + float(x * TILE_SIZE - v1.PX) * this->dbdx + float(y * TILE_SIZE - v1.PY) * this->dbdy),
+							.a0 = (float(v1.LA) + float(x * TILE_SIZE - v1.PX) * this->dadx + float(y * TILE_SIZE - v1.PY) * this->dady),
 						}
 					};
 
@@ -413,9 +417,17 @@ void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 			{
 				fogRate = 0.0;
 			}
-			vc[i].LR = std::max(vc[i].LR * fogRate, 2.0f);
-			vc[i].LG = std::max(vc[i].LG * fogRate, 2.0f);
-			vc[i].LB = std::max(vc[i].LB * fogRate, 2.0f);
+			auto r = std::max(vc[i].LR * fogRate, 10.0f);
+			auto g = std::max(vc[i].LG * fogRate, 10.0f);
+			auto b = std::max(vc[i].LB * fogRate, 10.0f);
+
+			r = std::min(r, 253.0f);
+			g = std::min(g, 253.0f);
+			b = std::min(b, 253.0f);
+
+			vc[i].LR = r;
+			vc[i].LG = g;
+			vc[i].LB = b;
 		}
 	}
 
