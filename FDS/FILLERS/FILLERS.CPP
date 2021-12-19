@@ -9,7 +9,9 @@
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
 #include "Base/FDS_DEFS.H"
+#include "SimdHelpers.h"
 #include <Threads.h>
+#include <mmintrin.h>
 
 float CParticle_ISize;
 float ImageSize = 1000.0;
@@ -1559,6 +1561,7 @@ void The_Seven_UP_HALFSIZE(Vertex **V, dword numVerts)
 extern "C" void Seven_UP_64_(void);
 void Seven_UP_64V(int X, int Y, int SizeX, int SizeY, byte* Txtr, byte* Page)
 {
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 		pushad
@@ -1571,6 +1574,7 @@ void Seven_UP_64V(int X, int Y, int SizeX, int SizeY, byte* Txtr, byte* Page)
 		call Seven_UP_64_
 		popad
 	}
+#endif
 }
 
 void The_Seven_UP_64(long X, long Y, long SX, long SY, DWord* Bitmap, byte* Page)
@@ -1583,6 +1587,7 @@ void The_Seven_UP_64(long X, long Y, long SX, long SY, DWord* Bitmap, byte* Page
 extern "C" void Seven_UP_MMX_(void);
 void Seven_UP_MMXV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page, dword Color, dword Z)
 {
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 	mov eax, [X]
@@ -1599,8 +1604,110 @@ void Seven_UP_MMXV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Page, dwor
 	pop eax
 	popad
 	}
+#endif
 }
 
+
+constexpr uint32_t clog2(uint32_t n)
+{
+	return ((n < 2) ? 0 : 1 + clog2(n / 2));
+}
+
+
+template <int TextureRes = 32, bool EnableZTest = false>
+void Spriter(float x, float y, float width, float height, void* txtr, void* vpage, dword Color, dword Z, float spriteClipX1, float spriteClipY1, float spriteClipX2, float spriteClipY2) {
+	float x1, y1, x2, y2;
+	float du, dv;
+	float u0 = 0, v0 = 0;
+	int32_t  iu, iv, idu, idv;
+	int32_t  LineWidth;
+	int32_t  Height;
+
+	x1 = (x - width);
+	x2 = (x + width);
+	y1 = (y - height);
+	y2 = (y + height);
+
+	if (x2 <= spriteClipX1 || x1 >= spriteClipX2 || y2 <= spriteClipY1 || y1 >= spriteClipY2) return;
+
+	du = float(TextureRes) / 2.0f / width;
+	dv = float(TextureRes) / 2.0f / height;
+
+	if (x1 < 0.0) {
+		u0 = du * (-x1);
+		x1 = 0.0;
+	}
+
+	if (x1 < spriteClipX1) {
+		u0 = du * (spriteClipX1 - x1);
+		x1 = spriteClipX1;
+	}
+
+	if (y1 < spriteClipY1) {
+		v0 = dv * (spriteClipY1 - y1);
+		y1 = spriteClipY1;
+	}
+
+	if (x2 > spriteClipX2) x2 = spriteClipX2;
+	if (y2 > spriteClipY2) y2 = spriteClipY2;
+
+	const constexpr int32_t TILE_SIZE = 8;
+	int32_t ix1 = Fist(x1);
+	int32_t ix2 = Fist(x2);
+	int32_t iy1 = Fist(y1);
+	int32_t iy2 = Fist(y2);
+	int32_t tile_x1 = ix1 / TILE_SIZE;
+	int32_t tile_x2 = (ix2 + TILE_SIZE - 1) / TILE_SIZE;
+
+	Vec8i v_u0 = roundi(v8_from_arith_seq(u0 + (tile_x1 * TILE_SIZE - x1) * du, du) * 65536.0f);
+	Vec8i v_du = roundi(Vec8f(du * TILE_SIZE * 65536.0f));
+
+	Vec8ui v_v = Vec8ui(roundi(Vec8f((v0 + float(iy1 - y1) * dv) * 65536.0f)));
+	Vec8ui v_dv = Vec8ui(roundi(Vec8f(dv * 65536.0f)));
+	Vec32s blend_color = Vec32sFromVec4s({ int16_t((Color & 0xff)), int16_t((Color & 0xff00) >> 8), int16_t((Color & 0xff00000) >> 16), int16_t((Color & 0xff000000) >> 24) });
+
+	auto z_candidate = Vec8ui(Z);
+
+	Vec8i v_x0 = v8_from_arith_seq(tile_x1 * TILE_SIZE, 1);
+	dword* scanline = (dword*)(((byte*)vpage) + iy1 * VESA_BPSL);
+	auto zscanline = (((byte*)vpage) + PageSize + iy1 * XRes * 2);
+
+	for (int32_t y = iy1; y != iy2; ++y) {
+		Vec8i v_x = v_x0;
+		Vec8i v_u = v_u0;
+		Vec8i v_v_ofs = ((v_v >> 16) & (TextureRes - 1)) << clog2(TextureRes);
+		dword* span = scanline + tile_x1 * TILE_SIZE;
+		auto zspan = ((uint16_t*)zscanline) + tile_x1 * TILE_SIZE;
+		for (int32_t tile_x = tile_x1; tile_x != tile_x2; ++tile_x) {
+			Vec8ib mask = (ix1 <= v_x) & (v_x < ix2);
+			if constexpr (EnableZTest) {
+				Vec8us z_existing_c;
+				z_existing_c.load_a(zspan);
+				auto z_existing = extend(z_existing_c);
+
+				auto zmask = z_candidate > z_existing;
+				mask &= zmask;
+			}
+
+			auto p_offset = ((v_u >> 16) & (TextureRes - 1)) | v_v_ofs;
+			auto texture_samples = gather(Vec8ui(p_offset), txtr, mask);
+			texture_samples = colorize(texture_samples, blend_color);
+			Vec32uc dst;
+			dst.load_a(span);
+			texture_samples = add_saturated(Vec32uc(texture_samples), dst);
+
+			_mm256_maskstore_ps((float*)span, *(__m256i*)(&mask), *(__m256*)(&texture_samples));
+
+			v_x += 8u;
+			v_u += v_du;
+			span += TILE_SIZE;
+			zspan += TILE_SIZE;
+		}
+		scanline += VESA_BPSL / 4;
+		zscanline += XRes * 2;
+		v_v += v_dv;
+	}
+}
 
 void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel)
 {
@@ -1648,13 +1755,13 @@ void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel)
 			if (y>YRes-1) y=YRes-1;
 			if (Z <= ((word *)VPage) [(PageSize>>1)+XRes*y+x]) return;
 		}
-		CSeven_UP_MMX(_A->PX,_A->PY,edgeLen,edgeLen,F->Txtr->Txtr->Data,VPage, Col, Z);
+		Spriter<256, true>(_A->PX, _A->PY, edgeLen, edgeLen, F->Txtr->Txtr->Data, VPage, Col, Z, 0, 0, XRes, YRes);
+		//CSeven_UP_MMX(_A->PX,_A->PY,edgeLen,edgeLen,F->Txtr->Txtr->Data,VPage, Col, Z);
 		//CSeven_UP(_A->PX,_A->PY,Size<<1,Size<<1,F->Txtr->Txtr->Data,VPage);
 	}
 
 
 }
-
 
 #define PIG_VOMIT
 //void The_MMX_Spriter_32(Vertex **V, dword numVerts)
@@ -1707,7 +1814,7 @@ void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage,
 	v0 += dv * (iy1 - y1);
 
 	//dword *ScanLine  = (dword *)((dword)VPage + VESA_BPSL * iy1) + ix1;
-	dword ScanLine  = (dword)VPage + VESA_BPSL * iy1 + ix1*4;
+	uintptr_t ScanLine  = (uintptr_t)VPage + VESA_BPSL * iy1 + ix1*4;
 
 	iu = Fist(u0 * 65536.0);
 	iv = Fist(v0 * 65536.0);
@@ -1722,7 +1829,9 @@ void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage,
 #if defined(PORTABLE_CODE) && defined(PIG_VOMIT)
 	__m64 mm4 { Color };
 	__m64 mm1 = {};
+#ifdef NON_PORTABLE_CODE
 	mm4 = _m_punpcklbw(mm4, mm1);
+#endif
 #else
 	__asm
 	{
@@ -1835,7 +1944,7 @@ EndScanline:
 		}
 
 #else
-		dword ofs = ((v >> 11) & 0x3E0);
+		uintptr_t ofs = ((v >> 11) & 0x3E0);
 		//__m64 x = { 0 };
 		for(int j = 0;j<LineWidth; j++)
 		{
@@ -1850,12 +1959,14 @@ EndScanline:
 			//mm0 = _m_pxor(mm0, mm0);
 //			mm0 = _m_punpcklbw(mm0, *(__m64*)&tex[(u >> 16) + ((v >> 11) & 0x3E0)]);
 			__m64 mm0 = { 0 };
+#ifdef NON_PORTABLE_CODE
 			mm0 = _m_punpcklbw(mm0, _mm_set_pi32(0, tex[(u >> 16) + ofs]));
 			mm0 = _m_psrlwi(mm0, 8);
 			mm0 = _m_pmullw(mm0, mm4);
 			mm0 = _m_psrlwi(mm0, 8);
 			mm0 = _m_packuswb(mm0, mm0);
 			mm0 = _m_paddusb(mm0, _mm_set_pi32(0, ((dword*)ScanLine)[j]));
+#endif
 			//*x = mm0.m64_u32[0];
 #ifdef __clang__
 			((dword*)ScanLine)[j] = (dword)mm0[0];
@@ -1887,7 +1998,9 @@ EndScanline:
 		v += idv;
 	}
 #ifdef PORTABLE_CODE
+#ifdef NON_PORTABLE_CODE
 	_mm_empty();
+#endif
 #else
 	__asm
 	{
@@ -2078,14 +2191,17 @@ void TBR_Render(Scene *Sc)
 				B = V->LB;
 				dword Color = (R << 16) + (G << 8) + B;
 
-				Spriter32(V->PX,
+				Spriter(V->PX,
 					V->PY,
 					edgeLen,
 					edgeLen,
 					F->Txtr->Txtr->Data,
 					VPage,
 					Color, 
+					0,
+					0,
 					spriteClipY1,
+					XRes,
 					spriteClipY2);
 				n = Sc->SBuffer[n].next;
 			}
@@ -2122,7 +2238,10 @@ extern "C"
 	extern dword P_Texture_32_CodeStart;
 	extern dword PG_Texture_32_Size;
 	extern dword PT_Texture_32_Size;
-	extern dword Seven_UP_MMX_Size;
+#ifdef NON_PORTABLE_CODE
+	extern 
+#endif	
+	dword Seven_UP_MMX_Size;
 	extern dword Seven_UP_MMX_32_Size;
 	extern dword WobMMX_Size;
 
@@ -2193,10 +2312,14 @@ void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
 	//				   Protection,
 	//				   &OldProtection);
 
+#ifdef NON_PORTABE_CODE
+
 	VirtualProtectFunc(reinterpret_cast<void *>(Seven_UP_MMX_), 
 					   Seven_UP_MMX_Size,
 					   Protection,
 					   &OldProtection);
+
+#endif // NON_PORTABE_CODE
 
 #if 0
 	VirtualProtectFunc(reinterpret_cast<void *>(Seven_UP_MMX_32_),

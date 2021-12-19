@@ -139,13 +139,13 @@ class CoffReader {
 		if (offset > buffer.size() || size > buffer.size() || offset + size > buffer.size()) {
 			throw std::runtime_error("data offset/size mismatch: " + std::to_string(offset) + "/" + std::to_string(size));
 		}
-		uint32_t ptr = offset;
+		auto ptr = offset;
 		offset += size;
 		return &buffer[ptr];
 	}
 
 	void Parse() {
-		uint32_t offset = 0;
+		size_t offset = 0;
 		header = (const CoffHeader *)AcquireBytes(offset, sizeof(CoffHeader));
 		if (header->machine != IMAGE_FILE_MACHINE_I386) {
 			throw std::runtime_error("Unknown obj file machine type: " + std::to_string(header->machine));

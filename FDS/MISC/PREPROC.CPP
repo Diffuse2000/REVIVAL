@@ -1008,20 +1008,32 @@ void Assign_Fillers(Scene *Sc)
 			//			F->Txtr->ZBufferWrite = !(F->Txtr->Flags & Mat_SkipZ);
 
 			//if (F->Txtr->Flags & Mat_UseTextureAlpha) rasterFlags += 8;
+			//RasterFunc stdFillers[10] = {
+			//	IX_Prefiller_FZ, // Flat (impl. gouraud)
+			//	IX_Prefiller_TZ, // Texture
+			//	IX_Prefiller_GZ, // Gouraud
+			//	//IX_Prefiller_TGZM, // Txtr/Gouraud
+			//	TheOtherBarry,
+			//	IX_Prefiller_FAcZ, // transparent Flat
+			//	IX_Prefiller_TAcZ, // transparent Texture
+			//	IX_Prefiller_GAcZ, // transparent Gouraud
+			//	IX_Prefiller_TGZTM,//TGAcZ, // transparent Texture/Gouraud
+			//	IX_Prefiller_TGZTAM, //TGAcZ, // transparent Texture/Gouraud with Alpha blending
+			//	IX_Prefiller_TGZSAM,
+			//};
 			RasterFunc stdFillers[10] = {
 				IX_Prefiller_FZ, // Flat (impl. gouraud)
-				IX_Prefiller_TZ, // Texture
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>,
 				IX_Prefiller_GZ, // Gouraud
-				//IX_Prefiller_TGZM, // Txtr/Gouraud
-				TheOtherBarry,
-//				IX_Prefiller_TGZ, // Txtr/Gouraud
+				TheOtherBarry<barry::TBlendMode::OVERWRITE, barry::TTextureMode::NORMAL>,
 				IX_Prefiller_FAcZ, // transparent Flat
-				IX_Prefiller_TAcZ, // transparent Texture
-				IX_Prefiller_GAcZ, // transparent Gouraud
-				IX_Prefiller_TGZTM,//TGAcZ, // transparent Texture/Gouraud
-				IX_Prefiller_TGZTAM, //TGAcZ, // transparent Texture/Gouraud with Alpha blending
-				IX_Prefiller_TGZSAM,
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
+				TheOtherBarry<barry::TBlendMode::TRANSPARENT, barry::TTextureMode::NORMAL>, // transparent TG
+				TheOtherBarry<barry::TBlendMode::ADDITIVE, barry::TTextureMode::NORMAL>, // transparent TG
 			};
+
 			//if (rasterFlags > 0 && rasterFlags < 3) {
 			//	volatile int banama = 1;
 			//}
@@ -1115,20 +1127,21 @@ void Hierarchy_Sort(Scene *Sc)
 	ObjSort = new Object * [Objs];
 	ObjPtr = ObjSort;
 	
-	for(Obj = Sc->ObjectHead; Obj ; Obj=Obj->Next)
+	for (Obj = Sc->ObjectHead; Obj; Obj = Obj->Next) {
 		if (!Obj->Parent) Hierarchy_TreeSort(Obj);
+	}
 		
-		Sc->ObjectHead = ObjSort[0];
+	Sc->ObjectHead = ObjSort[0];
 		
-		ObjSort[0]->Prev = NULL; ObjSort[0]->Next = ObjSort[1];
-		for(I=1;I<Objs-1;I++)
-		{
-			ObjSort[I]->Prev = ObjSort[I-1];
-			ObjSort[I]->Next = ObjSort[I+1];
-		}
-		ObjSort[I]->Prev = ObjSort[I-1]; ObjSort[I]->Next = NULL;
+	ObjSort[0]->Prev = NULL; ObjSort[0]->Next = ObjSort[1];
+	for(I=1;I<Objs-1;I++)
+	{
+		ObjSort[I]->Prev = ObjSort[I-1];
+		ObjSort[I]->Next = ObjSort[I+1];
+	}
+	ObjSort[I]->Prev = ObjSort[I-1]; ObjSort[I]->Next = NULL;
 		
-		delete ObjSort;
+	delete ObjSort;
 }
 
 void SetPointFlare(Omni *O)

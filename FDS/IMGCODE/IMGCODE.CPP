@@ -11,6 +11,10 @@
 
 #include "Base/Scene.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+
 Material * MatLib = NULL; // Internal Material Library. This is global for
 // all Scenes.
 
@@ -375,8 +379,6 @@ ImageDetectResult JPGDetect(const char *FN)
 	
 	return Res;
 }
-
-#include "../../libpng16/png.h"
 
 ImageDetectResult PNGDetect(const char* FN)
 {
@@ -1028,50 +1030,22 @@ DWord GetOptClass(long X,long Y)
 
 char* LoadPNG(Texture* Tx)
 {
-	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+	unsigned char* Txtr;
+	int x, y, n;
+	if (!(Txtr = stbi_load(Tx->FileName, &x, &y, &n, 4))) return 0;
+	Tx->SizeX = x;
+	Tx->SizeY = y;
+	Tx->BPP = 32;
+	Tx->Data = (byte *)malloc(4 * x * y);
+	memcpy(Tx->Data, Txtr, sizeof(DWord) * x * y);
 
-	if (!png_ptr)
-		return nullptr;
-
-	png_infop info_ptr = png_create_info_struct(png_ptr);
-
-	if (!info_ptr)
-	{
-		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-		return nullptr;
+	auto ptr = (byte*)Tx->Data;
+	for (auto i = 0; i < x * y; ++i) {
+		std::swap(ptr[4 * i], ptr[4 * i + 2]);
 	}
 
-	FILE *F = fopen(Tx->FileName, "rb");
-	if (!F) return nullptr;
-	png_init_io(png_ptr, F);
-	//png_set_gamma(png_ptr, PNG_DEFAULT_sRGB, 2.2);
-	//png_set_alpha_mode(png_ptr, PNG_ALPHA_PNG, PNG_DEFAULT_sRGB);
-	png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
-	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, NULL);
-
-	uint8_t BPP = png_get_bit_depth(png_ptr, info_ptr) * png_get_channels(png_ptr, info_ptr);
-	if (BPP != 32) {
-		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
-		return nullptr;
-	}
-
-	uint32_t height = png_get_image_height(png_ptr, info_ptr);
-	uint32_t width = png_get_image_width(png_ptr, info_ptr);
-
-	Tx->BPP = BPP;
-	Tx->SizeX = width;
-	Tx->SizeY = height;
-
-	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
-
-	char* data = new char[height * width * (BPP >> 3)];
-	for (int i = 0; i < height; ++i) {
-		memcpy(data + i * width * (BPP >> 3), row_pointers[i], width * (BPP >> 3));
-	}
-	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
-
-	Tx->Data = (byte *)data;
-	return data;
+	stbi_image_free(Txtr);
+	return (char *)Tx->Data;
 }
 
 
@@ -1231,25 +1205,11 @@ static char _Load_Texture(Texture *Tx)
 	// fcloseall(); // WTF???
 	if (IDR.BPP)
 	{
-		Txd=LoadJPEG(Tx->FileName,0);
-		
-		IDR.x = *(unsigned short *)Txd;
-		IDR.y = *(unsigned short *)(Txd+2);
-		char r,g,b;
-		for (I=4;I<4+IDR.x*IDR.y*3;I+=3)
-		{
-			r=Txd[I];
-			g=Txd[I+1];
-			b=Txd[I+2];
-			Txd[I+2]=r;
-			Txd[I+1]=g;
-			Txd[I]=b;
-		}
-		Tx->BPP=IDR.BPP; //validate the texture
-		TAS_Get(Tx,IDR.x,IDR.y);
-		Tx->Data = new byte[Tx->SizeX*Tx->SizeY*((Tx->BPP+1)>>3)];
-		BitMapScale2Texture(Tx,Txd+4,IDR.x,IDR.y,(IDR.BPP+1)>>3);
-		delete Txd;
+		LoadPNG(Tx);
+		uint8_t* temp = new uint8_t[4 * Tx->SizeX * Tx->SizeY];
+		memcpy(temp, Tx->Data, 4 * Tx->SizeX * Tx->SizeY);
+		BitMapScale2Texture(Tx, temp, Tx->SizeX, Tx->SizeY, (IDR.BPP+1)>>3);
+		delete[] temp;
 		return 1;
 	}
 
@@ -1644,24 +1604,19 @@ char Load_Image_GIF(Image *Img, const char *FN)
 
 char Load_Image_JPEG(Image *Img, const char *FN)
 {
-	char *Tx,*Txd;
-	if (!(Tx=LoadJPEG(FN,0))) return 0;
-	Txd=Tx;
-	Img->x = *(unsigned short *)Txd;
-	Img->y = *(unsigned short *)(Txd+2);
+	unsigned char *Tx;
+	int x, y, n;
+	if (!(Tx=stbi_load(FN, &x, &y, &n, 4))) return 0;
+	Img->x = x;
+	Img->y = y;
 	Img->Data = (DWord *)_aligned_malloc(sizeof(DWord) * Img->x*Img->y, 16);
-	DWord *VP = Img->Data;
-	Txd+=4;
-	char r,g,b;
-	char *TE = Txd + Img->x*Img->y*3;
-	
-	while (Txd<TE)
-	{
-		r=*Txd++;
-		g=*Txd++;
-		b=*Txd++;
-		*VP++ = (r<<16)+(g<<8)+b;
+	memcpy(Img->Data, Tx, sizeof(DWord) * Img->x * Img->y);
+
+	auto ptr = (byte*)Img->Data;
+	for (auto i = 0; i < x * y; ++i) {
+		std::swap(ptr[4 * i], ptr[4 * i + 2]);
 	}
-	delete Tx;
+
+	stbi_image_free(Tx);
 	return 1;
 }

@@ -105,6 +105,7 @@ void Initialize_Glato()
 	}
 	Load_Texture(PlaneTexture);
 	Convert_Texture2Image(PlaneTexture,PlaneImage);
+	Sachletz(PlaneImage->Data, PlaneImage->x, PlaneImage->y);
 //	memset(PlaneImage->Data, 128, 256 * 256 * 4);
 	//PlaneImage->Data[0] = 0x80808080;
 //	WOBPOINTSHEIGHT = 30;
@@ -384,8 +385,8 @@ void Run_Glato(void)
 					if (b>254.0f) b=254.0f;
 					if (b<1.0f) b=1.0f;
 
-					u*=65536.0f;
-					v*=65536.0f;
+					u*=256.0f;
+					v*=256.0f;
 				}
 				else
 				{
@@ -430,30 +431,23 @@ void Run_Glato(void)
 					if (b>254.0f) b=254.0f;
 					if (b<1.0f) b=1.0f;
 
-					u*=65536.0f;
-					v*=65536.0f;
+					u*=256.0f;
+					v*=256.0f;
 				}
 				//r = 0; // green
 				//g = 0; // red
 				//b = g = r; // blue
 
-				r*=254.0f;
-				g*=254.0f;
-				b*=254.0f;
+				//r*=254.0f;
+				//g*=254.0f;
+				//b*=254.0f;
+				r*=63.0f;
+				g*=63.0f;
+				b*=63.0f;
 
 				Plane_GP[j].u=u;
 				Plane_GP[j].v=v;
-//				Plane_GP[j].R=127.0 * 256.0;
-//				Plane_GP[j].G=127.0 * 256.0;
-//				Plane_GP[j].B=127.0 * 256.0;
-
-//				Plane_GP[j].R=0;
-//				Plane_GP[j].G=0;
-//				Plane_GP[j].B=0;				
-				Plane_GP[j].BGRA._d16[2]=r;
-				Plane_GP[j].BGRA._d16[1]=g;
-				Plane_GP[j].BGRA._d16[0]=b;
-//				Plane_GP[j].RGB = ((long)r<<16)+((long)g<<8)+(long)b;
+				Plane_GP[j].BGRA = Vec8us{ uint16_t(b) , uint16_t(g), uint16_t(r) , 0, uint16_t(b) , uint16_t(g), uint16_t(r) , 0};
 
 
 				X = x - xres * 0.5;
@@ -579,7 +573,7 @@ void Run_Glato(void)
 			}
 
 //		Grid_Texture_Mapper_XXX(Plane_GP,PlaneImage,(DWord *)Page1);
-		Grid_Texture_Mapper_TG(Plane_GP,PlaneImage,(DWord *)Page1);
+		Grid_Texture_Mapper_TG(Plane_GP,PlaneImage,(DWord *)Page1, xres, yres);
 		//GridRendererTG(Plane_GP,PlaneImage,(DWord *)Page1, XRes, YRes);
 
 		if (Code)

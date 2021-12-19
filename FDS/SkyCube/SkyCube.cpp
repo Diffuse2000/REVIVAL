@@ -139,19 +139,13 @@ Scene * CreateSkyCube(dword skyType)
 	dword i;
 	for(i=0;i<6;i++)
 	{
-		float ratio = 1.0;
-		if (((O[0]>>1)&1) ==
-			((O[1]>>1)&1) ==
-			((O[2]>>1)&1) ==
-			((O[3]>>1)&1)) ratio = 1.0;
-
 		o = *O++;
 		SV->LR = SV->LG = SV->LB = 255.0;
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 0.5f/1024.0f;
-		SV->V = 0.5f/ 1024.0f;
+		SV->U = 1.0f/1024.0f;
+		SV->V = 1.0f/1024.0f;
 		SV->i = o + i * 16;
 		SV++;
 		o = *O++;
@@ -159,8 +153,8 @@ Scene * CreateSkyCube(dword skyType)
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 1023.5f/ 1024.0f;
-		SV->V = 0.5f/ 1024.0f;
+		SV->U = 1023.0f/ 1024.0f;
+		SV->V = 1.0f/ 1024.0f;
 		SV->i = o + i * 16;
 		SV++;
 		o = *O++;
@@ -168,8 +162,8 @@ Scene * CreateSkyCube(dword skyType)
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 1023.5f/ 1024.0f;
-		SV->V = 1023.5f*ratio/ 1024.0f;
+		SV->U = 1023.0f / 1024.0f;
+		SV->V = 1023.0f/ 1024.0f;
 		SV->i = o + i*16;
 		SV++;
 		o = *O++;
@@ -177,8 +171,8 @@ Scene * CreateSkyCube(dword skyType)
 		SV->Pos.x = P[o].x;
 		SV->Pos.y = P[o].y;
 		SV->Pos.z = P[o].z;
-		SV->U = 0.5f/ 1024.0f;
-		SV->V = 1023.5f*ratio / 1024.0f;
+		SV->U = 1.0f / 1024.0f;
+		SV->V = 1023.0f / 1024.0f;
 		SV->i = o + i * 16;
 		SV++;
 	}

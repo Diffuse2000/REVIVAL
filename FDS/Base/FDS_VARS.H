@@ -4,6 +4,9 @@
 #include "BaseDefs.h"
 #include <stdexcept>
 #include <atomic>
+#include <float.h>
+#include <array>
+#include <simd/vectorclass.h>
 
 // _data must be allocated
 class mmreg
@@ -15,7 +18,7 @@ public:
 		word _d16[4];
 		sword _sd16[4];
 		dword _d32[2];
-		uint64 _d64;
+		uint64_t _d64;
 	};
 
 	static void clearstate();
@@ -68,13 +71,12 @@ public:
 	inline void shlq(uint64 c);
 };
 // implementation using inline functions
-#include "MISC/mmreg.inl"
+//#include "MISC/mmreg.inl"
 #include "Material.h"
 #include "Vertex.h"
 #include "Face.h"
 #include "Camera.h"
 #include "Edge.h"
-#include <float.h>
 
 #pragma pack(push, 1)
 // Math variables and structures
@@ -151,8 +153,8 @@ typedef struct
 
 struct GridPointTG
 {
-	long u, v;	
-	mmreg BGRA;
+	float u, v;	
+	Vec8s BGRA; // we are only using lower 4 shorts
 };
 
 struct GridPointT
@@ -837,7 +839,7 @@ inline Vector operator * (const Matrix M, const Vector &V)
 inline void FPU_LPrecision()
 {
 #ifdef PORTABLE_CODE
-	__control87_2(_RC_UP | _PC_24, _MCW_RC | _MCW_PC, &OldFPUCW, nullptr);
+	OldFPUCW = _controlfp(_RC_UP | _PC_24, _MCW_RC | _MCW_PC);
 	CurMXCSR = OldMXCSR = _mm_getcsr();
 	CurMXCSR &= 0b11111111111111110000000001000000;
 	CurMXCSR |= 0b00000000000000001101111111000000;
@@ -869,7 +871,7 @@ inline void FPU_LPrecision()
 inline void FPU_NormalState()
 {
 #ifdef PORTABLE_CODE
-	__control87_2(OldFPUCW, _MCW_RC | _MCW_PC, &OldFPUCW, nullptr);
+	_controlfp(OldFPUCW, _MCW_RC | _MCW_PC);
 #else
 	__asm {
 		FLdCW   [OldFPUCW]
@@ -1107,10 +1109,10 @@ inline void range_check_01(float f) {
 }
 
 inline DWord ToQColor(Color c) {
-	DWord a = Fist(c.A * 254.9) << 24;
-	DWord r = Fist(c.R * 254.9) << 16;
-	DWord g = Fist(c.G * 254.9) << 8;
-	DWord b = Fist(c.B * 254.9) << 0;
+	DWord a = Fist(c.A * 254.9f) << 24;
+	DWord r = Fist(c.R * 254.9f) << 16;
+	DWord g = Fist(c.G * 254.9f) << 8;
+	DWord b = Fist(c.B * 254.9f) << 0;
 	return a | r | g | b;
 }
 

@@ -1089,7 +1089,6 @@ dword D3D8_InitDisplay()
 
 	VESA_VPageExternal(&DD_MainSurf);
 
-
 	return 0;
 }
 

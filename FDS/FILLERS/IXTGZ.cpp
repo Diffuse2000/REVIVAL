@@ -80,7 +80,7 @@ static void CalcRightSection (IXVertexTG *V1, IXVertexTG *V2)
 	sdword FPRevHeight;
 	if (Right.ScanLines > 0)
 	{
-		FPRevHeight = Fist(rHeight * 65536.0);
+		FPRevHeight = Fist(rHeight * 65536.0f);
 		Right.dR = (V2->R - V1->R) * FPRevHeight;
 		Right.dG = (V2->G - V1->G) * FPRevHeight;
 		Right.dB = (V2->B - V1->B) * FPRevHeight;
@@ -143,7 +143,7 @@ static void CalcLeftSection (IXVertexTG *V1, IXVertexTG *V2)
 	sdword FPRevHeight;
 	if (Left.ScanLines > 0)
 	{
-		FPRevHeight = Fist(RevHeight*65536.0);
+		FPRevHeight = Fist(RevHeight*65536.0f);
 		Left.dR = (V2->R - V1->R) * FPRevHeight;
 		Left.dG = (V2->G - V1->G) * FPRevHeight;
 		Left.dB = (V2->B - V1->B) * FPRevHeight;
@@ -475,6 +475,7 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 
 				tex = ((dword *)IX_Texture)[((_u0& ((0x100<<IX_L2X) - 0x100) )>> 8) + (((_v0&((0x100<<IX_L2Y) - 0x100))>>8) << IX_L2X)];
 
+#ifndef PORTABLE_CODE
 				__asm
 				{
 					mov edi, [SpanPtr]
@@ -494,6 +495,7 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 					packuswb mm1, mm1
 					movd [edi], mm1
 				}
+#endif
 
 //				*SpanPtr = 0x7F7F7F;
 				//tex = 0x00ffffff;
@@ -518,9 +520,11 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 			Col[2] += dRdx;
 			//Z += dZdx;			
 		}
+#ifdef NON_PORTABLE_CODE
 		__asm {
 			emms
 		}
+#endif
 
 		Width -= SPANSIZE;
 		if (Width <= 0) return;
@@ -659,6 +663,7 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 
 				tex = ((dword *)IX_Texture)[((_u0& ((0x100<<IX_L2X) - 0x100) )>> 8) + (((_v0&((0x100<<IX_L2Y) - 0x100))>>8) << IX_L2X)];
 
+#ifdef NON_PORTABLE_CODE
 				__asm
 				{
 					mov edi, [SpanPtr]
@@ -685,6 +690,7 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 					movd [edi], mm0
 				}
 
+#endif
 //				*SpanPtr = 0x7F7F7F;
 
 //				*SpanPtr += 0x7F7F7F;
@@ -723,10 +729,12 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 			
 			//Z += dZdx;			
 		}
+#ifdef NON_PORTABLE_CODE
 		__asm
 		{
 			emms
 		}
+#endif
 
 		Width -= SPANSIZE;
 		if (Width <= 0) return;
@@ -1119,6 +1127,7 @@ void IX_Prefiller_TGZM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 			ixArray[i].y = V[i]->PY;
 		}
 	}
+#ifdef NON_PORTABLE_CODE
 	AsmFiller filler = p_IXTGZM_AsmFiller;
 //	IXAsmFiller(l_IXArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 	__asm
@@ -1135,6 +1144,7 @@ void IX_Prefiller_TGZM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 		add esp, 28
 		popad
 	}
+#endif
 //	IXAsmFiller(l_IXArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 }
 
@@ -1205,6 +1215,7 @@ void IX_Prefiller_TGZTM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 
 	//dword updateZBuffer = F->Txtr->ZBufferWrite ? 1 : 0;
 
+#ifdef NON_PORTABLE_CODE
 	AsmFiller filler = p_IXTGZTM_AsmFiller;
 //	IXAsmFiller(ixArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 	__asm
@@ -1221,6 +1232,7 @@ void IX_Prefiller_TGZTM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 		add esp, 28
 		popad
 	}
+#endif
 //	IXAsmFiller(ixArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 }
 
@@ -1286,6 +1298,7 @@ void IX_Prefiller_TGZTAM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 	}
 
 //	IXAsmFiller(ixArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
+#ifdef NON_PORTABLE_CODE
 	AsmFiller filler = p_IXTGZTAM_AsmFiller;
 	__asm
 	{
@@ -1300,6 +1313,8 @@ void IX_Prefiller_TGZTAM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 		add esp, 24
 		popad
 	}
+#endif
+
 //	IXAsmFiller(ixArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 }
 
@@ -1366,6 +1381,7 @@ void IX_Prefiller_TGZSAM(Face* F, Vertex** V, dword numVerts, dword miplevel)
 	}
 
 	//	IXAsmFiller(ixArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
+#ifdef NON_PORTABLE_CODE
 	AsmFiller filler = p_IXTGZSAM_AsmFiller;
 	__asm
 	{
@@ -1381,6 +1397,7 @@ void IX_Prefiller_TGZSAM(Face* F, Vertex** V, dword numVerts, dword miplevel)
 		add esp, 28
 		popad
 	}
+#endif
 	//	IXAsmFiller(ixArray, numVerts, (void *)TextureAddr, VPage, LogWidth, LogHeight);
 }
 
@@ -1426,6 +1443,7 @@ void IX_Prefiller_Reflective(Face* F, Vertex** V, dword numVerts, dword miplevel
 		if (ixArray[i].B < 2.0) ixArray[i].B = 2.0;
 	}
 
+#ifdef NON_PORTABLE_CODE
 	AsmFiller filler = p_IXTGZTM_AsmFiller;
 	__asm
 	{
@@ -1441,4 +1459,5 @@ void IX_Prefiller_Reflective(Face* F, Vertex** V, dword numVerts, dword miplevel
 		add esp, 28
 		popad
 	}
+#endif
 }

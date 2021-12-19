@@ -738,11 +738,11 @@ static void PrefillerCommon(Face *F, Vertex **V, dword numVerts, dword miplevel)
 	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
 	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 	
-	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[miplevel];
+	auto TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
 	
-	float UScaleFactor = (1<<LogWidth);
-	float VScaleFactor = (1<<LogHeight);
+	float UScaleFactor = float((1<<LogWidth));
+	float VScaleFactor = float((1<<LogHeight));
 
 	for(i=0; i<numVerts; i++)
 	{

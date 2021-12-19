@@ -357,6 +357,7 @@ static dword V_Create(VESA_Surface *VS)
 }
 
 
+#ifdef NON_PORTABLE_CODE
 dword DDRAW_InitDisplay()
 {
 	LPDIRECTDRAW        DDCom;
@@ -544,4 +545,4 @@ dword DDRAW_InitDisplay()
 	
 	return 0;
 }
-
+#endif

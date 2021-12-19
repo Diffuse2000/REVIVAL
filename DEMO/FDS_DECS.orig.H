@@ -253,7 +253,6 @@ extern void Compute_Normal_Products(TriMesh *T);
 #define ImageCodeIncluded
 extern char Identify_Texture(Texture *Tx);
 extern char Load_Texture(Texture *Tx);
-extern "C++" char *LoadJPEG(char *argv1,unsigned int SeekPos);
 extern void View_Texture(Texture *Tx);
 extern void BPPConvert_Texture(Texture *Tx,char TB);
 extern void FilterLSB_Texture(Texture *T);

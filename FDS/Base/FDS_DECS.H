@@ -280,7 +280,7 @@ void DisplayMouse();
 void Hierarchy_Sort(Scene *Sc);
 void Detect_MMX();
 
-void *getAlignedBlock(mword size, mword alignment = 64);
+void *getAlignedBlock(uintptr_t size, uintptr_t alignment = 64);
 void freeAlignedBlock(void *ptr);
 
 #endif
@@ -289,11 +289,6 @@ void freeAlignedBlock(void *ptr);
 #define ImageCodeIncluded
 char Identify_Texture(Texture *Tx);
 char Load_Texture(Texture *Tx);
-#ifdef C_WATCOM
-extern "C++" char *LoadJPEG(const char *argv1,unsigned int SeekPos);
-#else
-char *LoadJPEG(const char *argv1,unsigned int SeekPos);
-#endif
 void View_Texture(Texture *Tx);
 void BPPConvert_Texture(Texture *Tx, byte TB);
 void FilterLSB_Texture(Texture *T);
@@ -509,7 +504,7 @@ T* getAlignedArray(size_t N, size_t alignment) {
 }
 
 template <typename T>
-T* getAlignedType(size_t alignment) {
+T* getAlignedType(uintptr_t alignment) {
 	T* block = (T*)getAlignedBlock(sizeof(T), alignment);
 	return new(block) T();
 }

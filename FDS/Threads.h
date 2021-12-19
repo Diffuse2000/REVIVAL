@@ -19,7 +19,7 @@ public:
 
 	void init(item_t initFunc) {
 		auto numThreads = std::thread::hardware_concurrency();
-		for (int ii = 0; ii < numThreads; ii++) {
+		for (size_t ii = 0; ii < numThreads; ii++) {
 			pool.push_back(std::thread([this, initFunc]() {initFunc(); worker(); }));
 		}
 	}

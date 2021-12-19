@@ -362,6 +362,7 @@ inline void AlphaBlend(byte *Source,byte *Target,DWord &PerSource,DWord &PerTarg
 
 inline void Transparence_16(byte *Source,byte *Target)
 {
+#ifdef NON_PORTABLE_CODE
 	__asm
 	{
 		mov esi, Source
@@ -381,11 +382,13 @@ inline void Transparence_16(byte *Source,byte *Target)
 			add ecx,2
 		jnz MotionBlurLoop
 	}
+#endif
 }
 
 inline void Transparence_32(byte *Source,byte *Target)
 {
-	__asm 
+#ifdef NON_PORTABLE_CODE
+	__asm
 	{
 		mov esi, Source
 		mov edi, Target
@@ -404,6 +407,7 @@ inline void Transparence_32(byte *Source,byte *Target)
 			add ecx,4
 		jnz MotionBlurLoop
 	}
+#endif
 }
 
 inline void Modulate(VESA_Surface *Source,VESA_Surface *Target,DWord SrcMask,DWord TrgMask, dword PageSize)
