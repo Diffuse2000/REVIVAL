@@ -1,4 +1,4 @@
-#include "REV.H"
+#include "Rev.h"
 #include <Base/Object.h>
 #include <Base/TriMesh.h>
 #include <Base/Scene.h>

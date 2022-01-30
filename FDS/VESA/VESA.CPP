@@ -7,7 +7,7 @@
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
 
-#include "VESA.H"
+#include "Vesa.h"
 
 
 #ifdef _C_WATCOM

@@ -72,7 +72,7 @@ struct IXVertexF
 };
 
 extern mword zPass, zReject;
-extern __int64 precisePixelCount;
+extern int64_t precisePixelCount;
 
 
 // Interface to assembly mappers

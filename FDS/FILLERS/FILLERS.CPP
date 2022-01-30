@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <conio.h>
+//#include <conio.h>
 #include <math.h>
 #include <Base/Omni.h>
 #include <Base/Scene.h>
@@ -1664,7 +1664,7 @@ void Spriter(float x, float y, float width, float height, void* txtr, void* vpag
 
 	Vec8ui v_v = Vec8ui(roundi(Vec8f((v0 + float(iy1 - y1) * dv) * 65536.0f)));
 	Vec8ui v_dv = Vec8ui(roundi(Vec8f(dv * 65536.0f)));
-	Vec32s blend_color = Vec32sFromVec4s({ int16_t((Color & 0xff)), int16_t((Color & 0xff00) >> 8), int16_t((Color & 0xff00000) >> 16), int16_t((Color & 0xff000000) >> 24) });
+	Vec32us blend_color = Vec32us(Vec32sFromVec4s({ int16_t((Color & 0xff)), int16_t((Color & 0xff00) >> 8), int16_t((Color & 0xff00000) >> 16), int16_t((Color & 0xff000000) >> 24) }));
 
 	auto z_candidate = Vec8ui(Z);
 
@@ -1691,7 +1691,7 @@ void Spriter(float x, float y, float width, float height, void* txtr, void* vpag
 
 			auto p_offset = ((v_u >> 16) & (TextureRes - 1)) | v_v_ofs;
 			auto texture_samples = gather(Vec8ui(p_offset), txtr, mask);
-			texture_samples = colorize(texture_samples, blend_color);
+			texture_samples = colorize(Vec32uc(texture_samples), blend_color);
 			Vec32uc dst;
 			dst.load_a(span);
 			texture_samples = add_saturated(Vec32uc(texture_samples), dst);
@@ -1825,7 +1825,7 @@ void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage,
 	dword v = iv;
 
 	if (Height <= 0 || LineWidth <= 0) return;
-	FillerPixelcount += Height * LineWidth;
+	FillerPixelcount = FillerPixelcount + Height * LineWidth;
 #if defined(PORTABLE_CODE) && defined(PIG_VOMIT)
 	__m64 mm4 { Color };
 	__m64 mm1 = {};

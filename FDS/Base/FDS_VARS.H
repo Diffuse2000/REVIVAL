@@ -57,18 +57,18 @@ public:
 	// multiplication
 	inline void mulh(mmreg &r1);
 	inline void mulh(mmreg &r1, mmreg &r2);
-	inline void shrb(uint64 c);
-	inline void shrw(uint64 c);
-	inline void shrd(uint64 c);
-	inline void shrq(uint64 c);
-	inline void sarb(uint64 c);
-	inline void sarw(uint64 c);
-	inline void sard(uint64 c);
-	inline void sarq(uint64 c);
-	inline void shlb(uint64 c);
-	inline void shlw(uint64 c);
-	inline void shld(uint64 c);
-	inline void shlq(uint64 c);
+	inline void shrb(uint64_t c);
+	inline void shrw(uint64_t c);
+	inline void shrd(uint64_t c);
+	inline void shrq(uint64_t c);
+	inline void sarb(uint64_t c);
+	inline void sarw(uint64_t c);
+	inline void sard(uint64_t c);
+	inline void sarq(uint64_t c);
+	inline void shlb(uint64_t c);
+	inline void shlw(uint64_t c);
+	inline void shld(uint64_t c);
+	inline void shlq(uint64_t c);
 };
 // implementation using inline functions
 //#include "MISC/mmreg.inl"
@@ -141,7 +141,7 @@ typedef struct
 	long U,V;   // 24:8 Fixed point mapping coordinates.
 	union
 	{
-		__int64 RGBA;   // Lighting/Spectral components.
+		uint64_t RGBA;   // Lighting/Spectral components.
 		struct
 		{
 			word R, G, B, A;
@@ -467,7 +467,7 @@ extern float AspectRatio;
 
 // Filler externals
 extern dword zReject, zPass;
-extern __int64 precisePixelCount;
+extern int64_t precisePixelCount;
 
 typedef int (__stdcall *VPFunc)(
 								void *lpAddress,		// address of region of committed pages
@@ -707,7 +707,7 @@ float SQRT(float Value);
     parm caller [eax]                            \
 modify [eax ecx edx];
 
-/*±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±*/
+/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
 // 1.0 / sqrt - fast reciprocal square root (to within 5 digits)
 
 float RSQRT(float Value);
@@ -737,7 +737,6 @@ modify [eax ecx edx];
 
 #endif
 
-#ifdef WIN32
 template <typename MATRIX, typename VECTOR>
 inline void MatrixXVector(const MATRIX M, const VECTOR *U, VECTOR *V)
 {
@@ -839,8 +838,8 @@ inline Vector operator * (const Matrix M, const Vector &V)
 inline void FPU_LPrecision()
 {
 #ifdef PORTABLE_CODE
-	OldFPUCW = _controlfp(_RC_UP | _PC_24, _MCW_RC | _MCW_PC);
-	CurMXCSR = OldMXCSR = _mm_getcsr();
+//	OldFPUCW = _controlfp(_RC_UP | _PC_24, _MCW_RC | _MCW_PC);
+    CurMXCSR = OldMXCSR = _mm_getcsr();
 	CurMXCSR &= 0b11111111111111110000000001000000;
 	CurMXCSR |= 0b00000000000000001101111111000000;
 	_mm_setcsr(CurMXCSR);
@@ -871,7 +870,7 @@ inline void FPU_LPrecision()
 inline void FPU_NormalState()
 {
 #ifdef PORTABLE_CODE
-	_controlfp(OldFPUCW, _MCW_RC | _MCW_PC);
+//	_controlfp(OldFPUCW, _MCW_RC | _MCW_PC);
 #else
 	__asm {
 		FLdCW   [OldFPUCW]
@@ -918,7 +917,7 @@ inline float SQRT(float Value)
 	//return _t_fxfl;
 }
 
-/*±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±*/
+/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
 // 1.0 / sqrt - fast reciprocal square root (to within 5 digits)
 
 inline float RSQRT(float Value)
@@ -1094,9 +1093,6 @@ inline void rcpss(float *s)
 	}
 #endif
 }
-
-
-#endif
 
 #pragma pack (pop)
 #pragma pack (pop)

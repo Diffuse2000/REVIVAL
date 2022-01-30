@@ -3,7 +3,7 @@
 
 // basic ANSI-C includes.
 #include <stdio.h>
-#include <conio.h>
+//#include <conio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
@@ -18,6 +18,12 @@
 //#define WIN32 //Compiles under Visual C 6.0
 
 #define MAX_GSTRING 128
+
+#ifdef __APPLE__
+#define _strdup strdup
+#define _aligned_malloc aligned_alloc
+#define _aligned_free free
+#endif
 
 // Unit IDs
 #define _KERNEL_ID          0
@@ -153,7 +159,7 @@ enum TrimeshFlags
 
 	// This flag indicates the trimesh has a fixed position throughout scene runtime.
 	// It is set by the scene loader. Manual removal of this flag should be made prior to
-	// scene Preprocess routine. 
+	// scene Preprocess routine.
 	Tri_Stationary		= 1 << 14,
 };
 
@@ -302,8 +308,8 @@ enum SortPriority
 
 /*
 	FDS version 0.85 (last change: Silvatar, 05.07.02)
-	
-	v0.9: 
+
+	v0.9:
 	- mappers with optimized MMX/SSE assembly; optimized software T&L.
 	- upgraded class scene representation, operative full scene convertion
 	- modular software renderer
@@ -312,7 +318,7 @@ enum SortPriority
 	- 3dsmax exporter plugin
 	- full code cleanup
 */
-#define FDS_Version "0.85" 
+#define FDS_Version "0.85"
 
 #define Tex_Default_Size 256
 
@@ -332,13 +338,13 @@ enum OmniFlags
 	// 1<<0 used by HTrack_Visible
 
 	// if this flag is clear, the omni will be ignored by the std. rendering pipeline
-	Omni_Active		= 1<<1, 
+	Omni_Active		= 1<<1,
 
 	// omnilight will be rendered as a simple lens flare
-	Omni_Flare		= 1<<2, 
+	Omni_Flare		= 1<<2,
 
 	// depth rejection is based only on central point
-	Omni_PointFlare	= 1<<3, 
+	Omni_PointFlare	= 1<<3,
 
 	// If this flag is set, the omnilight is used during Radiosity-based precalculations.
 	// uh-huh
@@ -346,7 +352,7 @@ enum OmniFlags
 
 	// This flag indicates the light source has a fixed position throughout scene runtime.
 	// It is set by the scene loader. Manual removal of this flag should be made prior to
-	// scene Preprocess routine. 
+	// scene Preprocess routine.
 	Omni_Stationary = 1<<5,
 
 	Omni_Rand = 1 << 6,

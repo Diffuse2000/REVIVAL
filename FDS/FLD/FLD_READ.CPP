@@ -4,9 +4,9 @@ Flood Demo System - Flood scene file reader
 */
 
 #include <stdio.h>
-#include <dos.h>
+//#include <dos.h>
 #include <stdlib.h>
-#include <conio.h>
+//#include <conio.h>
 #include <string.h>
 #include <math.h>
 

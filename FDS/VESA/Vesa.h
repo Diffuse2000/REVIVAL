@@ -2,7 +2,7 @@
 
 #include "Base/FDS_VARS.H"
 
-#include <intrin.h>
+//#include <intrin.h>
 #include <immintrin.h>
 #include <simd/vectorclass.h>
 
@@ -149,8 +149,8 @@ extern char *ATable,*STable,*CTable,*TTable;
 void Build_YOffs_Table(VESA_Surface *VS);
 
 #pragma pack(push, 1)
-__declspec(align(16)) struct uint128 {
-	uint64 low, high;
+struct alignas(16) uint128 {
+	uint64_t low, high;
 };
 #pragma pack(pop)
 

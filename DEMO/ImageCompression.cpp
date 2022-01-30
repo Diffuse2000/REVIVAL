@@ -2,10 +2,12 @@
 
 const float log2conv = 1.0 / log(2.0);
 
+#ifndef __APPLE__
 inline float log2(float x)
 {
 	return log(x)*log2conv;
 }
+#endif
 
 mword S3TC_coder::calcError3(dword *pixels, mword numPixels, dword u, dword v)
 {
@@ -664,7 +666,7 @@ void S3TC_coder::decompress()
 {
 }
 #define POINTER_64
-#include <windows.h>
+//#include <windows.h>
 void ImageCompressionTestCode()
 {
 	Image I, Output;
@@ -696,7 +698,7 @@ void ImageCompressionTestCode()
 	float pixelsPerSecond = float(I.x*I.y)*100.0f*numPasses / float(timeTaken);
 	char str[128];
 	sprintf(str, "%f pixels per second\n", pixelsPerSecond);
-	OutputDebugString(str);
+//	OutputDebugString(str);
 
 
 	Timer = 0;

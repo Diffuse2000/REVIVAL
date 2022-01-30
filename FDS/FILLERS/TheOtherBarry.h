@@ -7,7 +7,7 @@
 
 #include "TheOtherBarry.h"
 
-#include <intrin.h>
+//#include <intrin.h>
 #include <immintrin.h>
 #include <simd/vectorclass.h>
 #include <cassert>
@@ -232,7 +232,7 @@ struct TileRasterizer {
 				if (horizontal_or(p_mask)) {
 
 //					if constexpr (BlendMode != TBlendMode::TRANSPARENT) {
-						*(__m128i*)zspan = _mm_blendv_epi8(*(__m128i*)zspan, compress(z_candidate), compress(p_mask));
+						*(__m128i*)zspan = _mm_blendv_epi8(*(__m128i*)zspan, compress(z_candidate), compress(Vec8ui(p_mask)));
 					//}
 
 					Vec8i u = roundi(p_uz * p_z * t0.UScaleFactor);

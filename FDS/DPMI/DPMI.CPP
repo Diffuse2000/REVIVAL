@@ -801,7 +801,7 @@ void Init_Aligned(long Amount)
 {
 	AlignedBuffer = (char *)malloc(65536*(Amount+1));
 	AlignedBlocks = Amount;
-	AlignedPtr = (char *) (  ((dword)AlignedBuffer + 65535) & (~65535));
+	AlignedPtr = (char *) (((uintptr_t)AlignedBuffer + 65535) & (~65535));
 }
 
 void * Get_Aligned_Block()

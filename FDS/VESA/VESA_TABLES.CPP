@@ -1,4 +1,4 @@
-#include "VESA.H"
+#include "Vesa.h"
 
 // Available tables: Y Offset table
 // Next: 8Bit Palette tables (Gouraud-txtr,Transparence,Addative,DAC Emu)
@@ -246,7 +246,7 @@ void Build_8Tables()
   // Allocating shit
   //Tblmem = (char *)DPMI_New(VESAModule,327680,"8Bit Aligned Table space");
   Tblmem = new char [327680];
-  Tblali = Tblmem+0x10000-(((DWord)Tblmem)&0xFFFF);
+  Tblali = Tblmem+0x10000-(((uintptr_t)Tblmem)&0xFFFF);
   ATable = Tblali;
   TTable = Tblali+0x10000;
   CTable = Tblali+0x20000;

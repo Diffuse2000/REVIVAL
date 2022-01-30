@@ -473,7 +473,7 @@ void FrustumClipper::MiplevelClipper(Face *F, RasterFunc filler)
 	}
 
 #ifdef ENABLE_PIXELCOUNT
-	FillerPixelcount += 0.5f * fabs(pixArea);
+	FillerPixelcount = FillerPixelcount + 0.5f * fabs(pixArea);
 #endif
 	// Simple miplevel calculation
 	//if (!Keyboard[ScY])
@@ -774,7 +774,7 @@ void FrustumClipper::Render(Face *F, RasterFunc filler, bool isEnvCoords)
 		MiplevelClipper(F, filler);
 	} else {
 #ifdef ENABLE_PIXELCOUNT
-		FillerPixelcount += PolyArea();
+		FillerPixelcount = FillerPixelcount + PolyArea();
 #endif
 #ifdef COUNT_POLYS
 		g_renderedPolys++;

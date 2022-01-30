@@ -1,6 +1,7 @@
 #include "IX.h"
 #include "Base/Scene.h"
 #include <vector>
+#include <string>
 
 /////////////////////////////////
 // static filler variables (SFV)
@@ -780,7 +781,7 @@ static void IXFiller(IXVertexTG *Verts, dword numVerts, void *Texture, void *Pag
 	IX_L2Y = logHeight;
 
 	// ZBuffer data starts at the end of framebuffer
-	IX_ZBuffer = (word *) ((dword)Page + PageSize);
+	IX_ZBuffer = (word *) ((uintptr_t)Page + PageSize);
 
 	Left.Index = 1;
 	Right.Index = numVerts - 1;
@@ -845,8 +846,8 @@ static void IXFiller(IXVertexTG *Verts, dword numVerts, void *Texture, void *Pag
 
 	dword y, SectionHeight;
 	y = Fist(Verts[0].y);
-	dword *Scanline = (dword *)((dword)Page + VESA_BPSL * y);
-	word *ZScanline = (word *)((dword)Page + PageSize + sizeof(word) * XRes * y);
+	dword *Scanline = (dword *)((uintptr_t)Page + VESA_BPSL * y);
+	word *ZScanline = (word *)((uintptr_t)Page + PageSize + sizeof(word) * XRes * y);
 	long Width;
 	
 	// Iterate over sections
@@ -961,7 +962,7 @@ AfterScanConv:
 const dword maximalNgon = 16;
 thread_local static dword *l_TestTexture = NULL;
 thread_local static char l_IXMemBlock[sizeof(IXVertexTG) * (maximalNgon+1)];
-thread_local static IXVertexTG *l_IXArray = (IXVertexTG *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
+thread_local static IXVertexTG *l_IXArray = (IXVertexTG *)( ((uintptr_t)l_IXMemBlock + 0xF) & (~0xF) );
 thread_local static Material DummyMat;
 thread_local static Texture DummyTex;
 
@@ -972,8 +973,8 @@ static void PrefillerCommon(Face *F, Vertex **V, dword numVerts, dword miplevel)
 
 	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
 	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
-	
-	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[miplevel];
+
+    uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
 	
 	float UScaleFactor = (1<<LogWidth);
@@ -1071,7 +1072,7 @@ void IX_Prefiller_TGZM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
 	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 
-	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[miplevel];
+    uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
 	dword updateZBuffer;
 	if (F->Flags & Face_Reflective) {
@@ -1160,7 +1161,7 @@ void IX_Prefiller_TGZTM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
 	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 
-	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[miplevel];
+    uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
 //	dword updateZBuffer = F->Txtr->ZBufferWrite ? 1 : 0;
 	dword updateZBuffer = 0;
@@ -1245,7 +1246,7 @@ void IX_Prefiller_TGZTAM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
 	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 
-	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[miplevel];
+    uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
 	float UScaleFactor = (1<<LogWidth);
 	float VScaleFactor = (1<<LogHeight);
@@ -1328,7 +1329,7 @@ void IX_Prefiller_TGZSAM(Face* F, Vertex** V, dword numVerts, dword miplevel)
 	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 	dword updateZBuffer = F->Txtr->ZBufferWrite ? 1 :0;
 
-	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[miplevel];
+    uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
 	float UScaleFactor = (1 << LogWidth);
 	float VScaleFactor = (1 << LogHeight);
@@ -1409,7 +1410,7 @@ void IX_Prefiller_Reflective(Face* F, Vertex** V, dword numVerts, dword miplevel
 	dword i;
 
 	auto Tx = F->ReflectionTexture;
-	dword TextureAddr = (dword)Tx->Mipmap[0];
+    uintptr_t TextureAddr = (uintptr_t)Tx->Mipmap[0];
 
 	long LogWidth = Tx->LSizeX;
 	long LogHeight = Tx->LSizeY;

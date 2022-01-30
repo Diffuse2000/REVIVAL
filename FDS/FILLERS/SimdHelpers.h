@@ -54,6 +54,10 @@ inline Vec32us mul_add(Vec32us a, Vec32us b, Vec32us x) {
 	return a * b + x;
 }
 
+inline Vec32s mul_add(Vec32s a, Vec32s b, Vec32s x) {
+    return a * b + x;
+}
+
 template < typename T>
 inline v8_type<T> v8_from_arith_seq(T x_, T d_) {
 	auto x = v8_type<T>{ x_ };
@@ -105,7 +109,7 @@ inline Vec32uc colorize(Vec32uc color1, Vec32us color2) {
 
 inline Vec8ui gather(const Vec8ui index, void const* table, Vec8ib mask) {
 #if INSTRSET >= 8
-	return _mm256_mask_i32gather_epi32(Vec8ui(0), (const int *)table, static_cast<__m256i>(index), static_cast<__m256i>(mask), 4);
+	return (_mm256_mask_i32gather_epi32(Vec8ui(0), (const int *)table, static_cast<__m256i>(index), *(__m256i *)(&mask)/*static_cast<__m256i>(mask)*/, 4));
 #else
 	auto t = (const uint32_t*)table;
 	uint32_t ind[8];

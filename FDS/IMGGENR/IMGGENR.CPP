@@ -7,7 +7,7 @@
 #include "Base/FDS_DEFS.H"
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
-#include "Base/Omni.H"
+#include "Base/Omni.h"
 #include <memory>
 #include <simd/vectorclass.h>
 #include <FILLERS/SimdHelpers.h>
@@ -599,7 +599,7 @@ void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword xres, dword yres
 }
 
 #pragma pack(push, 1)
-__declspec(align(16)) struct uint128 {
+struct alignas(16) uint128 {
 	uint64 low, high;
 };
 #pragma pack(pop)
@@ -661,7 +661,7 @@ void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YR
 
 				auto c = c0;
 				auto dcdx = (c1 - c0) >> Grid_LOGSubsamp;
-				auto color = v32_from_arith_seq(c0, dcdx);
+				auto color = Vec32us(v32_from_arith_seq(c0, dcdx));
 
 
 				Vec8i tu = packed_tile_u(u, 8, t0_umask_swizzled);
@@ -2323,5 +2323,3 @@ void Sachletz(dword *data, dword xres, dword yres) {
 				}
 		}
 }
-
-
