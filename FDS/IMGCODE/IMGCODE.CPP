@@ -1137,7 +1137,7 @@ static char _Load_Texture(Texture *Tx)
 			Tx->BPP=IDR.BPP; //validate the texture
 			
 			Tx->Data = new byte[Tx->SizeX*Tx->SizeY*((Tx->BPP+1)>>3)];
-			printf("Allocated memory for texture at %xh\n",(uintptr_t)Tx->Data);
+			printf("Allocated memory for texture at %lxh\n",(uintptr_t)Tx->Data);
 			
 			BitMapScale2Texture(Tx,Txd,IDR.x,IDR.y,(IDR.BPP+1)>>3);
 			printf("Scaled tex to (%d,%d)\n",Tx->SizeX,Tx->SizeY);

@@ -106,7 +106,6 @@ VESA_Surface Layer2;
 void DO_NOP();
 #pragma aux DO_NOP="NOP";
 #endif
-#ifdef WIN32
 void DO_NOP()
 {
 #ifdef NON_PORTABLE_CODE
@@ -115,7 +114,6 @@ void DO_NOP()
 	}
 #endif
 }
-#endif
 
 Vector Transform_Vec(Vector Pos, Vector Source, Matrix Mat) {
 	Vector U, V, S;

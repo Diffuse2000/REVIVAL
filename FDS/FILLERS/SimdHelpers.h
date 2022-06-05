@@ -74,6 +74,15 @@ inline static const auto v32_arith_seq_mult = Vec32us(0, 0, 0, 0,
 	6, 6, 6, 6,
 	7, 7, 7, 7);
 
+inline static const auto v32s_arith_seq_mult = Vec32s(0, 0, 0, 0,
+	1, 1, 1, 1,
+	2, 2, 2, 2,
+	3, 3, 3, 3,
+	4, 4, 4, 4,
+	5, 5, 5, 5,
+	6, 6, 6, 6,
+	7, 7, 7, 7);
+
 
 inline Vec32s Vec32sFromVec4s(std::array<int16_t, 4> x_) {
 	return Vec32s{ x_[0], x_[1], x_[2], x_[3],
@@ -89,7 +98,7 @@ inline Vec32s Vec32sFromVec4s(std::array<int16_t, 4> x_) {
 inline Vec32s v32_from_arith_seq(std::array<int16_t, 4> x_, std::array<int16_t, 4> d_) {
 	auto x = Vec32sFromVec4s(x_);
 	auto d = Vec32sFromVec4s(d_);
-	return mul_add(d, v32_arith_seq_mult, x);
+	return mul_add(d, v32s_arith_seq_mult, x);
 }
 
 inline Vec32s Vec32sFromVec8s(Vec8s x_) {
@@ -99,7 +108,7 @@ inline Vec32s Vec32sFromVec8s(Vec8s x_) {
 inline Vec32s v32_from_arith_seq(Vec8s x_, Vec8s d_) {
 	auto x = Vec32sFromVec8s(x_);
 	auto d = Vec32sFromVec8s(d_);
-	return mul_add(d, v32_arith_seq_mult, x);
+	return mul_add(d, v32s_arith_seq_mult, x);
 }
 
 template <uint8_t Shift = 0>

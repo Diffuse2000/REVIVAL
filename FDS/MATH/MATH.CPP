@@ -9,7 +9,8 @@
 #include "Base/FDS_DEFS.H"
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
-#include <smmintrin.h>
+#include "simde/x86/sse4.1.h"
+
 //Externals
 float SinTab[1440];
 float CosTab[1440];

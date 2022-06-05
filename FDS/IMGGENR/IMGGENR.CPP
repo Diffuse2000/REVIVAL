@@ -600,7 +600,7 @@ void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword xres, dword yres
 
 #pragma pack(push, 1)
 struct alignas(16) uint128 {
-	uint64 low, high;
+	uint64_t low, high;
 };
 #pragma pack(pop)
 

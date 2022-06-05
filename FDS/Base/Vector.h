@@ -2,8 +2,10 @@
 #ifndef REVIVAL_VECTOR_H
 #define REVIVAL_VECTOR_H
 
+// #define SIMDE_ENABLE_NATIVE_ALIASES
+
 #include <stdio.h>
-#include <smmintrin.h>
+#include "simde/x86/sse4.1.h"
 #include <math.h>
 
 #pragma pack(push, 1)

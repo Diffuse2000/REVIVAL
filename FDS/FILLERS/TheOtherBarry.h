@@ -8,7 +8,7 @@
 #include "TheOtherBarry.h"
 
 //#include <intrin.h>
-#include <immintrin.h>
+#include "simde/x86/avx2.h"
 #include <simd/vectorclass.h>
 #include <cassert>
 #include <array>

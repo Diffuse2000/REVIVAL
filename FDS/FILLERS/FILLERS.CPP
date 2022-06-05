@@ -11,7 +11,8 @@
 #include "Base/FDS_DEFS.H"
 #include "SimdHelpers.h"
 #include <Threads.h>
-#include <mmintrin.h>
+// #define SIMDE_ENABLE_NATIVE_ALIASES
+#include "simde/x86/mmx.h"
 
 float CParticle_ISize;
 float ImageSize = 1000.0;
@@ -1827,7 +1828,7 @@ void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage,
 	if (Height <= 0 || LineWidth <= 0) return;
 	FillerPixelcount = FillerPixelcount + Height * LineWidth;
 #if defined(PORTABLE_CODE) && defined(PIG_VOMIT)
-	__m64 mm4 { Color };
+	__m64 mm4 { (int32_t)Color };
 	__m64 mm1 = {};
 #ifdef NON_PORTABLE_CODE
 	mm4 = _m_punpcklbw(mm4, mm1);

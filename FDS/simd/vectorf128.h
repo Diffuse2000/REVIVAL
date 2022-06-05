@@ -2677,7 +2677,7 @@ static inline Vec4f blend4(Vec4f const a, Vec4f const b) {
     }
     if constexpr ((flags & blend_largeblock) != 0) {       // fits blending with larger block size
         constexpr EList<int, 2> L = largeblock_indexes<4>(indexs);
-        y = _mm_castpd_ps(blend2 <L.a[0], L.a[1]> (Vec2d(_mm_castps_pd(a)), Vec2d(_mm_castps_pd(b))));
+        y = simde_mm_castpd_ps(blend2 <L.a[0], L.a[1]> (Vec2d(_mm_castps_pd(a)), Vec2d(_mm_castps_pd(b))));
         if constexpr ((flags & blend_addz) == 0) {
             return y;                                      // any zeroing has been done by larger blend
         }

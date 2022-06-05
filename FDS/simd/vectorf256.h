@@ -258,7 +258,8 @@ static inline Vec8fb & operator |= (Vec8fb & a, Vec8fb const b) {
 
 // vector operator ~ : bitwise not
 static inline Vec8fb operator ~ (Vec8fb const a) {
-    return _mm256_xor_ps(a, constant8f<0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu>());
+    auto tmp = constant8f<0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu>();
+    return _mm256_xor_ps(a, tmp);
 }
 
 // vector operator ^ : bitwise xor
@@ -297,7 +298,8 @@ static inline Vec8fb andnot(Vec8fb const a, Vec8fb const b) {
 
 // horizontal_and. Returns true if all bits are 1
 static inline bool horizontal_and (Vec8fb const a) {
-    return _mm256_testc_ps(a,constant8f<0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu>()) != 0;
+    auto tmp = constant8f<0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu>();
+    return _mm256_testc_ps(a, tmp) != 0;
 }
 
 // horizontal_or. Returns true if at least one bit is 1
@@ -502,7 +504,8 @@ static inline Vec4db & operator |= (Vec4db & a, Vec4db const b) {
 
 // vector operator ~ : bitwise not
 static inline Vec4db operator ~ (Vec4db const a) {
-    return _mm256_xor_pd(a, _mm256_castps_pd (constant8f<0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu>()));
+    auto tmp = constant8f<0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu>();
+    return _mm256_xor_pd(a, _mm256_castps_pd (tmp));
 }
 
 // vector operator ^ : bitwise xor
@@ -1085,7 +1088,7 @@ static inline Vec8fb is_nan(Vec8f const a) {
 //static inline Vec8fb is_nan(Vec8f const a) {
 //    return a != a; // not safe with -ffinite-math-only compiler option
 //}
-#elif (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+#elif 0 // (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
 static inline Vec8fb is_nan(Vec8f const a) {
     __m256 aa = a;
     __m256 unordered;
@@ -1640,7 +1643,8 @@ static inline Vec4d operator - (double a, Vec4d const b) {
 // vector operator - : unary minus
 // Change sign bit, even for 0, INF and NAN
 static inline Vec4d operator - (Vec4d const a) {
-    return _mm256_xor_pd(a, _mm256_castps_pd(constant8f<0u,0x80000000u,0u,0x80000000u,0u,0x80000000u,0u,0x80000000u> ()));
+    auto tmp = constant8f<0u,0x80000000u,0u,0x80000000u,0u,0x80000000u,0u,0x80000000u> ();
+    return _mm256_xor_pd(a, _mm256_castps_pd(tmp));
 }
 
 // vector operator -= : subtract
@@ -1917,7 +1921,7 @@ static inline Vec4db is_nan(Vec4d const a) {
 //static inline Vec4db is_nan(Vec4d const a) {
 //    return a != a; // not safe with -ffinite-math-only compiler option
 //}
-#elif (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+#elif 0 // (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
 static inline Vec4db is_nan(Vec4d const a) {
     __m256d aa = a;
     __m256d unordered;
@@ -1987,7 +1991,8 @@ static inline Vec4d abs(Vec4d const a) {
 #if INSTRSET >= 10  // AVX512VL
     return _mm256_range_pd(a, a, 8);
 #else
-    __m256d mask = _mm256_castps_pd(constant8f<0xFFFFFFFFu,0x7FFFFFFFu,0xFFFFFFFFu,0x7FFFFFFFu,0xFFFFFFFFu,0x7FFFFFFFu,0xFFFFFFFFu,0x7FFFFFFFu> ());
+    auto tmp = constant8f<0xFFFFFFFFu,0x7FFFFFFFu,0xFFFFFFFFu,0x7FFFFFFFu,0xFFFFFFFFu,0x7FFFFFFFu,0xFFFFFFFFu,0x7FFFFFFFu> ();
+    __m256d mask = _mm256_castps_pd(tmp);
     return _mm256_and_pd(a,mask);
 #endif
 }
@@ -2193,7 +2198,8 @@ static inline Vec4d mul_sub_x(Vec4d const a, Vec4d const b, Vec4d const c) {
 #else
     // calculate a * b - c with extra precision
     // mask to remove lower 27 bits
-    Vec4d upper_mask = _mm256_castps_pd(constant8f<0xF8000000u,0xFFFFFFFFu,0xF8000000u,0xFFFFFFFFu,0xF8000000u,0xFFFFFFFFu,0xF8000000u,0xFFFFFFFFu>());
+    auto tmp = constant8f<0xF8000000u,0xFFFFFFFFu,0xF8000000u,0xFFFFFFFFu,0xF8000000u,0xFFFFFFFFu,0xF8000000u,0xFFFFFFFFu>();
+    Vec4d upper_mask = _mm256_castps_pd(tmp);
     Vec4d a_high = a & upper_mask;               // split into high and low parts
     Vec4d b_high = b & upper_mask;
     Vec4d a_low  = a - a_high;
@@ -2281,8 +2287,9 @@ static inline Vec4db sign_bit(Vec4d const a) {
 template <int i0, int i1, int i2, int i3>
 inline Vec4d change_sign(Vec4d const a) {
     if ((i0 | i1 | i2 | i3) == 0) return a;
-    __m256d mask = _mm256_castps_pd(constant8f <
-        0u, (i0 ? 0x80000000u : 0u), 0u, (i1 ? 0x80000000u : 0u), 0u, (i2 ? 0x80000000u : 0u), 0u, (i3 ? 0x80000000u : 0u)> ());
+    auto tmp = constant8f <
+        0u, (i0 ? 0x80000000u : 0u), 0u, (i1 ? 0x80000000u : 0u), 0u, (i2 ? 0x80000000u : 0u), 0u, (i3 ? 0x80000000u : 0u)> ();
+    __m256d mask = _mm256_castps_pd(tmp);
     return _mm256_xor_pd(a, mask);
 }
 
@@ -2516,8 +2523,8 @@ static inline Vec8f permute8(Vec8f const a) {
 
         if constexpr ((flags & perm_largeblock) != 0) {    // use larger permutation
             constexpr EList<int, 4> L = largeblock_perm<8>(indexs); // permutation pattern
-            y = _mm256_castpd_ps(permute4 <L.a[0], L.a[1], L.a[2], L.a[3]>
-                (Vec4d(_mm256_castps_pd(a))));
+            auto tmp = permute4 <L.a[0], L.a[1], L.a[2], L.a[3]>(Vec4d(_mm256_castps_pd(a)));
+            y = _mm256_castpd_ps(tmp);
             if (!(flags & perm_addz)) return y;            // no remaining zeroing
         }
         else if constexpr ((flags & perm_same_pattern) != 0) {  // same pattern in both lanes
@@ -2574,8 +2581,8 @@ static inline Vec8f permute8(Vec8f const a) {
             }
             else {
                 // full permute needed
-                __m256i permmask = _mm256_castps_si256(
-                    constant8f <i0 & 7, i1 & 7, i2 & 7, i3 & 7, i4 & 7, i5 & 7, i6 & 7, i7 & 7 >());
+                auto tmp = constant8f <i0 & 7, i1 & 7, i2 & 7, i3 & 7, i4 & 7, i5 & 7, i6 & 7, i7 & 7 >();
+                __m256i permmask = _mm256_castps_si256(tmp);
 #if INSTRSET >= 8  // AVX2
                 y = _mm256_permutevar8x32_ps(a, permmask);
 #else
@@ -2690,8 +2697,9 @@ static inline Vec8f blend8(Vec8f const a, Vec8f const b) {
 
     if constexpr ((flags & blend_largeblock) != 0) {       // blend and permute 32-bit blocks
         constexpr EList<int, 4> L = largeblock_perm<8>(indexs); // get 32-bit blend pattern
-        y = _mm256_castpd_ps(blend4 <L.a[0], L.a[1], L.a[2], L.a[3]>
-            (Vec4d(_mm256_castps_pd(a)), Vec4d(_mm256_castps_pd(b))));
+        auto tmp = blend4 <L.a[0], L.a[1], L.a[2], L.a[3]>
+            (Vec4d(_mm256_castps_pd(a)), Vec4d(_mm256_castps_pd(b)));
+        y = _mm256_castpd_ps(tmp);
         if (!(flags & blend_addz)) return y;               // no remaining zeroing
     }
     else if constexpr ((flags & blend_b) == 0) {           // nothing from b. just permute a

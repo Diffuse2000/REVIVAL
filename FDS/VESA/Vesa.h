@@ -3,7 +3,7 @@
 #include "Base/FDS_VARS.H"
 
 //#include <intrin.h>
-#include <immintrin.h>
+#include "simde/x86/avx2.h"
 #include <simd/vectorclass.h>
 
 

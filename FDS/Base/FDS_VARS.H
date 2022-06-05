@@ -6,6 +6,7 @@
 #include <atomic>
 #include <float.h>
 #include <array>
+#include "simde/x86/avx2.h"
 #include <simd/vectorclass.h>
 
 // _data must be allocated
@@ -469,12 +470,15 @@ extern float AspectRatio;
 extern dword zReject, zPass;
 extern int64_t precisePixelCount;
 
+#ifdef _MSVC
 typedef int (__stdcall *VPFunc)(
 								void *lpAddress,		// address of region of committed pages
 								unsigned long dwSize,			// size of the region
 								unsigned long flNewProtect,	// desired access protection
 								unsigned long *lpflOldProtect // address of variable to get old protection
 								);
+
+#endif
 
 //extern long ASM_XRes;
 extern float *InvTbl;

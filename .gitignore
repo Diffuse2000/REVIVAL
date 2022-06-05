@@ -282,7 +282,6 @@ DEMO.exe
 /DEMO/CITY-old.CPP
 /DEMO/CITY - Copy.CPP
 /FDS/FILLERS/IXTGZTAM - Copy.ASM
-/FDS/CMakeLists.txt
 /FDS/IXTGZSAM.lst
 /libpng
 /Runtime/logfile.txt

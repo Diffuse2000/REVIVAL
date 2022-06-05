@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <conio.h>
 #include <math.h>
 #include <memory.h>
 #include <string.h>
@@ -918,7 +917,7 @@ void Materials_Remap_Aligned()
 			for(M=MatLib;M;M=M->Next)
 			{
 				if (!M->Txtr) continue;
-				printf("<PR:Aln>: Material %s ===> Address %xH.\n",M->Name,(DWord)M->Txtr->Data);
+				printf("<PR:Aln>: Material %s ===> Address %lxH.\n",M->Name,M->Txtr->Data);
 			}
 			//  getchar();
 }
