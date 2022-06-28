@@ -480,7 +480,7 @@ material global ID or ptr
 #include "Fillers/IX.h"
 #include "threads.h"
 #include "../Modplayer/Modplayer.h"
-//#include <SDL.h>
+#include <SDL.h>
 
 // global configuration db
 static ConfigurationDB *g_cfg;
@@ -537,87 +537,6 @@ void Destroy_Scene(Scene *Sc)
 //	printf("%d Frags\n",total);
 	freeAlignedBlock(Sc);
 }
-
-#ifdef _C_WATCOM
-
-void Initialize_System()
-{
-	LogFile = fopen("Runtime.LOG","wt");
-
-	if (!FDS_Init(512,384,32))    // Initialize FDS
-	{
-		printf("Initializing failed! Crashing to OS\n");
-		exit(1);
-	}
-
-	if (g_playMusic)
-	{
-		ModuleBuf = LoadARJ("Music\\Music.ARJ","Revival.xM");
-		Initialize_Module(ModuleBuf);
-	}
-	Generate_RGBFlares();
-	if (BPP==8) Materials_Remap_Aligned();
-//  InitMouse();
-	// all Hardwired Initializations complete
-}
-
-void Scan_MaterialLib()
-{
-	printf("Scanning MatLib\n");
-	for(Material *M=MatLib;M;M=M->Next)
-		printf("Material %s at Scene %xH\n",M->Name,(DWord)M->RelScene);
-}
-/*
-void main(int argc,char *argv[])
-{
-	Initialize_System();
-
-//	printf("MEM = %d\n",DPMI_Free_Memory());
-//	Initialize_Credits();
-//	printf("[Credits]MEM = %d\n",DPMI_Free_Memory());
-//	printf("[City]MEM = %d\n",DPMI_Free_Memory());
-//
-//	printf("[Chase]MEM = %d\n",DPMI_Free_Memory());
-//	printf("[Fountain]MEM = %d\n",DPMI_Free_Memory());
-
-	setbuf(stdout,NULL);
-	printf("Initializing, please wait...");
-	SetGraphicsMode();
-
-//	Initialize_City(); //9.3
-	Initialize_Fountain(); //8.3
-//	Run_Glato();
-//	while (Timer<4500) continue;
-	Timer = 1;
-//	Run_City();
-
-	Timer = 1;
-	Run_Fountain();
-
-	Initialize_Greets(); //5.6
-	Timer = 1;
-	Run_Greets();
-
-
-
-
-//	Initialize_Crash();
-	Timer = 1;
-
-//	Run_Crash();
-#if Play_Music
-	ShutDown();
-#endif
-	FDS_End();
-
-//	printf("MEM = %d\n",DPMI_Free_Memory());
-}
-*/
-void SysSleep(dword ticks)
-{
-}
-
-#endif
 
 
 #ifdef WIN32
@@ -1588,3 +1507,42 @@ void SysSleep(dword ticks)
 }
 
 #endif
+
+int main(int argc, const char *argv[])
+{
+	ConfigurationDB cfg;
+	g_cfg = &cfg;
+	cfg.fromFile("rev.cfg");
+	g_playMusic = cfg.extractInteger("MusicEnable");
+	g_profilerActive = cfg.extractInteger("ProfilerEnable");
+	g_demoXRes = cfg.extractInteger("ResolutionX");
+	g_demoYRes = cfg.extractInteger("ResolutionY");
+	g_fullScreenMode = cfg.extractInteger("FullScreenMode");
+
+    SDL_Init(SDL_INIT_VIDEO);
+
+    SDL_Window * window = SDL_CreateWindow("",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        640, 480,
+        0);
+
+
+	// Create a renderer with V-Sync enabled.
+	SDL_Renderer * renderer = SDL_CreateRenderer(window,
+		-1, SDL_RENDERER_PRESENTVSYNC);
+	
+    while (1)
+    {
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT) exit(0);
+        }
+
+        //
+        // Display the pixel buffer here.
+        //
+    }
+
+	return 0;
+}

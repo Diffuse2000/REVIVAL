@@ -733,7 +733,7 @@ void Make_RPLTBL(long X,long Y,float Prec)
 			*DW++ = Prec*sqrt((float)(I*I+(J+80)*(J+80)));
 }
 
-float *STbl = NULL;
+static float *STbl = NULL;
 
 void Make_STbl(float Freq,long Steps)
 {
