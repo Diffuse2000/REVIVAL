@@ -6,7 +6,7 @@
 
 #define VSurface MainSurf
 
-static long TrigOffset;
+static int32_t TrigOffset;
 static Texture *LogoTexture;
 static Image *LogoImage;
 static Texture *PlaneTexture;
@@ -37,10 +37,10 @@ void Initialize_Glato()
 	SfxTexture = new Texture;
 	SfxImage = new Image;
 
-	Load_Image_JPEG(LogoImage,"Textures//Logo.JPG");
+	Load_Image_JPEG(LogoImage,"Textures/Logo.JPG");
 	Scale_Image(LogoImage,XRes,YRes);
 
-/*	LogoTexture->FileName = strdup("Textures//Logo.JPG");
+/*	LogoTexture->FileName = strdup("Textures/Logo.JPG");
 	Identify_Texture(LogoTexture);
 	if (!LogoTexture->BPP)
 	{
@@ -52,7 +52,7 @@ void Initialize_Glato()
 	Convert_Texture2Image(LogoTexture,LogoImage);*/
 	
 
-	PlaneTexture->FileName = strdup("Textures//SC13.JPG");
+	PlaneTexture->FileName = strdup("Textures/SC13.JPG");
 	Identify_Texture(PlaneTexture);
 	if (!PlaneTexture->BPP)
 	{
@@ -65,7 +65,7 @@ void Initialize_Glato()
 	//PlaneImage->Data[0] = 0x80808080;
 //	WOBPOINTSHEIGHT = 30;
 
-	CodeTexture->FileName = strdup("Textures//Code.JPG");
+	CodeTexture->FileName = strdup("Textures/Code.JPG");
 	Identify_Texture(CodeTexture);
 	if (!CodeTexture->BPP)
 	{
@@ -76,7 +76,7 @@ void Initialize_Glato()
 	Convert_Texture2Image(CodeTexture,CodeImage);
 
 
-	GfxTexture->FileName = strdup("Textures//Gfx.JPG");
+	GfxTexture->FileName = strdup("Textures/Gfx.JPG");
 	Identify_Texture(GfxTexture);
 	if (!GfxTexture->BPP)
 	{
@@ -86,7 +86,7 @@ void Initialize_Glato()
 	Load_Texture(GfxTexture);
 	Convert_Texture2Image(GfxTexture,GfxImage);
 
-	SfxTexture->FileName = strdup("Textures//Sfx.JPG");
+	SfxTexture->FileName = strdup("Textures/Sfx.JPG");
 	Identify_Texture(SfxTexture);
 	if (!SfxTexture->BPP)
 	{
@@ -108,7 +108,7 @@ void Run_Ray()
 	Matrix_Identity(CamMat.XMMMatrix);
 
 	float ST;
-	long timerStack[20], timerIndex = 0;
+	int32_t timerStack[20], timerIndex = 0;
 	for(int i=0; i<20; i++)
 		timerStack[i] = Timer;
 
@@ -274,7 +274,7 @@ void Run_Ray()
 				Plane_GP[j].BGRA._d16[2]=r;
 				Plane_GP[j].BGRA._d16[1]=g;
 				Plane_GP[j].BGRA._d16[0]=b;
-//				Plane_GP[j].RGB = ((long)r<<16)+((long)g<<8)+(long)b;
+//				Plane_GP[j].RGB = ((int32_t)r<<16)+((int32_t)g<<8)+(int32_t)b;
 
 
 				X = x - XRes * 0.5;
@@ -429,7 +429,7 @@ void Run_Ray()
 //		memcpy(VPage, Page1, PageSize);
 		if (Timer>3200)
 		{
-			long cfVal = (Timer-3200)*255/300;
+			int32_t cfVal = (Timer-3200)*255/300;
 			if (cfVal>255) cfVal = 255;
 			DWord SrcPer = ((DWord)cfVal) * 0x01010101;
 			DWord DstPer = ((DWord)(255-cfVal)) * 0x01010101;

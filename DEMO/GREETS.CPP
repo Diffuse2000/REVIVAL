@@ -14,7 +14,7 @@ static float frand() {
 
 static Scene *GreetSc;
 
-static long CHPartTime = 20.0f*100;
+static int32_t CHPartTime = 20.0f*100;
 
 // This function is called to alter parameters within scene objects after loading from FLD.
 static void SceneCorrections()
@@ -41,7 +41,7 @@ static void SceneCorrections()
 
 	Scene *Sc = GreetSc;
 	Omni *O;
-	long index;
+	int32_t index;
 	for(O=Sc->OmniHead, index=0; O; O=O->Next)
 	{
 		if (index == NumOmnis) break;
@@ -139,7 +139,7 @@ struct GreetsGenerator
 		}
 
 		const char* text;
-		long x, y;
+		int32_t x, y;
 	};
 
 	GreetsEntry ge0 { " Flood\nGreets" };
@@ -153,7 +153,7 @@ struct GreetsGenerator
 	{
 		Material *Mat;
 		for (Mat = MatLib; Mat->Next; Mat = Mat->Next) {
-			if (Mat->RelScene == GreetSc && Mat->Txtr && Mat->Txtr->FileName && !strcmp(Mat->Txtr->FileName, "Textures//p_text.jpg"))
+			if (Mat->RelScene == GreetSc && Mat->Txtr && Mat->Txtr->FileName && !strcmp(Mat->Txtr->FileName, "Textures/p_text.jpg"))
 			{
 				Mat->Txtr->Mipmap[0] = (byte *)OutBuf;
 				Mat->Txtr->Flags = Txtr_Nomip;
@@ -174,7 +174,7 @@ struct GreetsGenerator
 		ScaledBuf = (DWord*)_aligned_malloc(256 * 256 * 4, 16);
 
 
-		CodeTexture.FileName = strdup("Textures//Code.JPG");
+		CodeTexture.FileName = strdup("Textures/Code.JPG");
 		Identify_Texture(&CodeTexture);
 		if (!CodeTexture.BPP)
 		{
@@ -339,7 +339,7 @@ void Initialize_Greets()
 	GreetSc = (Scene *)getAlignedBlock(sizeof(Scene), 16);
 	memset(GreetSc,0,sizeof(Scene));
 	
-	LoadFLD(GreetSc,"Scenes\\Greets.FLD");
+	LoadFLD(GreetSc,"SCENES/Greets.FLD");
 
 	gg = new GreetsGenerator;
 
@@ -407,11 +407,11 @@ void Initialize_Greets()
 void Run_Greets()
 {
 	char MSGStr[128];
-	long Polys = 0, TTrd;
+	int32_t Polys = 0, TTrd;
 	TriMesh *T;
 	Omni *O;
 
-	long i, timerStack[20], timerIndex = 0;
+	int32_t i, timerStack[20], timerIndex = 0;
 	for(i=0; i<20; i++)
 		timerStack[i] = Timer;
 
@@ -589,12 +589,12 @@ void Run_Greets()
 			sprintf(MSGStr, "TOTL %3.1fms" , ProfSum*10.0/ numFrames);
 			scroll = OutTextXY(VPage,0,scroll+15,MSGStr,255);
 
-	//		sprintf(MSGStr, "%d percent Z-rejection", (long) ( (float)zReject*100.0/ (zReject+zPass) ));
+	//		sprintf(MSGStr, "%d percent Z-rejection", (int32_t) ( (float)zReject*100.0/ (zReject+zPass) ));
 	//		OutTextXY(VPage,0,45,MSGStr,255);
-	//		sprintf(MSGStr, "%d polys/frame" , (long)(g_renderedPolys / numFrames) );
+	//		sprintf(MSGStr, "%d polys/frame" , (int32_t)(g_renderedPolys / numFrames) );
 	//		OutTextXY(VPage,0,45,MSGStr,255);
 			// display messages.
-	/*		long I, Y = -15;
+	/*		int32_t I, Y = -15;
 			for(I=0;I<10;I++)
 			if (MsgStr[I])
 			{

@@ -39,7 +39,7 @@ float frand() {
 //	std::vector<Face *>     FList;
 //	std::vector<Face *>     SList;
 //	Face                    *DoFace;
-//	long CPolys,COmnies,CPcls,CAll,Polys;
+//	int32_t CPolys,COmnies,CPcls,CAll,Polys;
 //	char Cam_HeadLight;
 //	float CurFrame;
 //	float g_zscale;
@@ -56,7 +56,7 @@ Scene *CurScene;
 Face **FList = nullptr;
 Face **SList = nullptr;
 //Face *DoFace; // mar gamish, ta'ase partsuf!
-long CPolys,COmnies,CPcls,CAll,Polys;
+int32_t CPolys,COmnies,CPcls,CAll,Polys;
 //char *TxtrBuf,*TxtrAlign;
 //float Exec_FPS;
 Material Default_Mat;
@@ -68,7 +68,7 @@ unsigned short int OldFPUCW,FPUCW;
 
 dword OldMXCSR, CurMXCSR;
 char **MsgStr;
-long *MsgClock;
+int32_t *MsgClock;
 DWord *MsgID;
 char Cam_HeadLight;
 float CurFrame;
@@ -85,7 +85,7 @@ float Diffusive_Factor;
 float Specular_Factor;
 float Range_Factor;
 
-long Frames;
+int32_t Frames;
 #ifndef __clang__
 extern float dTime;
 #endif
@@ -192,7 +192,7 @@ void Animate_Objects(Scene *Sc, bool SkipCameraAnimation)
 			//    Spline_Calc_4D(&T->Rotate,CurFrame,&T->IRot);
 			
 			Convert_Quat2Mat(&T->IRot,T->RotMat);
-			//    fprintf(F,"%d:((%1.3f,%1.3f,%1.3f),(%1.3f,%1.3f,%1.3f),(%1.3f,%1.3f,%1.3f))\n\n",(long)CurFrame,T->RotMat[0][0],T->RotMat[0][1],T->RotMat[0][2],T->RotMat[1][0],T->RotMat[1][1],T->RotMat[1][2],T->RotMat[2][0],T->RotMat[2][1],T->RotMat[2][2]);
+			//    fprintf(F,"%d:((%1.3f,%1.3f,%1.3f),(%1.3f,%1.3f,%1.3f),(%1.3f,%1.3f,%1.3f))\n\n",(int32_t)CurFrame,T->RotMat[0][0],T->RotMat[0][1],T->RotMat[0][2],T->RotMat[1][0],T->RotMat[1][1],T->RotMat[1][2],T->RotMat[2][0],T->RotMat[2][1],T->RotMat[2][2]);
 		}
 		
 		if (T->Flags&Tri_AlignToPath) 
@@ -327,7 +327,7 @@ void Vertex_Loop1(Vertex *Vert,Vertex *VEnd,Matrix M,Vector *V)
 
 void calcVisibilityFlags(Scene* Sc, Vertex* Vtx) {
 	Vtx->Flags &= 0xFFFFFFFF - Vtx_Visible;
-	//      if (*(long *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
+	//      if (*(int32_t *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
 	if (Vtx->TPos.z > Sc->NZP) {
 		Vtx->RZ = 1.0 / Vtx->TPos.z;
 		Vtx->PX = Vtx->TPos.x * Vtx->RZ;
@@ -406,8 +406,8 @@ void Transform_Objects(Scene *Sc)
 	Face *F,*FEnd;
 	float PX=FOVX,PY=FOVY,Temp;
 	float dz;
-	long *pdz = (long *)(&dz);
-	long I;
+	int32_t *pdz = (int32_t *)(&dz);
+	int32_t I;
 	Face **Ins = FList;
 	float *f = (float *)(&M);
 	float *fv;
@@ -613,7 +613,7 @@ Regular:
 				Vtx->TPos.z = M34[2][0]*Vtx->Pos.x+M34[2][1]*Vtx->Pos.y+M34[2][2]*Vtx->Pos.z+M34[2][3];
 				
 				Vtx->Flags&=0xFFFFFFFF-Vtx_Visible;
-				//      if (*(long *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
+				//      if (*(int32_t *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
 				if (Vtx->TPos.z>Sc->NZP)
 				{
 					Vtx->RZ=1.0/Vtx->TPos.z;
@@ -706,7 +706,7 @@ ERegular:
 				Vector_Add(&U,&V,&Vtx->TPos);
 				
 				Vtx->Flags = 0;
-				//      if (*(long *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
+				//      if (*(int32_t *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
 
 				// Environment mapping support removed at 11.04.02
 //				Vtx->EU=128.0+95.0*(Vtx->N.x*IM[0][0]+Vtx->N.y*IM[0][1]+Vtx->N.z*IM[0][2]);
@@ -833,7 +833,7 @@ AfterXForm:FEnd=T->Faces+T->FIndex;
 
 			}
 
-			static long BiasedSortValues[] = {0, 0, (long)0xFFFFFFFF};
+			static int32_t BiasedSortValues[] = {0, 0, (int32_t)0xFFFFFFFF};
 			if (T->SortPriorityBias)
 				F->SortZ.F = BiasedSortValues[T->SortPriorityBias];
 #else
@@ -1727,7 +1727,7 @@ void RenderInner(float x1, float y1, float x2, float y2) {
 	clipper.InitViewport(CurScene);
 	clipper.SetClippingExtents(x1, y1, x2, y2);
 
-	long I = CAll;
+	int32_t I = CAll;
 	Face** FLS = FList;//+CAll-1;
 	Vertex* A, * B, * C;
 
@@ -1792,7 +1792,7 @@ void Render()
 		renderns::condition.wait(lock, [] {return renderns::tileCounter == numTilesX * numTilesY; });
 	}
 
-	long I = CAll;
+	int32_t I = CAll;
 	Face **FLS = FList;//+CAll-1;
 	Vertex *A,*B;
 	
@@ -1892,7 +1892,7 @@ char Check_Texture_Memory_Range(Scene *Sc)
 		}
 	}
 	//  for(M=MatLib;M;M=M->Next)
-	//    printf("Mat-lib = %xh ==> txtr = %xh\n",(long)M,(long)(M->Txtr));
+	//    printf("Mat-lib = %xh ==> txtr = %xh\n",(int32_t)M,(int32_t)(M->Txtr));
 	return 1;
 }
 
@@ -1913,14 +1913,14 @@ void SetCurrentScene(Scene *Sc)
 void RunScene(Scene *Sc,float Seconds)
 {
 	float t;
-	long TTrd=0;
-	long Par1,Par2,Par3,Par4,Par5,Par6,Tot;
-	long RenderedPolys=0;
-	long Y;
-	long SceneTime = Seconds * Timer_Freq;
+	int32_t TTrd=0;
+	int32_t Par1,Par2,Par3,Par4,Par5,Par6,Tot;
+	int32_t RenderedPolys=0;
+	int32_t Y;
+	int32_t SceneTime = Seconds * Timer_Freq;
 	char MotionBlur_Enabled = 0;
 	
-	long I,J;
+	int32_t I,J;
 	float FPS;
 	char *Str = new char[80];
 	char AfterFirstFrame = 0,Cur = 0;
@@ -2053,7 +2053,7 @@ Away:Tot = Timer-TTrd;
 		 //    Y = OutTextXY(VPage,0,Y+15,Str,64);
 		 sprintf(Str,"Average Polys/Frame: %5.1f (%3.1f%%)",(float)RenderedPolys/(float)Frames,100.0*(float)CPolys/(float)Polys);
 		 Y = OutTextXY(VPage,0,Y+15,Str,64);
-		 long GTP = 0,GTPP = 0;
+		 int32_t GTP = 0,GTPP = 0;
 		 for(TriMesh *Tri = Sc->TriMeshHead;Tri;Tri = Tri->Next)
 			 if (!(Tri->Flags&Tri_Invisible)) {GTP++; GTPP += Tri->FIndex;}
 			 sprintf(Str,"%d Triangle Meshes totalling in %d Faces",GTP,GTPP);

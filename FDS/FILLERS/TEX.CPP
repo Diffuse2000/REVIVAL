@@ -7,12 +7,12 @@
 #include "Base/FDS_DECS.H"
 
 #ifdef _C_WATCOM
-void Fist(long *dst, float f);
+void Fist(int32_t *dst, float f);
 #pragma aux Fist = \
 		"fistp dword [eax]"\
 		parm [eax] [8087] modify [8087];
 #else
-void Fist(long *dst, float f)
+void Fist(int32_t *dst, float f)
 {
 	__asm 
 	{
@@ -30,15 +30,15 @@ struct TVertex
 
 struct IRate
 {
-	long dXdY;
+	int32_t dXdY;
 	float dUdY,dVdY,dZdY;
 };
 
 float *InvTbl;
 
-void Init_InvTbl(long Entries)
+void Init_InvTbl(int32_t Entries)
 {
-	long I;
+	int32_t I;
 	float f;
 	InvTbl = new float [Entries];
 	for(I=1;I<Entries;I++)
@@ -47,15 +47,15 @@ void Init_InvTbl(long Entries)
 
 static byte *PageAddr;
 static byte *Tex,*WPtr,*HPtr;
-static long BPSL = 320; //Bytes per Scan Line.
+static int32_t BPSL = 320; //Bytes per Scan Line.
 
-//static long dUdX,dVdX;
+//static int32_t dUdX,dVdX;
 static float dUdX,dVdX,dZdX;
 static float dUdX16,dVdX16,dZdX16;
 
-static long width,w16;
-static long u_,v_,ru_,rv_,du_,dv_,ddu_,ddv_;
-static long Height_;
+static int32_t width,w16;
+static int32_t u_,v_,ru_,rv_,du_,dv_,ddu_,ddv_;
+static int32_t Height_;
 
 // this should be calced once per polygon. (before clipping).
 void CalcGrads(TVertex *VB)
@@ -86,7 +86,7 @@ inline void TexInner_Affine()
 }
 
 #ifdef _WATCOM_C
-void TexInner_Affine_ASM(void * dst, int width, void * src, long u, long v)
+void TexInner_Affine_ASM(void * dst, int width, void * src, int32_t u, int32_t v)
 #pragma aux TexInner_Affine_ASM=\
 		"    push  ebp                                      "\
 		"    rol   eax, 16                                  "\
@@ -114,7 +114,7 @@ void TexInner_Affine_ASM(void * dst, int width, void * src, long u, long v)
 		"    pop   ebp                                      "\
 	parm [edi] [ecx] [ebx] [eax] [edx] modify exact [eax ebx ecx edx esi edi ebp]
 #else
-void TexInner_Affine_ASM(void * dst, int width, void * src, long u, long v)
+void TexInner_Affine_ASM(void * dst, int width, void * src, int32_t u, int32_t v)
 {
 	__asm
 	{
@@ -168,7 +168,7 @@ void TexOuterLoop_Bilinear(IRate *Left,IRate *Right)
 {
 	int x1,x2;
 	float iVal,iV;
-	long ru,rv;
+	int32_t ru,rv;
 
 	while (Height_--)
 	{
@@ -221,11 +221,11 @@ void TexOuterLoop_Bilinear(IRate *Left,IRate *Right)
 // VB must be Y-sorted.
 void PTexTriangle(TVertex *VB)
 {
-	long Y1,Y2,Y3,dY13,dY12,dY23; //Integers.
-	long X1,X2,X3,dX13,dX12,dX23; //18:14 Fixed Point.
+	int32_t Y1,Y2,Y3,dY13,dY12,dY23; //Integers.
+	int32_t X1,X2,X3,dX13,dX12,dX23; //18:14 Fixed Point.
 	IRate d13,d12,d23;
 	float iVal;
-//	long dXdY13,dXdY12,dXdY23; //18:14 Fixed Point.
+//	int32_t dXdY13,dXdY12,dXdY23; //18:14 Fixed Point.
 //	float dUdY13,dUdY12,dUdY23;
 //	float dVdY13,dVdY12,dVdY23;
 //	float dZdY13,dZdY12,dZdY23;

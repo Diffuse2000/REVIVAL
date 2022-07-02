@@ -18,7 +18,7 @@ void ReadTrackHeader(Word *Keys,Word *Flags)
 
 void ReadSplineFlags(float *OutFlags)
 {
-  long I,J;
+  int32_t I,J;
   float Temp;
   Word SplineFlags;
 

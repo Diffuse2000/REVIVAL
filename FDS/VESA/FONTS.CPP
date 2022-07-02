@@ -1,11 +1,11 @@
 #include "Base/FDS_DECS.H"
 #include "Base/FDS_VARS.H"
 
-long Basic_FOffs;
+int32_t Basic_FOffs;
 
 Font * LoadAFT(const char *FileName)
 {
-	long I, J, K;
+	int32_t I, J, K;
 	FILE *F;
 	char Binary[8], Nums[8];
 	char Num, Mask, BPP;
@@ -18,7 +18,7 @@ Font * LoadAFT(const char *FileName)
 		printf("AFT Font File %s open failure.\n", FileName);
 		exit(-1);
 	}
-	//  printf("± Loading an AFT font file...\n");
+	//  printf("ï¿½ Loading an AFT font file...\n");
 
 		// Header...
 	fread(&XS, 1, 1, F);
@@ -71,7 +71,7 @@ long OutTextXY(byte *Where, long X, long Y, const char *S, char C, int xres/* = 
 	int DX;
 	int II, IJ, IK;
 	byte CP = 0, Ch;
-	long int PgOffset, POfs, FOfs, FEnd, Hisx;
+	int32_t PgOffset, POfs, FOfs, FEnd, Hisx;
 	byte TC[2];
 	char CPP = (BPP + 1) >> 3;
 	byte *Ptr, *Pen;

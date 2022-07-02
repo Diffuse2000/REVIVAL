@@ -60,10 +60,10 @@ float fastPow2(float x)
 //	return exp(b2*x);
 	constexpr float ETP = (1 << EXPTABLEPREC);
 	// generate pow2 LUT
-	long i = Fist(x * ETP);
+	int32_t i = Fist(x * ETP);
 	union {
 		float e;
-		long le;
+		int32_t le;
 	};
 	e = ExpTable[i & EXPTABLEMASK];
 
@@ -456,7 +456,7 @@ void FrustumClipper::MiplevelClipper(Face *F, RasterFunc filler)
 	const float mipBias = 0.5;
 
 	Texture *Tx = F->Txtr->Txtr;
-	long L = Tx->numMipmaps-1; // maximal level	
+	int32_t L = Tx->numMipmaps-1; // maximal level	
 
 	// polygon texel / pixel area
 	float pixArea = 0.0f, texArea = 0.0f;
@@ -484,7 +484,7 @@ void FrustumClipper::MiplevelClipper(Face *F, RasterFunc filler)
 		if (Tx->Flags & Txtr_Nomip) {
 			g_MipLevel = 0;
 		} else {
-			long mip = 0.5 * fastLog2(fabs(texArea * Tx->SizeX * Tx->SizeY / pixArea)) + mipBias;
+			int32_t mip = 0.5 * fastLog2(fabs(texArea * Tx->SizeX * Tx->SizeY / pixArea)) + mipBias;
 			if (mip < 0) mip = 0;
 			if (mip > L) mip = L;
 			g_MipLevel = mip;
@@ -511,7 +511,7 @@ void FrustumClipper::MiplevelClipper(Face *F, RasterFunc filler)
 
 	// calculate range of 1/z values along polygon
 	float mrz = 1E+38, Mrz = 0;
-	long mlindex = 0;
+	int32_t mlindex = 0;
 	for(i=0; i<C_numVerts; i++)
 	{
 //		level = _C - 2 * log2(rz);
@@ -534,8 +534,8 @@ void FrustumClipper::MiplevelClipper(Face *F, RasterFunc filler)
 	float ml = _C - 2 * fastLog2(Mrz);
 	float Ml = _C - 2 * fastLog2(mrz);
 
-	long iml = Fist(ml-0.99999);
-	long iMl = Fist(Ml-0.99999);
+	int32_t iml = Fist(ml-0.99999);
+	int32_t iMl = Fist(Ml-0.99999);
 
 	if (iml < 0) iml = 0;
 	if (iml > L) iml = L;
@@ -561,7 +561,7 @@ void FrustumClipper::MiplevelClipper(Face *F, RasterFunc filler)
 	}
 
 	// scanconversion
-	long left, right, limit;
+	int32_t left, right, limit;
 
 	float t;
 	mword numSectionVerts;

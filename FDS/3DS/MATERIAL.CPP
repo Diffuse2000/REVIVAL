@@ -11,7 +11,7 @@ void ReadMaterialName(unsigned int EndPos)
 
   ReadASCIIZ(&MatName);
 //  printf("<3DS:M>: Attempting to insert Material %s to Library.\n",MatName);
-//  printf("<3DS:M>: MatLib addr = %xh.\n",(long)MatLib);
+//  printf("<3DS:M>: MatLib addr = %xh.\n",(int32_t)MatLib);
   fflush(stdout);
   if (MatLib)
     for(M=MatLib;M;M=M->Next) if (!strcmp(MatName,M->Name)) break;

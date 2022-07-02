@@ -20,28 +20,28 @@ void No_operand() {}
 
 void *VESAModule,*VESABuffer;
 short *VESA_ModesAvail;
-long VESA_NumModes;
+int32_t VESA_NumModes;
 
 // General info
 char Graphmode = 0;  //set if client is on active g.mode state.
 								 //otherwise it won't be able to determine what
                  //to do with the surfaces...
 char Granola;         //GRANOLA=GRANULARITY ;), that is 64Kb/Vesamode->WinGranularity
-long VESA_BPSL;       //Crazy bytes per scan line crap. not currently supported.
-long BPP_Shift;
+int32_t VESA_BPSL;       //Crazy bytes per scan line crap. not currently supported.
+int32_t BPP_Shift;
 char Screenmem_Model; //1=LFB,2=Banks,3=Fake 14bit (not supported)
 VESA_Surface *Screen; //this is where the LFB surface resides
 VESA_Surface *MainSurf;   //this is regular surface u flip fastest,aka Page2 aka VPage
 VESA_Surface *Last_Surface;
 VideoMode VMode;
-long VESA_Ver = 0;
+int32_t VESA_Ver = 0;
 
 char Direct_FLIP = 0;
 
 // Global Surface Scalar variables (Fastest access)
-long XRes,YRes,XRes_1,YRes_1,CntrX,CntrY,BPP,CPP;
+int32_t XRes,YRes,XRes_1,YRes_1,CntrX,CntrY,BPP,CPP;
 float CntrEX,CntrEY;
-long PageSize,PageSizeW,PageSizeDW;
+int32_t PageSize,PageSizeW,PageSizeDW;
 short CurrentGraphicsMode;
 char Palette_Reserved = 0;
 
@@ -52,7 +52,7 @@ char *VESA_Pal = NULL;
 
 char *Fake8_R,*Fake8_G,*Fake8_B;
 
-long VMdMenuItems[8],VMdMenuTotal;
+int32_t VMdMenuItems[8],VMdMenuTotal;
 
 void (*Flip)(VESA_Surface *VS);
 Video_entry *VE_Root;
@@ -132,7 +132,7 @@ int VBE_Detect()
 	RMSREGS S;
   short *p1,*p2;
   VBE_vgaInfo *vgaInfo = (VBE_vgaInfo *)VESABuffer;
-	long I;
+	int32_t I;
   char Str[160];
 
   // I hope this shit works.
@@ -189,13 +189,13 @@ void SetVESAMode(int Mode)
 }
 
 // awawawiwa. kewl.
-void VESA_FullInfo(long RX,long RY,char RBPP)
+void VESA_FullInfo(int32_t RX,int32_t RY,char RBPP)
 {
 	int Ver = VBE_Detect();
 	char Res;
 	VBE_vgaInfo *VI = (VBE_vgaInfo *)VESABuffer;
 	VBE_modeInfo *VM = (VBE_modeInfo *)VESABuffer;
-	long I,J;
+	int32_t I,J;
 	float Aspect;
 	char Str[33],Str2[33];
 	void *P2L;
@@ -343,7 +343,7 @@ void VESA_MainFlip()
 {
   VESA_Surface *VS = Screen;
 	char *Palptr = (char *)VESA_Pal;
-  long I,J,K;
+  int32_t I,J,K;
 	VS->Flip = &Flip_Impossible;
 	VS->Targ = VGAPtr;
 	Palette_Reserved = 0;
@@ -539,7 +539,7 @@ void Calculate_FOV2Persp(VESA_Surface *VS)
 	VS->PY = VS->CY * CTG_half;
 }
 
-void Set_Screen(long X,long Y,long BPP,char ZBuf,float FOV)
+void Set_Screen(int32_t X,int32_t Y,int32_t BPP,char ZBuf,float FOV)
 {
 	if (!(Screen->Flags&VSurf_Nonexist))
 	{
@@ -576,10 +576,10 @@ void Set_Screen(long X,long Y,long BPP,char ZBuf,float FOV)
 	if (BPP==8) Screen->Pal = new VPalette;
 }
 
-VESA_Surface * VESA_Alloc_Surface(long RX,long RY,long RBPP,long FOV,DWord Flags)
+VESA_Surface * VESA_Alloc_Surface(int32_t RX,int32_t RY,int32_t RBPP,int32_t FOV,DWord Flags)
 {
 	VESA_Surface *VS = new VESA_Surface;
-	long CPP = RBPP+1>>3;
+	int32_t CPP = RBPP+1>>3;
 	VS->X   = RX;    VS->Y   = RY;
 	VS->CX  = RX>>1; VS->CY  = RY>>1;
 	VS->X_1 = RX-1;  VS->Y_1 = RY-1;
@@ -622,10 +622,10 @@ void Set_FlipTargets()
 // Otherwise, it tries several other modes (Fakemodes).
 // returns 0 upon failure.
 // It's so stupid.
-char VESA_Init_Video(long X,long Y,long BPP)
+char VESA_Init_Video(int32_t X,int32_t Y,int32_t BPP)
 {
-	long Ver = VBE_Detect();
-	long I,J,K;
+	int32_t Ver = VBE_Detect();
+	int32_t I,J,K;
 	char Res;
 	VBE_vgaInfo *VI = (VBE_vgaInfo *)VESABuffer;
 	VBE_modeInfo *VM = (VBE_modeInfo *)VESABuffer;
@@ -712,7 +712,7 @@ char VESA_Init_Video(long X,long Y,long BPP)
 }
 
 // Generate a list of modes
-void Generate_Entry(void (*Driver)(short Mode),short Priority,char *DID,short Mode,long X,long Y,long Module)
+void Generate_Entry(void (*Driver)(short Mode),short Priority,char *DID,short Mode,int32_t X,int32_t Y,int32_t Module)
 {
 	Video_entry *VE;
 	if (!VE_Root)
@@ -786,12 +786,12 @@ void Generate_Entry(void (*Driver)(short Mode),short Priority,char *DID,short Mo
 // VGA driver.
 
 //VGA standard tables.             0  1  2  3   4  5   6   7              14   15  16  17 18  19   20
-const long VGA_XRES_TABLE[0x14] = {40,40,80,80,320,320,640,80,0,0,0,0,0,320,640,640,640,640,640,320};
-const long VGA_YRES_TABLE[0x14] = {25,25,25,25,200,200,200,25,0,0,0,0,0,200,200,350,350,480,480,200};
-const long VGA_BPP_TABLE[0x14] = {4,4,4,4,0,2,1,1,0,0,0,0,0,4,4,1,4,1,4,8};
-const long VGA_MEMORY_TABLE[0x14] = {0xB8000,0xB8000,0xB8000,0xB8000,0xB8000,0xB8000,0xB8000,0xB0000,0,0,0,0,0,0xA0000,0xA0000,0xA0000,0xA0000,0xA0000,0xA0000,0xA0000};
-const long VGA_FLAGS_TABLE[0x14] = {0x0004,0x0004,0x0004,0x0004,0x0000,0x0000,0x0000,0x0004,0,0,0,0,0,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
-const long VGA_MODULE_TABLE[0x14] = {1,1,1,1,0,0,0,0,0,0,0,0,0,2,2,0,2,0,2,3};
+const int32_t VGA_XRES_TABLE[0x14] = {40,40,80,80,320,320,640,80,0,0,0,0,0,320,640,640,640,640,640,320};
+const int32_t VGA_YRES_TABLE[0x14] = {25,25,25,25,200,200,200,25,0,0,0,0,0,200,200,350,350,480,480,200};
+const int32_t VGA_BPP_TABLE[0x14] = {4,4,4,4,0,2,1,1,0,0,0,0,0,4,4,1,4,1,4,8};
+const int32_t VGA_MEMORY_TABLE[0x14] = {0xB8000,0xB8000,0xB8000,0xB8000,0xB8000,0xB8000,0xB8000,0xB0000,0,0,0,0,0,0xA0000,0xA0000,0xA0000,0xA0000,0xA0000,0xA0000,0xA0000};
+const int32_t VGA_FLAGS_TABLE[0x14] = {0x0004,0x0004,0x0004,0x0004,0x0000,0x0000,0x0000,0x0004,0,0,0,0,0,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
+const int32_t VGA_MODULE_TABLE[0x14] = {1,1,1,1,0,0,0,0,0,0,0,0,0,2,2,0,2,0,2,3};
 const char VGA_ID_STRING[9] = "Std. VGA";
 
 void VGA_Driver(short Mode)
@@ -825,7 +825,7 @@ void VGA_Driver_Apply()
 {
   // I still don't have the VGA detection code, so I'll just assume
   // a VGA BIOS is there.
-  long I;
+  int32_t I;
   for(I=0;I<0x14;I++)
   {
     if (!VGA_MODULE_TABLE[I]) continue; //Filter out non-supported modes.
@@ -839,7 +839,7 @@ const char VESA_ID_STRING[] = {"Generic VESA"};
 void VESA_Driver(short Mode)
 {
 	char Res;
-	long I,J,K;
+	int32_t I,J,K;
 	VBE_vgaInfo *VI = (VBE_vgaInfo *)VESABuffer;
 	VBE_modeInfo *VM = (VBE_modeInfo *)VESABuffer;
 
@@ -878,7 +878,7 @@ void VESA_Driver_Apply()
   if (!Ver) return;
 	VBE_vgaInfo *VI = (VBE_vgaInfo *)VESABuffer;
   VBE_modeInfo *VM = (VBE_modeInfo *)VESABuffer;
-  long I;
+  int32_t I;
   char Res;
 
   for(I=0;I<VESA_NumModes;I++)
@@ -904,7 +904,7 @@ const char VBE2_ID_STRING[] = {"VBE 2.0"};
 void VBE2_Driver(short Mode)
 {
 	char Res;
-  long I,J,K;
+  int32_t I,J,K;
   VBE_vgaInfo *VI = (VBE_vgaInfo *)VESABuffer;
   VBE_modeInfo *VM = (VBE_modeInfo *)VESABuffer;
 
@@ -943,7 +943,7 @@ void VBE2_Driver_Apply()
 	if (Ver<0x200) return;
   VBE_vgaInfo *VI = (VBE_vgaInfo *)VESABuffer;
   VBE_modeInfo *VM = (VBE_modeInfo *)VESABuffer;
-	long I,J;
+	int32_t I,J;
   char Res;
 
   for(I=0;I<VESA_NumModes;I++)
@@ -968,7 +968,7 @@ void Mdset_Available()
 {
   Video_entry *VE;
   VMdMenuTotal = 0;
-  long I,J;
+  int32_t I,J;
   for(VE=VE_Root;VE;VE=VE->Next)
   {
 		//look for this module inside the menu.
@@ -987,22 +987,22 @@ void Mdset_Available()
 // ultimate modesetup, checkout.
 char Modesetup()
 {
-  long ModuleSelect = 0;
-  long ModuleScroll = 0;
-  long ModuleMax;
-  long ModeSelect = 0;
-	long ModeScroll = 0;
-  long ModeMax = 0;
-	long ModeTotal = 0;
-  long SetupComplete = 0;
-  long Modified = 1,Modified2 = 1;
-	long MainMenu = 1;
-  long First = 1,FirstSelect;
-  long I,J,K;
+  int32_t ModuleSelect = 0;
+  int32_t ModuleScroll = 0;
+  int32_t ModuleMax;
+  int32_t ModeSelect = 0;
+	int32_t ModeScroll = 0;
+  int32_t ModeMax = 0;
+	int32_t ModeTotal = 0;
+  int32_t SetupComplete = 0;
+  int32_t Modified = 1,Modified2 = 1;
+	int32_t MainMenu = 1;
+  int32_t First = 1,FirstSelect;
+  int32_t I,J,K;
   Video_entry *VE;
 	struct XYRES
 	{
-    long X,Y;
+    int32_t X,Y;
 		char *ID;
   };
   FILE *F;
@@ -1222,7 +1222,7 @@ void SetBankedMode(Word Mode)
 	SetVESAMode(VMode.Mode_ID); //Actually set the selected mode
 }
 
-DWord AttemptGraphicsSet(long X,long Y,long BPP,DWord ForceBanked)
+DWord AttemptGraphicsSet(int32_t X,int32_t Y,int32_t BPP,DWord ForceBanked)
 {
 	// Stage 1 - Detection.
 	int Ver = VBE_Detect();
@@ -1231,7 +1231,7 @@ DWord AttemptGraphicsSet(long X,long Y,long BPP,DWord ForceBanked)
 	VBE_vgaInfo *VI = (VBE_vgaInfo *)VESABuffer;
 	VBE_modeInfo *VM = (VBE_modeInfo *)VESABuffer;
 
-	long I;
+	int32_t I;
 
 	if (Ver>=0x200&&(!ForceBanked))
 	{
@@ -1370,7 +1370,7 @@ void Deinitialize_VESA()
 // initializes video unit assuming a remote unit handles the actual display.
 // this setup will only allow access to logical (secondary) buffer. direct
 // access to linear FB will be impossible.
-void VESA_InitExternal(long x, long y,long bpp)
+void VESA_InitExternal(int32_t x, int32_t y,int32_t bpp)
 {
 	// set assumed videomode.
 	XRes = VMode.XRes = x;
@@ -1408,8 +1408,8 @@ void VESA_VPageExternal(VESA_Surface *ExtrnVS)//void *vPagePtr, void (*FlipperCa
 //	VS->Targ = NULL; // external flipper cant support TARGET.
 //	VS->ZBuffer = NULL; // Z-buffers aren't supported.
 
-	long X = VS->X;
-	long Y = VS->Y;
+	int32_t X = VS->X;
+	int32_t Y = VS->Y;
 
 //	VS->BPP = VMode.BPP;
 	VS->CPP = (VS->BPP+7)>>3;

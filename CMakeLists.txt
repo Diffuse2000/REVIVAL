@@ -94,4 +94,4 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ################################################################################
 add_subdirectory(DEMO)
 add_subdirectory(FDS)
-add_subdirectory(Modplayer)
+#add_subdirectory(Modplayer)

@@ -27,33 +27,33 @@ const char VFormat_Modules[8][40] = {"Abnormal Format","Text Mode (ANSI GFX)","4
 /* SuperVGA information block */
 typedef struct {
     char    VESASignature[4];       /* 'VESA' 4 byte signature          */
-    short   VESAVersion;            /* VBE version number               */
-    long    OemStringPtr;           /* Pointer to OEM string            */
-    long    Capabilities;           /* Capabilities of video card       */
-    long    VideoModePtr;           /* Pointer to supported modes       */
-    short   TotalMemory;            /* Number of 64kb memory blocks     */
+    int16_t   VESAVersion;            /* VBE version number               */
+    int32_t    OemStringPtr;           /* Pointer to OEM string            */
+    int32_t    Capabilities;           /* Capabilities of video card       */
+    int32_t    VideoModePtr;           /* Pointer to supported modes       */
+    int16_t   TotalMemory;            /* Number of 64kb memory blocks     */
 
-    short   OemSoftwareRev;         /* OEM Software revision number     */
-    long    OemVendorNamePtr;       /* Pointer to Vendor Name string    */
-    long    OemProductNamePtr;      /* Pointer to Product Name string   */
-    long    OemProductRevPtr;       /* Pointer to Product Revision str  */
+    int16_t   OemSoftwareRev;         /* OEM Software revision number     */
+    int32_t    OemVendorNamePtr;       /* Pointer to Vendor Name string    */
+    int32_t    OemProductNamePtr;      /* Pointer to Product Name string   */
+    int32_t    OemProductRevPtr;       /* Pointer to Product Revision str  */
     char    reserved[222];          /* Pad to 256 byte block size       */
     char    OemDATA[256];           /* Scratch pad for OEM data         */
 } VBE_vgaInfo;
 
 
 typedef struct {
-    short   ModeAttributes;         // Mode attributes
+    int16_t   ModeAttributes;         // Mode attributes
     char    WinAAttributes;         // Window A attributes
     char    WinBAttributes;         // Window B attributes
-    short   WinGranularity;         // Window granularity in k
-    short   WinSize;                // Window size in k
-    short   WinASegment;            // Window A segment
-    short   WinBSegment;            // Window B segment
-    long    WinFuncPtr;             // Pointer to window function
-    short   BytesPerScanLine;       // Bytes per scanline
-    short   XResolution;            // Horizontal resolution
-    short   YResolution;            // Vertical resolution
+    int16_t   WinGranularity;         // Window granularity in k
+    int16_t   WinSize;                // Window size in k
+    int16_t   WinASegment;            // Window A segment
+    int16_t   WinBSegment;            // Window B segment
+    int32_t    WinFuncPtr;             // Pointer to window function
+    int16_t   BytesPerScanLine;       // Bytes per scanline
+    int16_t   XResolution;            // Horizontal resolution
+    int16_t   YResolution;            // Vertical resolution
     char    XCharSize;              // Character cell width
     char    YCharSize;              // Character cell height
     char    NumberOfPlanes;         // Number of memory planes
@@ -73,20 +73,20 @@ typedef struct {
     char    RsvdFieldPosition;      // Bit posn of lsb of res mask
     char    DirectColorModeInfo;    // Direct color mode attributes
 
-    long    PhysBasePtr;            // Physical address for linear buf
-    long    OffScreenMemOffset;     // Pointer to start of offscreen mem
-    short   OffScreenMemSize;       // Amount of offscreen mem in 1K's
+    int32_t    PhysBasePtr;            // Physical address for linear buf
+    int32_t    OffScreenMemOffset;     // Pointer to start of offscreen mem
+    int16_t   OffScreenMemSize;       // Amount of offscreen mem in 1K's
     char    res2[206];              // Pad to 256 byte block size
   } VBE_modeInfo;
 
 
 struct Video_entry
 {
-  short DriverVer; //Best supporting driver
+  int16_t DriverVer; //Best supporting driver
   void (*Driver)(short Mode); //Driver routine
   char *Driver_ID;
-  long X,Y,Module;
-  short Mode;
+  int32_t X,Y,Module;
+  int16_t Mode;
   Video_entry *Prev,*Next;
 };
 
@@ -106,19 +106,19 @@ extern char Granola;
 extern char Screenmem_Model;
 extern VideoMode VMode,VEmu;
 extern VESA_Surface *MainSurf,*Screen;
-extern long VESA_Ver;
-extern long PageSize,PageSizeW,PageSizeDW;
+extern int32_t VESA_Ver;
+extern int32_t PageSize,PageSizeW,PageSizeDW;
 
 extern byte *VGAPtr,*VPage;
 extern float *ZBuffer;
 extern Font *Active_Font;
-extern long *YOffs;
+extern int32_t *YOffs;
 extern char *VESA_Pal;
 
 extern void VESA_Message(const char *Msg);
 extern void VESA_Warning(const char *Msg);
-extern char VESA_Init_Video(long X,long Y,long BPP);
-extern void Set_Screen(long X,long Y,long BPP,char ZBuf,float FOV);
+extern char VESA_Init_Video(int32_t X, int32_t Y, int32_t BPP);
+extern void Set_Screen(int32_t X, int32_t Y, int32_t BPP,char ZBuf,float FOV);
 
 extern char *Gouraud_Table;
 extern char *ATable,*STable,*CTable,*TTable;

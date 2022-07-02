@@ -21,7 +21,8 @@
 
 #ifdef __APPLE__
 #define _strdup strdup
-#define _aligned_malloc aligned_alloc
+//#define _aligned_malloc aligned_alloc
+#define _aligned_malloc(a,b) malloc(a)
 #define _aligned_free free
 #endif
 

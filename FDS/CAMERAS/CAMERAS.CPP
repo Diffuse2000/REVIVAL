@@ -11,8 +11,8 @@ Vector FV,FT,ColN,OldIS;
 Vector Grav(0.0,-0.01,0.0);
 static Face *ColFace;
 static Matrix NormConv;
-static const long Max_Collision_Det = 4;
-static long CAttempt;
+static const int32_t Max_Collision_Det = 4;
+static int32_t CAttempt;
 
 Vertex **ColVtx_Stack = new Vertex * [30],**CVS;
 Edge **ColEdge_Stack = new Edge * [50],**CES;
@@ -204,7 +204,7 @@ void Advanced_Collision_Detection()
   Face **FP;
   Vector U,AP,V,TV,W;
   Vector CV,*VP;
-  long Still;
+  int32_t Still;
   float f,d;
   Face **Col_Buff,**Prev;
   Vector *Col_NBuff;
@@ -393,8 +393,8 @@ void Initiate_LEBuf(Scene *Sc)
 	TriMesh *T;
 	Face *F,*FE;
 
-	long Polys = 0;
-	long EffLines = 0;
+	int32_t Polys = 0;
+	int32_t EffLines = 0;
 	float t1,t2,t3;
 
 	for(T=Sc->TriMeshHead;T;T=T->Next)
@@ -551,7 +551,7 @@ void A2DC(Scene *Sc,Vector *Pos,Vector *Vel)
 	}
 }
 
-// Note! This function uses the 'long dTime' global variable.
+// Note! This function uses the 'int32_t dTime' global variable.
 // this means that: the camera is passed positioned at its previous
 // location. it will attempt to progress by 'dTime * Vel'.
 void Advanced2DCollision(Scene *Sc,Vector *Pos,Vector *Vel)

@@ -166,7 +166,7 @@ static void CalcLeftSection (IXVertexTG *V1, IXVertexTG *V2)
 	Left.VZ = V1->VZ + Left.dVZ * prestep;
 	Left.RZ = V1->RZ + Left.dRZ * prestep;
 
-	//long iprestep = Fist(65536.0 * prestep);
+	//int32_t iprestep = Fist(65536.0 * prestep);
 	Left.R = V1->R * 65536.0 + prestep * Left.dR;//+ (((Left.dR>>8) * iprestep)>>8);
 	Left.G = V1->G * 65536.0 + prestep * Left.dG;//+ (((Left.dG>>8) * iprestep)>>8);
 	Left.B = V1->B * 65536.0 + prestep * Left.dB;//+ (((Left.dB>>8) * iprestep)>>8);
@@ -177,11 +177,11 @@ thread_local static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSp
 /*
 static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr, float prestep)
 {
-	long i;
+	int32_t i;
 
 	//F4Vec _u, _v, _z;
-	long  _u0, _u1;
-	long  _v0, _v1;
+	int32_t  _u0, _u1;
+	int32_t  _v0, _v1;
 	word _Z0, _Z1;
 
 	float _z[4];
@@ -202,10 +202,10 @@ static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr
 	dword Z = Fist(Left.z * 256.0 + prestep * dZdx);
 
 	// number of full sections
-	long ns = Width >> L2SPANSIZE;
+	int32_t ns = Width >> L2SPANSIZE;
 
 	// remainder section
-	long wrem = Width & (SPANSIZE-1); // % SPANSIZE.
+	int32_t wrem = Width & (SPANSIZE-1); // % SPANSIZE.
 
 	if (ns >= 4)
 	{
@@ -230,7 +230,7 @@ static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr
 	_v0 = Fist(VZ * _z[0]);
 	_Z0 = 0xFF80 - Fist(g_zscale256 * _z[0]);
 	
-	long _du, _dv;
+	int32_t _du, _dv;
 
 	while (ns--)
 	{
@@ -246,7 +246,7 @@ static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr
 		_dv = _v1 - _v0 >> L2SPANSIZE;
 		_dZ = _Z1 - _Z0 >> L2SPANSIZE;
 		
-		long SpanWidth = SPANSIZE;
+		int32_t SpanWidth = SPANSIZE;
 		while (SpanWidth--)
 		{
 			dword r,g,b, tex;
@@ -447,7 +447,7 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 	
 	for(;;)
 	{
-		long _du, _dv;
+		int32_t _du, _dv;
 
 		_u1 = Fist(UZ * _z1);
 		_v1 = Fist(VZ * _z1);
@@ -635,7 +635,7 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 	
 	for(;;)
 	{
-		long _du, _dv;
+		int32_t _du, _dv;
 
 		_u1 = Fist(UZ * _z1);
 		_v1 = Fist(VZ * _z1);
@@ -848,7 +848,7 @@ static void IXFiller(IXVertexTG *Verts, dword numVerts, void *Texture, void *Pag
 	y = Fist(Verts[0].y);
 	dword *Scanline = (dword *)((uintptr_t)Page + VESA_BPSL * y);
 	word *ZScanline = (word *)((uintptr_t)Page + PageSize + sizeof(word) * XRes * y);
-	long Width;
+	int32_t Width;
 	
 	// Iterate over sections
 	SectionHeight = (Left.ScanLines < Right.ScanLines) ? Left.ScanLines : Right.ScanLines;
@@ -859,7 +859,7 @@ static void IXFiller(IXVertexTG *Verts, dword numVerts, void *Texture, void *Pag
 		{
 
 			// *** Draw scan line *** //
-			long lx, rx;
+			int32_t lx, rx;
 			lx = Fist(Left.x);
 			dword *SpanPtr = Scanline + lx;
 			word *ZSpanPtr = ZScanline + lx;
@@ -971,8 +971,8 @@ static void PrefillerCommon(Face *F, Vertex **V, dword numVerts, dword miplevel)
 {
 	dword i;
 
-	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
-	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
+	int32_t LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
+	int32_t LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 
     uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
@@ -1069,8 +1069,8 @@ void IX_Prefiller_TGZM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 
 	dword i;
 
-	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
-	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
+	int32_t LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
+	int32_t LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 
     uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
@@ -1158,8 +1158,8 @@ void IX_Prefiller_TGZTM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 
 	dword i;
 
-	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
-	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
+	int32_t LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
+	int32_t LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 
     uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
@@ -1243,8 +1243,8 @@ void IX_Prefiller_TGZTAM(Face* F, Vertex **V, dword numVerts, dword miplevel)
 	const IXVertexTG* pIxArray = ixArray;
 	dword i;
 
-	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
-	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
+	int32_t LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
+	int32_t LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 
     uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
 
@@ -1325,8 +1325,8 @@ void IX_Prefiller_TGZSAM(Face* F, Vertex** V, dword numVerts, dword miplevel)
 	const IXVertexTG* pIxArray = ixArray;
 	dword i;
 
-	long LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
-	long LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
+	int32_t LogWidth = F->Txtr->Txtr->LSizeX - miplevel;
+	int32_t LogHeight = F->Txtr->Txtr->LSizeY - miplevel;
 	dword updateZBuffer = F->Txtr->ZBufferWrite ? 1 :0;
 
     uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[miplevel];
@@ -1412,8 +1412,8 @@ void IX_Prefiller_Reflective(Face* F, Vertex** V, dword numVerts, dword miplevel
 	auto Tx = F->ReflectionTexture;
     uintptr_t TextureAddr = (uintptr_t)Tx->Mipmap[0];
 
-	long LogWidth = Tx->LSizeX;
-	long LogHeight = Tx->LSizeY;
+	int32_t LogWidth = Tx->LSizeX;
+	int32_t LogHeight = Tx->LSizeY;
 
 	float UScaleFactor = (1 << LogWidth);
 	float VScaleFactor = (1 << LogHeight);

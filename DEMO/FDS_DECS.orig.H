@@ -169,7 +169,7 @@ extern int DPMI_int86x(int intno, RMREGS *in, RMREGS *out, RMSREGS *sregs);
 extern int DPMI_allocSelector(void);
 extern void DPMI_setSelectorBase(int sel,DWord linAddr);
 extern void DPMI_setSelectorLimit(int sel,DWord limit);
-extern void Init_Aligned(long Amount);
+extern void Init_Aligned(int32_t Amount);
 extern char * Get_Aligned_Block();
 extern void Remove_Aligned_Block(void *Target);
 extern void Deinit_Aligned();
@@ -182,10 +182,10 @@ extern void DPMI_Del_P2L(void *Linear);*/
 #define VESAIncluded
 extern void Initialize_VESA();
 extern int VBE_Detect();
-extern void VESA_FullInfo(long RX,long RY,char RBPP);
-extern VESA_Surface * VESA_Alloc_Surface(long RX,long RY,long RBPP,long FOV,DWord Flags);
-extern char VESA_Init_Video(long X,long Y,long BPP);
-extern void Set_Screen(long X,long Y,long BPP,char ZBuf,float FOV);
+extern void VESA_FullInfo(int32_t RX,int32_t RY,char RBPP);
+extern VESA_Surface * VESA_Alloc_Surface(int32_t RX,int32_t RY,int32_t RBPP,int32_t FOV,DWord Flags);
+extern char VESA_Init_Video(int32_t X,int32_t Y,int32_t BPP);
+extern void Set_Screen(int32_t X,int32_t Y,int32_t BPP,char ZBuf,float FOV);
 extern void VESA_Surface2Global(VESA_Surface *VS);
 extern char Modesetup();
 extern void End_Graphics();
@@ -193,8 +193,8 @@ extern void End_Graphics();
 extern void Build_YOffs_Table(VESA_Surface *VS);
 
 extern Font * LoadAFT(char *FileName);
-extern long OutTextXY(char *Where,long X,long Y, char *S,char C);
-extern long Write_String_T32(long X,long Y,char *S,DWord C);
+extern int32_t OutTextXY(char *Where,int32_t X,int32_t Y, char *S,char C);
+extern int32_t Write_String_T32(int32_t X,int32_t Y,char *S,DWord C);
 extern void Set_RGB(char Reg,char R,char G,char B);
 extern void Set_Palette(VPalette Pal);
 extern void Make_Gouraud_8(char R0,char G0,char B0,char R1,char G1,char B1);
@@ -267,7 +267,7 @@ extern char Load_Image_JPEG(Image *Img,char *FN);
 extern void MipmapXY(Image *Img);
 extern void MipmapX(Image *Img);
 extern void MipmapY(Image *Img);
-extern void Scale_Image(Image *Img,long NX,long NY);
+extern void Scale_Image(Image *Img,int32_t NX,int32_t NY);
 extern void Convert_Texture2Image(Texture *Tx,Image *Img);
 extern void Convert_Image2Texture(Image *Img,Texture *Tx);
 extern void Gamma_Correction(Image *Img,float Gamma);
@@ -278,13 +278,13 @@ extern void Image_Laplasian(Image *Img);
 extern void Image_LPF(Image *Img);
 extern void Image_HPF(Image *Img);
 extern void Image_Enhance(Image *Img);
-extern void Bump_Image_2D(Image *Prim,Image *BMap,Image *BTbl,long LX,long LY);
+extern void Bump_Image_2D(Image *Prim,Image *BMap,Image *BTbl,int32_t LX,int32_t LY);
 extern void Image_Ripple(Image *Prim,float Amp,float Freq,float Ofs);
 #endif
 
 #ifndef ImageGeneratorsIncluded
 #define ImageGeneratorsIncluded
-extern void New_Image(Image *Img,long X,long Y);
+extern void New_Image(Image *Img,int32_t X,int32_t Y);
 extern void Generate_Flare_Image(Image *Img,float FR,float FG,float FB);
 extern void Generate_Flare_Image_Test(Image *Img,float FR,float FG,float FB,float blah,float XDec,float YDec);
 extern void Generate_RGBFlares();
@@ -299,7 +299,7 @@ extern void Grid_Texture_Mapper(GridPoint *GP,Image *Img,DWord *DAC);
 extern void Init_PlanarGrid(GridPoint **GP);
 extern void GridFX_Test();
 extern void Generate_Fractal_Noise(Image *Img,float Graininess);
-extern void Generate_Plasma(Image *Img, short p, long seed);
+extern void Generate_Plasma(Image *Img, short p, int32_t seed);
 extern void Init_Whirlwind(char Spots,float Grav,float Repulse);
 extern void Init_WWGrav(float U,float V);
 extern void Reset_WWGrid();
@@ -319,7 +319,7 @@ extern void WRaytrace_Sphere(GridPoint *Target_GP,Vector *Origin,Matrix Orient,f
 
 // general utility stuff, and some other neat stuff like that
 extern void Phong_Map(Image *Img,float R,float G,float B,float Power);
-extern void Hidden_Flare(Image *Src,Vector *L,Image *Trg,long NumRays);
+extern void Hidden_Flare(Image *Src,Vector *L,Image *Trg,int32_t NumRays);
 #endif
 
 #ifndef RenderIncluded
@@ -403,7 +403,7 @@ extern void The_BiGMMXTrue(Vertex *A,Vertex *B,Vertex *C);
 extern void Dark_Sprite(Vertex *A,Vertex *B,Vertex *C);
 extern void Spirit_16(Vertex *A,Vertex *B,Vertex *C);
 extern void The_Seven_UP(Vertex *A,Vertex *B,Vertex *C);
-extern void The_Seven_UP_64(long X,long Y,long SX,long SY,DWord *Bitmap,char *Page);
+extern void The_Seven_UP_64(int32_t X,int32_t Y,int32_t SX,int32_t SY,DWord *Bitmap,char *Page);
 extern void The_MMX_Scalar(Vertex *A,Vertex *B,Vertex *C);
 extern void The_ZScale_Shit(Vertex *A,Vertex *B,Vertex *C);
 extern void Particle_Sprite(Vertex *A,Vertex *B,Vertex *C);

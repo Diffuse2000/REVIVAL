@@ -3,7 +3,7 @@
 #include "Base/TriMesh.h"
 #include "Base/Scene.h"
 
-static void GenerateSkyTexture(Texture *Tx, long numStars)
+static void GenerateSkyTexture(Texture *Tx, int32_t numStars)
 {
 /*	Vector V;
 
@@ -50,8 +50,8 @@ static void GenerateSkyTexture(Texture *Tx, long numStars)
 		V.y /= V.x;
 		V.z /= V.x;
 
-		long TX = V.z * 127.99 + 128.0;
-		long TY = V.y * 127.99 + 128.0; 
+		int32_t TX = V.z * 127.99 + 128.0;
+		int32_t TY = V.y * 127.99 + 128.0; 
 		Txd[TX + TY*256] = 0x00FFFFFF;
 
 	}

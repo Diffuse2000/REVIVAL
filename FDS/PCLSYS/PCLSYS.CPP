@@ -9,9 +9,9 @@
 
 // Explosion related particles, not associated with scene.
 Particle *ExpPcls;
-long NumExpPcls;
+int32_t NumExpPcls;
 
-static long SceneFlags = 0;
+static int32_t SceneFlags = 0;
 
 #ifdef _C_WATCOM
 extern "C" void Seven_UP(int X,int Y,int SizeX,int SizeY,char *Txtr,char *Page);
@@ -40,7 +40,7 @@ void Loxodrome(float K,float t,Vector *Out)
 void Rast_Explosion_Pcl(Vertex *A,Vertex *B,Vertex *C)
 {
   byte *Pixel;
-  long I,J;
+  int32_t I,J;
   if (A->PX>=1&&A->PX<=XRes-2&&A->PY>=1&&A->PY<=YRes_1-1)
   {
     //addative 32bit 5 putpixels (currently set on 1)
@@ -88,7 +88,7 @@ void Rast_Explosion_Pcl(Vertex *A,Vertex *B,Vertex *C)
 //should go right after it
 void Explosion_Particles()
 {
-  long I,J;
+  int32_t I,J;
   char *Pixel;
   Vector dV,Pos,V,N;
 

@@ -33,7 +33,7 @@ dword GDI_InitDisplay()
 	dword y = g_DIP.y;
 	dword bpp = g_DIP.bpp;
 
-	long MXR,MYR;
+	int32_t MXR,MYR;
 	RECT rectum;
 
 	XRes_ = x;
@@ -136,9 +136,9 @@ static dword V_Create(VESA_Surface *VS)
 			BIH->biClrImportant = 0;
 
 			// 16bit color
-			((unsigned long*)DIBMap->bmiColors)[0]=0xf800;
-			((unsigned long*)DIBMap->bmiColors)[1]=0x07e0;
-			((unsigned long*)DIBMap->bmiColors)[2]=0x001f;
+			((uint32_t*)DIBMap->bmiColors)[0]=0xf800;
+			((uint32_t*)DIBMap->bmiColors)[1]=0x07e0;
+			((uint32_t*)DIBMap->bmiColors)[2]=0x001f;
 		break;
 		case 32:
 			DIBMem = new char[sizeof(BITMAPINFOHEADER)+12];
@@ -159,9 +159,9 @@ static dword V_Create(VESA_Surface *VS)
 			BIH->biClrImportant = 0;
 
 			// 16bit color
-			((unsigned long*)DIBMap->bmiColors)[0]=0xff0000;
-			((unsigned long*)DIBMap->bmiColors)[1]=0x00ff00;
-			((unsigned long*)DIBMap->bmiColors)[2]=0x0000ff;
+			((uint32_t*)DIBMap->bmiColors)[0]=0xff0000;
+			((uint32_t*)DIBMap->bmiColors)[1]=0x00ff00;
+			((uint32_t*)DIBMap->bmiColors)[2]=0x0000ff;
 		break;
 		default: return 1;
 	}

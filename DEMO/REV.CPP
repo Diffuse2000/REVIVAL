@@ -10,7 +10,6 @@
 #pragma comment(lib, "imm32.lib")
 #pragma comment(lib, "Setupapi.lib")
 
-
 /******************************************************************************
 	Source code for REVIVAL / FLOOD.
 
@@ -488,10 +487,10 @@ static ConfigurationDB *g_cfg;
 // global status flags
 dword g_playMusic;
 dword g_profilerActive;
-long g_demoXRes;
-long g_demoYRes;
-long g_fullScreenMode;
-long g_displayType;
+int32_t g_demoXRes;
+int32_t g_demoYRes;
+int32_t g_fullScreenMode;
+int32_t g_displayType;
 
 float dTime;
 
@@ -509,7 +508,7 @@ void Destroy_Scene(Scene *Sc)
 {
 	return;
 	TriMesh *Tri;
-	long total = 0,f;
+	int32_t total = 0,f;
 
 //	printf("Shootin' scene...\n");
 	for(Tri=Sc->TriMeshHead;Tri;Tri=Tri->Next)
@@ -539,63 +538,56 @@ void Destroy_Scene(Scene *Sc)
 }
 
 
-#ifdef WIN32
-#include "GDI.H"
-#ifdef NON_PORTABLE_CODE
-#include "DDRAW.h"
-#include "D3D8.h"
-#endif
-
 FILE *Stub_Log;
-DWORD Stub_Disable;
+uint32_t Stub_Disable;
 
-static MMRESULT TimerID = 0; //MM Timer Handle
-static long Timer__NA = -1;
+static SDL_TimerID TimerID = 0; //MM Timer Handle
+static int32_t Timer__NA = -1;
 static volatile int32_t *TimerPtr = &Timer;
 
-static HINSTANCE G_hInst;
-static HWND G_hWnd;
 static char G_TitleStr[MAX_GSTRING] = "Revival / Flood";
 static char G_WindowClassStr[MAX_GSTRING] = "Revival";
 static char G_AppTitle[MAX_GSTRING];
 
-static HACCEL hAccelTable;
-static DWORD MID,STID;
+static uint32_t MID,STID;
 
-static DWORD StubI = 0;
+static uint32_t StubI = 0;
 
 // cheap substitute for a semaphore...
-static DWORD Thread_Interlock_Mutex = 0;
+static uint32_t Thread_Interlock_Mutex = 0;
 
 static dword S_InitRet;
 static void *Signmem;
-DisplayInitParams g_DIP;
 
 void FlipRequest(VESA_Surface *VS)
 {	
-	Thread_Interlock_Mutex = 1;
-	g_FlipRequestPage = VS;
-	PostMessage(G_hWnd,WM_USER+3,0,0); //DEVICE INIT SIGNAL  
-	while (Thread_Interlock_Mutex)
-	{
-		Sleep(1);
-	}
+	// Thread_Interlock_Mutex = 1;
+	// g_FlipRequestPage = VS;
+	// PostMessage(G_hWnd,WM_USER+3,0,0); //DEVICE INIT SIGNAL
+	// while (Thread_Interlock_Mutex)
+	// {
+	// 	Sleep(1);
+	// }
 }
 
 // Timer code.
-static void CALLBACK TimerProc(UINT wTimerID, UINT msg, 
-    DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
+// static void CALLBACK TimerProc(UINT wTimerID, UINT msg, 
+//     DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
+
+Uint32 TimerProc(Uint32 interval, void *param)
 { 
     (*TimerPtr)++;
+	return interval;
 } 
 
-int TimerInit(long Freq)
+int TimerInit(int32_t Freq)
 {
 	Timer_Freq = Freq;
-	DWORD msInterval = 1000/Timer_Freq; //millisecond accuracy.
-	DWORD wTimerRes = 0;
+	uint32_t msInterval = 1000/Timer_Freq; //millisecond accuracy.
+	uint32_t wTimerRes = 0;
 
-	TimerID = timeSetEvent(msInterval,wTimerRes,TimerProc,NULL,TIME_PERIODIC);
+//	TimerID = timeSetEvent(msInterval,wTimerRes,TimerProc,NULL,TIME_PERIODIC);
+	TimerID = SDL_AddTimer(msInterval, TimerProc, nullptr);
 
 	if (!TimerID)
 	{
@@ -610,53 +602,20 @@ void TimerRemove(void)
 {
 	if (TimerID)
 	{
-		timeKillEvent(TimerID);
+		SDL_RemoveTimer(TimerID);
 		TimerID = 0;
 	}
 } 
 //Timer code ends.
 
-static dword InitDisplayDevice()
-{
-	long rv = -1;
-	char *displayAPI = g_cfg->extractString("DisplayAPI");
-#ifdef NON_PORTABLE_CODE
-	if (!strcmp(displayAPI, "SDL2")) {
-		// initialize Direct3D 8.0 based display
-		g_displayType = 3;
-		//rv = SDL_InitDisplay();
-	} else if (!strcmp(displayAPI, "D3D8"))
-	{
-		// initialize Direct3D 8.0 based display
-		g_displayType = 0;
-		rv = D3D8_InitDisplay();
-	} else if (!strcmp(displayAPI, "DDRAW"))
-	{
-		// initialize DDRAW based display.
-		g_displayType = 1;
-		rv = DDRAW_InitDisplay();
-	} else 
-#endif
-	if (!strcmp(displayAPI, "GDI"))
-	{
-		// initialize GDI based display
-		g_displayType = 2;
-		rv = GDI_InitDisplay();
-	}
-	delete [] displayAPI;
-	return rv;
-}
-
-
-
-DWORD StubInit__(void)
+uint32_t StubInit__(void)
 {
 	StubI = 1;
 
 
 	//hAccelTable = LoadAccelerators(G_hInst, (LPCTSTR)IDC_W32STUB);
 
-	SetForegroundWindow(G_hWnd);
+	// SetForegroundWindow(G_hWnd);
 
 	//SetTimer(G_hWnd,1,1000/TimerFreq,NULL);
 	int TimerFreq = 100;
@@ -676,7 +635,7 @@ DWORD StubInit__(void)
 //	Complex_Form(&R1, -2.0,-2.0);
 //	Complex_Form(&R2,  2.0, 2.0);
 //	Generate_Julia_Fractal(&Im, &C, &R1, &R2);
-	long i,j;
+	int32_t i,j;
 	for(i=0; i<256; i++)
 		for(j=0; j<256; j++)
 			Im.Data[i+j*256] = (  ((i>>2) ^ (j>>2)) <<3) * 0x010101;
@@ -716,10 +675,10 @@ dword numDrops;
 Raindrop *RD;
 //static float dTime;
 
-inline void fist(long &r, float x)
+inline void fist(int32_t &r, float x)
 {
 #ifdef PORTABLE_CODE
-	r = static_cast<long>(x);
+	r = static_cast<int32_t>(x);
 #else
 	__asm
 	{
@@ -737,7 +696,7 @@ static void rainmapper(float x1, float y1, float x2, float y2)
 	float rdy = 1.0 / (y2-y1);
 	float dxdy = (x2-x1) * rdy;
 
-	long iy1,iy2, ix;
+	int32_t iy1,iy2, ix;
 	fist(iy1, y1);
 	fist(iy2, y2);
 	float x = x1 + (iy1-y1) * dxdy;
@@ -749,7 +708,7 @@ static void rainmapper(float x1, float y1, float x2, float y2)
 	float lt = (iy1-y1) * rdy;
 	dword R, G, B, a, A, pixel;
 
-	for(long y=iy1; y<iy2; y++)
+	for(int32_t y=iy1; y<iy2; y++)
 	{
 		fist(ix, x);
 
@@ -889,10 +848,10 @@ void PointGetUV(Vector *V, float &u, float &v)
 
 dword TexGetColor(float u, float v)
 {
-	long U = u*16.0;
-	long V = v*16.0;
-	long U2 = u*256.0;
-	long V2 = v*256.0;
+	int32_t U = u*16.0;
+	int32_t V = v*16.0;
+	int32_t U2 = u*256.0;
+	int32_t V2 = v*256.0;
 	return ((U^V)&1)*0xFF0000 + (U2<<8) + V2;
 }
 
@@ -1043,9 +1002,9 @@ void VolTrace(Image &Im)
 				v += rdv * scanres;
 				h += rdh * scanres;
 			}
-			long res_R = res_r; if (res_R>255) res_R = 255;
-			long res_G = res_g; if (res_G>255) res_G = 255;
-			long res_B = res_b; if (res_B>255) res_B = 255;
+			int32_t res_R = res_r; if (res_R>255) res_R = 255;
+			int32_t res_G = res_g; if (res_G>255) res_G = 255;
+			int32_t res_B = res_b; if (res_B>255) res_B = 255;
 			Im.Data[i+j*Im.x] = (res_R<<16)+(res_G<<8)+res_B;
 		}
 	}
@@ -1094,17 +1053,6 @@ struct ThreadPoolCleanup {
 
 void CodeEntry(void *var)
 {
-	_controlfp(_EM_INEXACT, _MCW_EM);
-	int yadda = 0;
-
-	const int internalXRes = g_demoXRes;
-	const int internalYRes = g_demoYRes;
-	LogFile = fopen("Runtime.LOG","wt");
-
-	if (!FDS_Init(internalXRes, internalYRes,32))    // Initialize FDS
-	{
-		return;
-	}
 	Generate_RGBFlares(); // should be in fds_init
 	
 	//if (g_playMusic)
@@ -1114,23 +1062,23 @@ void CodeEntry(void *var)
 #endif
 
 	// device init parameters
-	g_DIP.hInst = G_hInst;
-	g_DIP.hWnd = G_hWnd;
-	g_DIP.x = internalXRes;
-	g_DIP.y = internalYRes;
-	g_DIP.bpp = 32;
-	g_DIP.flags = 0;
+	// g_DIP.hInst = G_hInst;
+	// g_DIP.hWnd = G_hWnd;
+	// g_DIP.x = internalXRes;
+	// g_DIP.y = internalYRes;
+	// g_DIP.bpp = 32;
+	// g_DIP.flags = 0;
 
-	if (g_fullScreenMode)
-		g_DIP.flags |= DISP_FULLSCREEN;
+	// if (g_fullScreenMode)
+	// 	g_DIP.flags |= DISP_FULLSCREEN;
 
 	// request display initialization
-	Thread_Interlock_Mutex = 1;
-	PostMessage(G_hWnd,WM_USER+1,0,0); //DEVICE INIT SIGNAL  
-	while (Thread_Interlock_Mutex)
-	{		
-		Sleep(10);
-	}
+	// Thread_Interlock_Mutex = 1;
+	// PostMessage(G_hWnd,WM_USER+1,0,0); //DEVICE INIT SIGNAL  
+	// while (Thread_Interlock_Mutex)
+	// {		
+	// 	Sleep(10);
+	// }
 	// direct display initialization
 //	InitDisplayDevice(cfg);
 	InitPolyStats(200);
@@ -1157,7 +1105,7 @@ void CodeEntry(void *var)
 		filler_initializer->Apply();
 #endif
 		InitPolyStats(200);
-		_control87(_PC_24 | _RC_UP, _MCW_PC | _MCW_RC);
+		// _control87(_PC_24 | _RC_UP, _MCW_PC | _MCW_RC);
 		FPU_LPrecision();
 	});
 	ThreadPoolCleanup _guard;
@@ -1174,7 +1122,7 @@ void CodeEntry(void *var)
 		filler_initializer->Apply();
 #endif
 		InitPolyStats(200);
-		_control87(_PC_24 | _RC_UP, _MCW_PC | _MCW_RC);
+		// _control87(_PC_24 | _RC_UP, _MCW_PC | _MCW_RC);
 		FPU_LPrecision();
 
 		Initialize_City();
@@ -1237,28 +1185,6 @@ void CodeEntry(void *var)
 	}
 }
 
-static dword RemoveDisplayDevice(void)
-{
-	switch (g_displayType)
-	{
-	case 0:
-#ifdef NON_PORTABLE_CODE
-		return D3D8_RemoveDisplay();
-#endif
-	case 1:
-#ifdef NON_PORTABLE_CODE
-		return DDRAW_RemoveDisplay();
-#endif
-	case 2:
-		// TODO: GDI_RemoveDisplay();
-		break;
-	case 3:
-		//return SDL2_RemoveDisplay();
-		break;
-	}
-	return 0;
-}
-
 void StubRemove()
 {
 	if (StubI)
@@ -1274,7 +1200,7 @@ void StubRemove()
 
 static void StubbedThread(void *var)
 {
-	STID = GetCurrentThreadId();
+	// STID = GetCurrentThreadId();
 
 	StubInit__();
 
@@ -1288,11 +1214,11 @@ static void StubbedThread(void *var)
 	//a DOS STUB would do the same jumping from main() into that CodeEntry function.
 
 	//PostThreadMessage(MID,WM_QUIT,0,0);
-	PostMessage(G_hWnd,WM_USER+2,0,0); //TERMINATION SIGNAL
+	// PostMessage(G_hWnd,WM_USER+2,0,0); //TERMINATION SIGNAL
 
-	_endthread();
+	// _endthread();
 }
-
+#if 0
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 
@@ -1363,12 +1289,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			Thread_Interlock_Mutex = 0;
 		break;*/
 
-		case WM_USER+1:
-			//fprintf(Stub_Log,"<%d> Device Initialization Signal\n",*TimerPtr);
-			S_InitRet = InitDisplayDevice();
-			StubI = 2;
-			Thread_Interlock_Mutex = 0;
-		break;
+		// case WM_USER+1:
+		// 	//fprintf(Stub_Log,"<%d> Device Initialization Signal\n",*TimerPtr);
+		// 	S_InitRet = InitDisplayDevice();
+		// 	StubI = 2;
+		// 	Thread_Interlock_Mutex = 0;
+		// break;
 		// Page flip signal
 		case WM_USER+3:
 			Flip(g_FlipRequestPage);
@@ -1500,13 +1426,15 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	
 	return 0;
 }
+#endif 
 
-void SysSleep(dword ticks)
-{
-	Sleep(ticks);
-}
+// void SysSleep(dword ticks)
+// {
+// 	Sleep(ticks);
+// }
 
-#endif
+
+#include "SDL2.h"
 
 int main(int argc, const char *argv[])
 {
@@ -1523,13 +1451,26 @@ int main(int argc, const char *argv[])
 
     SDL_Window * window = SDL_CreateWindow("",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        640, 480,
+        g_demoXRes, g_demoYRes,
         0);
 
+	// _controlfp(_EM_INEXACT, _MCW_EM);
+	FPU_LPrecision();
+	const int internalXRes = g_demoXRes;
+	const int internalYRes = g_demoYRes;
+	LogFile = fopen("Runtime.LOG","wt");
 
-	// Create a renderer with V-Sync enabled.
-	SDL_Renderer * renderer = SDL_CreateRenderer(window,
-		-1, SDL_RENDERER_PRESENTVSYNC);
+	if (!FDS_Init(internalXRes, internalYRes,32))    // Initialize FDS
+	{
+		return -1;
+	}
+
+	SDL2_InitDisplay(window);
+
+	// Ow shit
+	// STUB must initialize all video,raster and render devices.
+	//
+	auto t = std::thread(StubbedThread, nullptr);
 	
     while (1)
     {
@@ -1544,5 +1485,6 @@ int main(int argc, const char *argv[])
         //
     }
 
+	t.join();
 	return 0;
 }

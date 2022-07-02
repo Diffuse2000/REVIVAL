@@ -1303,8 +1303,8 @@ static void stbi__float_postprocess(float *result, int *x, int *y, int *comp, in
 #ifndef STBI_NO_STDIO
 
 #if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
-STBI_EXTERN __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
-STBI_EXTERN __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
+STBI_EXTERN __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int cp, uint32_t flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
+STBI_EXTERN __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int cp, uint32_t flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
 #endif
 
 #if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
@@ -1522,7 +1522,7 @@ STBIDEF int      stbi_is_hdr          (char const *filename)
 STBIDEF int stbi_is_hdr_from_file(FILE *f)
 {
    #ifndef STBI_NO_HDR
-   long pos = ftell(f);
+   int32_t pos = ftell(f);
    int res;
    stbi__context s;
    stbi__start_file(&s,f);
@@ -3484,7 +3484,7 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
    }
 
    t1 = 3*in_near[0] + in_far[0];
-   // process groups of 8 pixels for as long as we can.
+   // process groups of 8 pixels for as int32_t as we can.
    // note we can't handle the last pixel in a row in this loop
    // because we need to handle the filter boundary conditions.
    for (; i < ((w-1) & ~7); i += 8) {
@@ -5326,7 +5326,7 @@ static int stbi__bitcount(unsigned int a)
 }
 
 // extract an arbitrarily-aligned N-bit value (N=bits)
-// from v, and then make it 8-bits long and fractionally
+// from v, and then make it 8-bits int32_t and fractionally
 // extend it to full full range.
 static int stbi__shiftsigned(unsigned int v, int shift, int bits)
 {
@@ -7611,7 +7611,7 @@ STBIDEF int stbi_info_from_file(FILE *f, int *x, int *y, int *comp)
 {
    int r;
    stbi__context s;
-   long pos = ftell(f);
+   int32_t pos = ftell(f);
    stbi__start_file(&s, f);
    r = stbi__info_main(&s,x,y,comp);
    fseek(f,pos,SEEK_SET);
@@ -7632,7 +7632,7 @@ STBIDEF int stbi_is_16_bit_from_file(FILE *f)
 {
    int r;
    stbi__context s;
-   long pos = ftell(f);
+   int32_t pos = ftell(f);
    stbi__start_file(&s, f);
    r = stbi__is_16_main(&s);
    fseek(f,pos,SEEK_SET);
@@ -7814,7 +7814,7 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c, void *user
       1.13    threadsafe
       1.12    const qualifiers in the API
       1.11    Support installable IDCT, colorspace conversion routines
-      1.10    Fixes for 64-bit (don't use "unsigned long")
+      1.10    Fixes for 64-bit (don't use "uint32_t")
               optimized upsampling by Fabian "ryg" Giesen
       1.09    Fix format-conversion for PSD code (bad global variables!)
       1.08    Thatcher Ulrich's PSD code integrated by Nicolas Schulz

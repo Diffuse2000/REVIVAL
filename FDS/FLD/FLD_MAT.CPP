@@ -44,7 +44,7 @@ void AddMaterial(FldMat *OrgMat, Scene *SceneGroup)
 	CurMat->RelScene=SceneGroup;
 	if (!(*OrgMat->TextureImage)) return;
 	Image=new char[strlen(OrgMat->TextureImage) + 15];
-	strcpy(Image,"Textures//");
+	strcpy(Image,"Textures/");
 	strcat(Image,OrgMat->TextureImage);
 	for (Temp=MatLib;Temp!=CurMat;Temp=Temp->Next)
 	{

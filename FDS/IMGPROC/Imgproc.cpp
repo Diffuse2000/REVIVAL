@@ -31,7 +31,7 @@ uint8_t*ModTbl;
 // (mainly for Illumination of textures)
 void Make_Modulation()
 {
-	long I,J,K;
+	int32_t I,J,K;
 	uint8_t *W;
 	if (TblFlags&TblMod_Made) return;
 	TblFlags|=TblMod_Made;
@@ -46,7 +46,7 @@ void Make_Modulation()
 		}
 }
 
-//void Fast16232(DWord *Dst,Word *Src,long Num)
+//void Fast16232(DWord *Dst,Word *Src,int32_t Num)
 //{
 //	__asm
 //	{
@@ -70,7 +70,7 @@ void Make_Modulation()
 //	}
 //}
 //
-//void Fast32216(Word *Dst,DWord *Src,long Num)
+//void Fast32216(Word *Dst,DWord *Src,int32_t Num)
 //{
 //	__asm
 //	{
@@ -94,7 +94,7 @@ void Make_Modulation()
 //	}
 //}
 //
-//void T16Conv(Word **Data,long OldX,long OldY,long X,long Y)
+//void T16Conv(Word **Data,int32_t OldX,int32_t OldY,int32_t X,int32_t Y)
 //{
 //	Image Img;
 //	New_Image(&Img,OldX,OldY);
@@ -110,13 +110,13 @@ void Make_Modulation()
 // Mip-maps a given Image by simple Texel averaging
 void MipmapXY(Image *Img)
 {
-	long X,Y;
+	int32_t X,Y;
 	dword *Mip = new dword[((Img->x+1)>>1)*((Img->y+1)>>1)];
 	byte *Trg = (byte *)Mip;
 	byte *Src = (byte *)Img->Data;
 	byte  *Tex;
-	long X4 = Img->x<<2,Y4 = Img->y<<2;
-	long X4_4 = X4+4;
+	int32_t X4 = Img->x<<2,Y4 = Img->y<<2;
+	int32_t X4_4 = X4+4;
 	
 	for(Y=0;Y<Img->y>>1;Y++)
 	{
@@ -162,13 +162,13 @@ void MipmapXY(Image *Img)
 // Mip-maps a given Image by simple Texel averaging, works on 2x1 blocks
 void MipmapX(Image *Img)
 {
-	long X,Y;
+	int32_t X,Y;
 	dword *Mip = new dword[((Img->x+1)>>1)*Img->y];
 	byte *Trg = (byte *)Mip;
 	byte *Src = (byte *)Img->Data;
 	byte *Tex;
-	long X4 = Img->x<<2,Y4 = Img->y<<2;
-	long X4_4 = X4+4;
+	int32_t X4 = Img->x<<2,Y4 = Img->y<<2;
+	int32_t X4_4 = X4+4;
 	
 	for(Y=0;Y<Img->y;Y++)
 	{
@@ -195,13 +195,13 @@ void MipmapX(Image *Img)
 // Mip-maps a given Image by simple Texel averaging, works on 1x2 blocks
 void MipmapY(Image *Img)
 {
-	long X,Y;
+	int32_t X,Y;
 	dword *Mip = new dword[Img->x*((Img->y+1)>>1)];
 	byte *Trg = (byte *)Mip;
 	byte *Src = (byte *)Img->Data;
 	byte *Tex;
-	long X4 = Img->x<<2,Y4 = Img->y<<2;
-	long X4_4 = X4+4;
+	int32_t X4 = Img->x<<2,Y4 = Img->y<<2;
+	int32_t X4_4 = X4+4;
 	
 	for(Y=0;Y<Img->y>>1;Y++)
 	{
@@ -255,7 +255,7 @@ void Convert_Texture2Image(Texture *Tx,Image *Img)
 void Convert_Image2Texture(Image *Img,Texture *Tx)
 {
 	Image *TI = new Image;
-	long I,J,X4,X4_4;
+	int32_t I,J,X4,X4_4;
 	float X,Y,dX,dY,iX,iY,lX,lY,rX,rY,rXrY,rXlY,lXrY,lXlY;
 	byte *W,*R,*RY,*RO;
 	// copy original Image to TI
@@ -319,10 +319,10 @@ void Convert_Image2Texture(Image *Img,Texture *Tx)
 }
 
 // A Mipmapping, Bi-linear scaler.
-void Scale_Image(Image *Img,long NX,long NY)
+void Scale_Image(Image *Img,int32_t NX,int32_t NY)
 {
 	Image *TI = new Image,*BI;
-	long I,J,X4,X4_4;
+	int32_t I,J,X4,X4_4;
 	float X,Y,dX,dY,iX,iY,lX,lY,rX,rY,rXrY,rXlY,lXrY,lXlY;
 	byte *W,*R,*RY,*RO;
 	// copy original Image to TI
@@ -389,7 +389,7 @@ void Scale_Image(Image *Img,long NX,long NY)
 /*void Image_Integral_Scaler(Image *Img,float X,float Y)
 {
 Image Temp;
-long I,J;
+int32_t I,J;
 float x = 0,dx,y = 0,dy;
 int iX,iY;
 float R,G,B;
@@ -422,7 +422,7 @@ float R,G,B;
 // while values greater than 1 may require clipping and reduce image detail.
 void Gamma_Correction(Image *Img,float Gamma)
 {
-	long I,J,K;
+	int32_t I,J,K;
 	FCDW FCD;
 	DWord *P = Img->Data;
 	if (Gamma<0) return;
@@ -456,9 +456,9 @@ void Gamma_Correction(Image *Img,float Gamma)
 // Intensity Correction
 void Intns_Histogram_Correction(Image *Img)
 {
-	long Hist[444];
+	int32_t Hist[444];
 	float Conv[444];
-	long I,J,K;
+	int32_t I,J,K;
 	float F;
 	memset(Hist,0,444*4);
 	DWord *P = Img->Data;
@@ -498,7 +498,7 @@ void Intensity_Alpha(Image *Img)
 {
 	DWord *Data = Img->Data,*DE = Data + Img->x*Img->y;
 	DWord C;
-	long R,G,B,A;
+	int32_t R,G,B,A;
 	
 	for(;Data<DE;Data++)
 	{
@@ -506,7 +506,7 @@ void Intensity_Alpha(Image *Img)
 		R = (C&0x00FF0000)>>16;
 		G = (C&0x0000FF00)>>8;
 		B = C&0x000000FF;
-		A = ((long)((sqrt((float)(R*R+G*G+B*B))*255.0)/443.5))<<24;
+		A = ((int32_t)((sqrt((float)(R*R+G*G+B*B))*255.0)/443.5))<<24;
 		
 		// Apply intensity value to alpha channel:
 		*Data &= 0x00FFFFFF;
@@ -516,9 +516,9 @@ void Intensity_Alpha(Image *Img)
 
 void Image_Convulate_3x3(Image *Img,Matrix M)
 {
-	long I,J;
+	int32_t I,J;
 	DWord *Conv = new DWord[Img->x*Img->y];
-	long X4 = Img->x<<2;
+	int32_t X4 = Img->x<<2;
 	byte *P = (byte *)Conv;
 	byte *R = (byte *)Img->Data;
 	//Row 0: use middle line values for upper ones
@@ -608,9 +608,9 @@ void Image_Enhance(Image *Img)
 // Dist - Distribution of the Light across the rendered image.
 // Note: The process is Irreversible. If you want a copy of the original
 // Image, create a copy before calling this routine.
-void Bump_Image_2D(Image *Prim,Image *BMap,Image *BTbl,long LX,long LY)
+void Bump_Image_2D(Image *Prim,Image *BMap,Image *BTbl,int32_t LX,int32_t LY)
 {
-	long X,Y,CX,CY,mx,my,MX,MY,FX,FY,YOL,YOU,Mod;
+	int32_t X,Y,CX,CY,mx,my,MX,MY,FX,FY,YOL,YOU,Mod;
 	uint8_t *Modulation;
 	byte *D1,*D2,*D3;
 	
@@ -674,7 +674,7 @@ float RippleEq(float A,float F,float O,float X,float Y)
 	float Mag = sqrt(X*X+Y*Y)*F;
 	float t1 = 0.0,t2 = 2.0,f1,f2;
 	float t,f;
-	long iter = 15;
+	int32_t iter = 15;
 	
 	f1 = t1-1.0f-A*sin(t1*Mag+O);
 	f2 = t2-1.0f-A*sin(t2*Mag+O);
@@ -696,8 +696,8 @@ float RippleEq(float A,float F,float O,float X,float Y)
 // Freq - Wave Frequency
 /*void Image_Ripple(Image *Prim,float Amp,float Freq,float Ofs)
 {
-long X,Y,mX,mY,MX,MY;
-long Disp;
+int32_t X,Y,mX,mY,MX,MY;
+int32_t Disp;
 DWord *DD;
 float t;
 DWord *ND = new DWord[Prim->x*Prim->y],*CD = ND;
@@ -719,11 +719,11 @@ DWord *ND = new DWord[Prim->x*Prim->y],*CD = ND;
 
 DWord *RPLDTBL = NULL;
 
-void Make_RPLTBL(long X,long Y,float Prec)
+void Make_RPLTBL(int32_t X,int32_t Y,float Prec)
 {
 	RPLDTBL = new DWord[X*Y];
 	DWord *DW = RPLDTBL;
-	long I,J,mX,mY,MX,MY;
+	int32_t I,J,mX,mY,MX,MY;
 	
 	mX = -X>>1; MX = mX + X;
 	mY = -Y>>1; MY = mY + Y;
@@ -735,7 +735,7 @@ void Make_RPLTBL(long X,long Y,float Prec)
 
 static float *STbl = NULL;
 
-void Make_STbl(float Freq,long Steps)
+void Make_STbl(float Freq,int32_t Steps)
 {
 	float x = 0.0f;
 	STbl = new float[Steps];
@@ -750,8 +750,8 @@ void Make_STbl(float Freq,long Steps)
 
 void Image_Ripple(Image *Prim,float Amp,float Freq,float Ofs)
 {
-	long X,Y,mX,mY,MX,MY,KX,KY;
-	long Disp,Off;
+	int32_t X,Y,mX,mY,MX,MY,KX,KY;
+	int32_t Disp,Off;
 	DWord *DD;
 	float t;
 	DWord DW;

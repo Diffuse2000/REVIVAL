@@ -28,7 +28,7 @@ char *ModuleBuf;
 void Perform_UnitTests()
 {
 	Image Img,Img2,Phong;
-	long I,J,K,Xl,Yl;
+	int32_t I,J,K,Xl,Yl;
 	DWord *VP = (DWord *)VPage;
 
 	memset(VPage,0,PageSize);
@@ -131,7 +131,7 @@ void Perform_UnitTests()
 	while(!Keypressed());*/
 }
 
-void Pixel(long X,long Y)
+void Pixel(int32_t X,int32_t Y)
 {
   DWord *VP = (DWord *)VGAPtr;
   if (X<0||X>319||Y<0||Y>199) return;
@@ -167,7 +167,7 @@ void Spline_Test()
   for(t=0.0f;t<16.0f;t+=0.2f)
   {
     Spline_Calc_3D(&S,t,&V);
-    Pixel((long)V.X,(long)V.Y);
+    Pixel((int32_t)V.X,(int32_t)V.Y);
   }
   while(!Keypressed());
 }
@@ -183,7 +183,7 @@ void Install_Phong()
   Gamma_Correction(&Img,1.2);
 //  Scale_Image(&Img);
   Convert_Image2Texture(&Img,&Phong_Mapping);
-//  Phong_Mapping.FileName = strdup("Textures//3.TGA");
+//  Phong_Mapping.FileName = strdup("Textures/3.TGA");
 //  Load_Texture(&Phong_Mapping);
 //  BPPConvert_Texture(&Phong_Mapping,BPP);
   FilterLSB_Texture(&Phong_Mapping);
@@ -270,7 +270,7 @@ void Fade_In(DWord *Target,DWord *Source,char Perc)
 {
   DWord *Tg = Target;
   char *Src = (char *)Source,*SE = Src + XRes*YRes*4;
-  long r,g,b;
+  int32_t r,g,b;
   while (Src<SE)
   {
     b = (((*Src++)*Perc)&0xFF00)>>8;
@@ -285,7 +285,7 @@ void IsoCline_Mark(DWord *Page,DWord *TImg,DWord *Plasma,float Iso)
 {
 	DWord *PE = Page + XRes*YRes;
 //	float illum;
-	long qIl,qIso = Iso;
+	int32_t qIl,qIso = Iso;
 	DWord Il;
 	for(;Page<PE;Page++,Plasma++)
 	{
@@ -320,7 +320,7 @@ void Electricity_Plasma()
 	Scale_Image(&Target,XRes,YRes);
 
 	Image EPI[EP_Layers];
-	long I,J;
+	int32_t I,J;
 	for(I=0;I<EP_Layers;I++)
 	{
 		EPI[I].X = XRes;
@@ -372,7 +372,7 @@ Vector *EP;
   DWord *PE = Page + XRes*YRes;
   float illum;
   DWord Il;
-  long X,Y;
+  int32_t X,Y;
   for(;Page<PE;Page++,Plasma++)
   {
     if (!(*TImg++)) continue;
@@ -390,7 +390,7 @@ Vector *EP;
 void Electricity_Voltage()
 {
 //  EP = new Vector[EPAmount];
-/// long I;
+/// int32_t I;
 //  for(I=0;I<EPAmount;I++)
 //    Vector_Make(EP+I,(rand()*XRes)>>15,(rand()*YRes)>>15,0);
 
@@ -403,18 +403,18 @@ void Calc_STable()
 {
 	STbl = new signed char [15*XRes];
 	SOTbl = STbl + 5*XRes;
-	long I;
+	int32_t I;
 	for(I=-5*XRes;I<10*XRes;I++)
-		SOTbl[I] = (long) (4.0f * sin (I * 0.01f));
+		SOTbl[I] = (int32_t) (4.0f * sin (I * 0.01f));
 }
 
 void Calc_CTable()
 {
 	CTbl = new signed char [13*XRes];
 	COTbl = CTbl + 3*XRes;
-	long I;
+	int32_t I;
 	for(I=-3*XRes;I<10*XRes;I++)
-		COTbl[I] = (long) (5.0f * cos (I * 0.01f));
+		COTbl[I] = (int32_t) (5.0f * cos (I * 0.01f));
 //	COTbl = SOTbl + 157;
 }
 
@@ -437,10 +437,10 @@ void Run_Distort(void)
 //	Scale_Image(&Img,XRes,YRes);
 //	DWord *Ptr;
 //	DWord *DPtr = Img.Data;
-	long I,T;
+	int32_t I,T;
 
-	long X,Y,hX = XRes>>1,hY = YRes>>1;
-//	long Frames = 0;
+	int32_t X,Y,hX = XRes>>1,hY = YRes>>1;
+//	int32_t Frames = 0;
 //	Timer = 0;
 //	while(!Keyboard[ScESC])
 //	{
@@ -456,8 +456,8 @@ void Run_Distort(void)
 				*Ptr++ = DPtr[(I++) + COTbl[T+(X<<1)-Y<<1]-(X>>3)+
 					XRes*(SOTbl[(T<<1)+3*X+5*Y] - (Y>>3))];
 
-				//(long)(cos(T*0.02+X*0.04-Y*0.02) * 5.0f)
-				//(long)(sin(T*0.02+X*0.03+Y*0.05) * 5.0f) - (long)(Y * 0.1)
+				//(int32_t)(cos(T*0.02+X*0.04-Y*0.02) * 5.0f)
+				//(int32_t)(sin(T*0.02+X*0.03+Y*0.05) * 5.0f) - (int32_t)(Y * 0.1)
 //		Frames++;
 //	}
 //	printf("FPS = %1.3f\n",100.0f*(float)Frames/(float)Timer);
@@ -483,7 +483,7 @@ void Run_Vortex(void)
 	Matrix_Identity(CamMat);
 	Radius = 1;
 
-	PlaneTexture->FileName = strdup("Textures//whirl.JPG");
+	PlaneTexture->FileName = strdup("Textures/whirl.JPG");
 	Identify_Texture(PlaneTexture);
 	if (!PlaneTexture->BPP)
 	{
@@ -577,7 +577,7 @@ void Run_Vortex1(void)
 	Matrix_Identity(CamMat);
 	Radius = 1;
 
-	PlaneTexture->FileName = strdup("Textures//Plane.JPG");
+	PlaneTexture->FileName = strdup("Textures/Plane.JPG");
 	Identify_Texture(PlaneTexture);
 	if (!PlaneTexture->BPP)
 	{
@@ -588,7 +588,7 @@ void Run_Vortex1(void)
 	Convert_Texture2Image(PlaneTexture,PlaneImage);
 //	WOBPOINTSHEIGHT = 30;
 
-	CodeTexture->FileName = strdup("Textures//Code.JPG");
+	CodeTexture->FileName = strdup("Textures/Code.JPG");
 	Identify_Texture(CodeTexture);
 	if (!CodeTexture->BPP)
 	{
@@ -599,7 +599,7 @@ void Run_Vortex1(void)
 	Convert_Texture2Image(CodeTexture,CodeImage);
 
 
-	GfxTexture->FileName = strdup("Textures//Gfx.JPG");
+	GfxTexture->FileName = strdup("Textures/Gfx.JPG");
 	Identify_Texture(GfxTexture);
 	if (!GfxTexture->BPP)
 	{
@@ -609,7 +609,7 @@ void Run_Vortex1(void)
 	Load_Texture(GfxTexture);
 	Convert_Texture2Image(GfxTexture,GfxImage);
 
-	SfxTexture->FileName = strdup("Textures//Sfx.JPG");
+	SfxTexture->FileName = strdup("Textures/Sfx.JPG");
 	Identify_Texture(SfxTexture);
 	if (!SfxTexture->BPP)
 	{
@@ -918,7 +918,7 @@ void Run_Vortex1(void)
 void main(int argc,char *argv[])
  {
 	Scene *Sc;
-	long I;
+	int32_t I;
 
 	Initialize_System();
 
@@ -950,7 +950,7 @@ void main(int argc,char *argv[])
 	Run_Vortex1();
 //	Init_Distort();
 
-	long J;
+	int32_t J;
 
  /*	while(!Keypressed())
 	{

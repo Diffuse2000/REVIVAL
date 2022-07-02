@@ -23,7 +23,7 @@ Quaternion Quat_ID;
 // Generates Sine/Cosine Lookup Tables, at 1/4 a Degree accuracy.
 void Generate_SCTabs()
 {
-	long I;
+	int32_t I;
 	SinTab[0]=0.0;
 	CosTab[0]=1.0;
 	SinTab[1]=sin(PI/720);
@@ -1136,7 +1136,7 @@ void Spline_CompDerivLast_Bezier(SplineKey *P,SplineKey *C)
 
 void Spline_Init_Bezier(Spline *S)
 {
-	long I;
+	int32_t I;
 	
 	S->CurKey = 0;
 	if (S->NumKeys < 2) return;
@@ -1387,7 +1387,7 @@ void Spline_Remove_Duplicates(Spline* S) {
 // be correctly Interpolated.
 void Spline_Init_3D(Spline *S)
 {
-	long I;
+	int32_t I;
 	
 	S->CurKey = 0;
 	Spline_Remove_Duplicates(S);
@@ -1416,7 +1416,7 @@ void Spline_Init_3D(Spline *S)
 // spline can be correctly Interpolated. (Doesn't support LOOPS)
 void Spline_Init_4D(Spline *S)
 {
-	long I;
+	int32_t I;
 	S->CurKey = 0;
 	Spline_Remove_Duplicates(S);
 	if (S->NumKeys < 2) return;
@@ -1564,7 +1564,7 @@ void Spline_Calc_4D_Alt(Spline *S,float Frame, Quaternion *Out)
 	Out->W = (h[0]*SK->Pos.W)+(h[1]*NK->Pos.W)+(h[2]*SK->DD.W)+(h[3]*NK->DS.W);
 }
 
-// Under Research. An attempt to interpolate arcs over long distances.
+// Under Research. An attempt to interpolate arcs over int32_t distances.
 void Spline_Calc_4D(Spline *S,float Frame, Quaternion *Out)
 {
 	float t;

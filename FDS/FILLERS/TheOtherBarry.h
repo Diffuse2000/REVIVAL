@@ -134,8 +134,8 @@ struct TileRasterizer {
 	struct TextureInfo {
 		const dword* TextureAddr;
 		const dword* TextureAddr1;
-		long LogWidth;
-		long LogHeight;
+		int32_t LogWidth;
+		int32_t LogHeight;
 		float UScaleFactor;
 		float VScaleFactor;
 		float du0zdx, du0zdy;

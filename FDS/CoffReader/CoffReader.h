@@ -25,9 +25,9 @@ using std::vector;
 struct CoffHeader {
 	unsigned short 	machine;
 	unsigned short 	number_of_sections;
-	long 			timestamp;
-	long 			symbol_table_ptr;
-	long 			number_of_symbols;
+	int32_t 			timestamp;
+	int32_t 			symbol_table_ptr;
+	int32_t 			number_of_symbols;
 	unsigned short 	size_of_opt_header;
 	unsigned short 	flags;
 };
@@ -82,9 +82,9 @@ static_assert(sizeof(Relocation) == 10, "Size of Relocation != 10");
 
 typedef int(__stdcall* VPFunc)(
 	void* lpAddress,		// address of region of committed pages
-	unsigned long dwSize,			// size of the region
-	unsigned long flNewProtect,	// desired access protection
-	unsigned long* lpflOldProtect // address of variable to get old protection
+	uint32_t dwSize,			// size of the region
+	uint32_t flNewProtect,	// desired access protection
+	uint32_t* lpflOldProtect // address of variable to get old protection
 	);
 
 
@@ -257,7 +257,7 @@ public:
 		memcpy((uint8_t*)output_buffer + code_start, &buffer[section_table[text_idx].pointer_to_raw_data], code_size);
 
 		Relocate(output_buffer, (uint8_t*)output_buffer + code_start);
-		unsigned long	OldProtection;
+		uint32_t	OldProtection;
 		VirtualProtectFunc((uint8_t*)output_buffer + code_start, code_size, Protection, &OldProtection);
 
 

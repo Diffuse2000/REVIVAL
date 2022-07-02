@@ -22,14 +22,14 @@ static float xForm2z = (float)sqrt(3.0f)/2.0f;
 
 static Vector FntDir(0.000f, 1.000f, 0.000f);
 
-const long FNTPartTime = (long)(50.00 * 100);
+const int32_t FNTPartTime = (int32_t)(50.00 * 100);
 static Material *PclT;
 static DWord NPMats;
 static float SwCarry = 0.0f, SwCarry2 = 0.0f;
 
 static Vector Vortex_Center(-0.053f,343.381f, 0.251f);
 
-static long LightningFlag = 0;
+static int32_t LightningFlag = 0;
 
 static char MSGStr[160];
 
@@ -37,8 +37,8 @@ static DWord Blaze[64*128];
 
 
 static Vector Rsv_LSrc,Rsv_LTarg;
-static long Rsv_LPow;
-static long Rsv_LState = 0;
+static int32_t Rsv_LPow;
+static int32_t Rsv_LState = 0;
 const float basicSceneAmbient = 64.0;
 
 //static Vector *Stars;
@@ -54,7 +54,7 @@ static Material* g_LnMat;
 void Particle_Rast(Vertex *A,Vertex *B,Vertex *C)
 {
 	byte *Pixel;
-	long I,J;
+	int32_t I,J;
 	if (A->PX>=1&&A->PX<=XRes-2&&A->PY>=1&&A->PY<=YRes_1-1)
 	{
 		//addative 32bit 5 putpixels (currently set on 1)
@@ -105,7 +105,7 @@ void Particle_Rast(Vertex *A,Vertex *B,Vertex *C)
 
 void Initialize_Particles(Scene *Sc)
 {
-	long I,J;
+	int32_t I,J;
 	Image Img;
 
 	Sc->NumOfParticles = FntInnerPcls*3 + FntOuterPcls + FntSpiralPcls;
@@ -313,7 +313,7 @@ void Particle_Kinematics(Scene *Sc)
 
 	float magwav = 55.0f;//75.0f + 20.0f*cos(Timer*0.005);
 
-	long I,r;
+	int32_t I,r;
 
 	g_numPcls = 0;
 	for(P=Sc->Pcl,PE = P + FntOuterPcls;P<PE;P++)
@@ -328,7 +328,7 @@ void Particle_Kinematics(Scene *Sc)
 	// Create random particles
 	float Sw = dt * FntSpawnOutPcl + SwCarry;
 	float pow = FntSpawnOutPow + sin(Timer*FntSpawnOutPowFreq)*FntSpawnOutPowTilt,fpow;
-	long Spwn = Sw;
+	int32_t Spwn = Sw;
 	SwCarry = Sw-Spwn;
 
 //	Spwn = 0;
@@ -410,7 +410,7 @@ void Particle_Kinematics(Scene *Sc)
 	// Create random particles
 	float Sw2 = dt * FntSpawnInnerPcl + SwCarry2;
 //	float pow = FntSpawnOutPow + sin(Timer*FntSpawnOutPowFreq)*FntSpawnOutPowTilt,fpow;
-	long Spwn2 = Sw2;
+	int32_t Spwn2 = Sw2;
 	SwCarry2 = Sw2-Spwn2;
 
 	for(I=0;I<3;I++)
@@ -656,10 +656,10 @@ void Generate_Photon_Plasma()
 	Img->Data = (DWord *)Blaze;
 	memset(Img->Data,0,64*128*4);
 	Generate_Fractal_Noise(Img,4.0);
-	long I,J,K;
+	int32_t I,J,K;
 	FCDW FCD;
 	DWord *P = Img->Data;
-	long HX = Img->x>>1;
+	int32_t HX = Img->x>>1;
 
 	 for(J=0;J<Img->y;J++)
 		 for(I=0;I<Img->x;I++)
@@ -684,7 +684,7 @@ void Initialize_Fountain()
 	FntSc = (Scene *)getAlignedBlock(sizeof(Scene), 16);
 	memset(FntSc,0,sizeof(Scene));
 
-	LoadFLD(FntSc,"Scenes\\Fountain.FLD");
+	LoadFLD(FntSc,"SCENES/Fountain.FLD");
 
 	for(M = MatLib;M;M=M->Next)
 	{
@@ -726,7 +726,7 @@ void Initialize_Fountain()
 
 	Omni *O = FntSc->OmniHead->Next->Next;
 
-	long I;
+	int32_t I;
 	Quaternion *W;
 	for(I=0;I<6;I++)
 	{
@@ -907,12 +907,12 @@ void UFP4(Vertex *A,Vertex *B,void (*Filler)(Vertex *V1,Vertex *V2))
 void Lightning_Line(Vertex *V1,Vertex *V2)
 {
 	DWord C=(255<<16)+(255<<8)+255;
-	long D;
-	long Dx,Dy;
-	long Ai,Bi,Xi,Yi;
-	long Offs,sat;
-	long X1,Y1,X2,Y2;
-	long depth = V1->LR,hd = depth>>1;
+	int32_t D;
+	int32_t Dx,Dy;
+	int32_t Ai,Bi,Xi,Yi;
+	int32_t Offs,sat;
+	int32_t X1,Y1,X2,Y2;
+	int32_t depth = V1->LR,hd = depth>>1;
 	char *cPtr;
 	DWord *Ptr = (DWord *)VPage;
 	DWord *End;
@@ -1014,12 +1014,12 @@ void Lightning_Line(Vertex *V1,Vertex *V2)
 void Spark_Line(Vertex *V1,Vertex *V2)
 {
 	DWord C=(255<<16)+(255<<8)+255;
-	long D;
-	long Dx,Dy;
-	long Ai,Bi,Xi,Yi;
-	long Offs,sat;
-	long X1,Y1,X2,Y2;
-	long depth = V1->LR,hd = depth>>1;
+	int32_t D;
+	int32_t Dx,Dy;
+	int32_t Ai,Bi,Xi,Yi;
+	int32_t Offs,sat;
+	int32_t X1,Y1,X2,Y2;
+	int32_t depth = V1->LR,hd = depth>>1;
 	char *cPtr;
 	DWord *Ptr = (DWord *)VPage;
 	DWord *End;
@@ -1139,7 +1139,7 @@ void Spark_Line(Vertex *V1,Vertex *V2)
 }
 
 
-void Lightning_Bolt_Frag(Vector *Src,Vector *Targ,long POW, Material* LnMat)
+void Lightning_Bolt_Frag(Vector *Src,Vector *Targ,int32_t POW, Material* LnMat)
 {
 //	memset(VPage,255,PageSize);
 	if (POW<1) POW=1;
@@ -1287,7 +1287,7 @@ void Lightning_Particles()
 
 }
 
-void Lightning_Bolt(Vector *Src,Vector *Targ,long BasePow, Material* LnMat)
+void Lightning_Bolt(Vector *Src,Vector *Targ,int32_t BasePow, Material* LnMat)
 {
 	//ok, now we need to run from Src to Targ...
 	float Distance,Seg;
@@ -1352,7 +1352,7 @@ void Spark(Vector *Src,Vector *Targ, Material* LnMat)
 }
 
 
-void Reserve_Lightning_Bolt(Vector *Src,Vector *Targ,long Pow)
+void Reserve_Lightning_Bolt(Vector *Src,Vector *Targ,int32_t Pow)
 {
 	Vector_Copy(&Rsv_LSrc,Src);
 	Vector_Copy(&Rsv_LTarg,Targ);
@@ -1478,18 +1478,18 @@ void Handle_Lightning()
 
 /*DWord Photonbeam[64*128];
 Word Noise[1800];
-long NoiseSampler = 0;
+int32_t NoiseSampler = 0;
 
 void Noise_Sample()
 {
 	Word *N = Noise;
-	long I = 1800;
+	int32_t I = 1800;
 	while (I--) *N++ = rand();
 }
 
 void Iterate_Photonbeam_Texture()
 {
-	long I,J;
+	int32_t I,J;
 	// first line
 	DWord *Pen = Photonbeam + 64*127;
 	for(I=0;I<=32;I++)
@@ -1533,8 +1533,8 @@ void Blaze_Photon()
 	DWord *Src = Photonbeam;
 	DWord *Trg = Blaze;
 	DWord S;
-	long T;
-	long I,J;
+	int32_t T;
+	int32_t I,J;
 	// first 96 scanlines : convert B => RGB
 	for(I=64;I;I--)
 	{
@@ -1631,7 +1631,7 @@ void Fire_Photon_Beam(Vector *Source,Vector *Target)
 //	Iterate_Photonbeam_Texture();
 //	Blaze_Photon();
 
-	long Width = 3000.0f*A.RZ;
+	int32_t Width = 3000.0f*A.RZ;
 	The_Seven_UP_64(A.PX,(A.PY+B.PY)*0.5f,Width,fabs(B.PY-A.PY)*0.5f,Blaze,VPage);
 }
 
@@ -1641,8 +1641,8 @@ Material VortexMat;
 
 void Load_Vortex()
 {
-	long X,Y;
-	VorTexture.FileName = strdup("Textures//Vortex.JPG");
+	int32_t X,Y;
+	VorTexture.FileName = strdup("Textures/Vortex.JPG");
 	Identify_Texture(&VorTexture);
 	if (!VorTexture.BPP)
 	{
@@ -1667,7 +1667,7 @@ void Load_Vortex()
 
 void Vortex_Distort()
 {
-	long I;
+	int32_t I;
 	GridPointT *Vortex_GP;
 	DWord *TempBuf = new DWord[65536];
 	Image VorImg;
@@ -1806,10 +1806,10 @@ extern Scene* SkySc;
 
 void Run_Fountain()
 {
-	long Polys = 0;
+	int32_t Polys = 0;
 	TriMesh *T;
 	Omni *O;
-	long TTrd;
+	int32_t TTrd;
 	Vector U,V;
 
 	byte *BPage = new byte[PageSize];
@@ -1825,7 +1825,7 @@ void Run_Fountain()
 	Blur.Flags = VSurf_Noalloc;
 	Blur.Targ = VGAPtr;
 
-	long i, timerStack[20], timerIndex = 0;
+	int32_t i, timerStack[20], timerIndex = 0;
 	for(i=0; i<20; i++)
 		timerStack[i] = Timer;
 

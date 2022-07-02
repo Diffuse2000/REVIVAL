@@ -16,7 +16,7 @@ static Object *RflObj;
 static Vector RflSurfNorm(0,1,0);
 static float RflSurfOfs = 0;
 
-static long CTPartTime;
+static int32_t CTPartTime;
 static Matrix AxisAlignedViews[6] = {
 	{
 		{ 1,  0,  0},
@@ -51,24 +51,24 @@ static Matrix AxisAlignedViews[6] = {
 };
 
 
-signed char *STbl,*SOTbl,*CTbl,*COTbl;
+static signed char *STbl,*SOTbl,*CTbl,*COTbl;
 
 void Calc_STable()
 {
 	STbl = new signed char [15*XRes];
 	SOTbl = STbl + 5*XRes;
-	long I;
+	int32_t I;
 	for(I=-5*XRes;I<10*XRes;I++)
-		SOTbl[I] = (long) (1.5f * YRes/240.0 * sin (I * 0.01f));
+		SOTbl[I] = (int32_t) (1.5f * YRes/240.0 * sin (I * 0.01f));
 }
 
 void Calc_CTable()
 {
 	CTbl = new signed char [13*XRes];
 	COTbl = CTbl + 3*XRes;
-	long I;
+	int32_t I;
 	for(I=-3*XRes;I<10*XRes;I++)
-		COTbl[I] = (long) (4.0f * XRes/320.0 * cos (I * 0.01f));
+		COTbl[I] = (int32_t) (4.0f * XRes/320.0 * cos (I * 0.01f));
 //	COTbl = SOTbl + 157;
 }
 
@@ -84,7 +84,7 @@ void Setup_Water_Distort()
 
 void Water_Distort()
 {
-/*	long I;
+/*	int32_t I;
 	GridPoint *Water_GP;
 //	DWord *TempBuf = new DWord[65536 * 4];
 	Image WaterImg;
@@ -152,10 +152,10 @@ void Run_Distort(void)
 //	Scale_Image(&Img,XRes,YRes);
 //	DWord *Ptr;
 //	DWord *DPtr = Img.Data;
-	long I,T;
+	int32_t I,T;
 
-	long X,Y,hX = XRes>>1,hY = YRes>>1;
-//	long Frames = 0;
+	int32_t X,Y,hX = XRes>>1,hY = YRes>>1;
+//	int32_t Frames = 0;
 //	Timer = 0;
 //	while(!Keyboard[ScESC])
 //	{
@@ -171,8 +171,8 @@ void Run_Distort(void)
 				*Ptr++ = DPtr[(I++) + COTbl[(T+(X<<1)-Y)<<1]+//-(X>>3)+
 					XRes*(SOTbl[(T<<1)+3*X+5*Y])]; //- (Y>>3))];
 		memcpy(Ptr,DPtr+XRes*YRes_1,VESA_BPSL);
-				//(long)(cos(T*0.02+X*0.04-Y*0.02) * 5.0f)
-				//(long)(sin(T*0.02+X*0.03+Y*0.05) * 5.0f) - (long)(Y * 0.1)
+				//(int32_t)(cos(T*0.02+X*0.04-Y*0.02) * 5.0f)
+				//(int32_t)(sin(T*0.02+X*0.03+Y*0.05) * 5.0f) - (int32_t)(Y * 0.1)
 //		Frames++;
 //	}
 //	printf("FPS = %1.3f\n",100.0f*(float)Frames/(float)Timer);
@@ -192,7 +192,7 @@ static void Reflective_Surface_Setup()
 	Vector U,V;
 
 	Object *O;
-	long IID = 0;
+	int32_t IID = 0;
 	for(O = CitySc->ObjectHead;O;O=O->Next)
 	{
 		if (O->Type!=Obj_TriMesh) continue;
@@ -370,7 +370,7 @@ void Reflective_Mapper_Setup()
 	Vector U,V;
 
 	Object *O;
-	long IID = 0;
+	int32_t IID = 0;
 	for(O = CitySc->ObjectHead;O;O=O->Next)
 	{
 		if (O->Type!=Obj_TriMesh) continue;
@@ -411,8 +411,8 @@ static void Reflected_Transform(Scene *Sc)
 	Face *F,*FEnd;
 	float PX=FOVX,PY=FOVY,Temp;
 	float dz;
-	long *pdz = (long *)(&dz);
-	long I;
+	int32_t *pdz = (int32_t *)(&dz);
+	int32_t I;
 	Face **Ins = FList;
 	float *f = (float *)(&M);
 	float *fv;
@@ -617,7 +617,7 @@ Regular:
 				Vtx->TPos.z = M34[2][0]*Vtx->Pos.x+M34[2][1]*Vtx->Pos.y+M34[2][2]*Vtx->Pos.z+M34[2][3];
 				
 				Vtx->Flags&=0xFFFFFFFF-Vtx_Visible;
-				//      if (*(long *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
+				//      if (*(int32_t *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
 				if (Vtx->TPos.z>Sc->NZP)
 				{
 					Vtx->RZ=1.0/Vtx->TPos.z;
@@ -707,7 +707,7 @@ ERegular:
 				Vector_Add(&U,&V,&Vtx->TPos);
 				
 				Vtx->Flags = 0;
-				//      if (*(long *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
+				//      if (*(int32_t *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
 				// Environment mapping support removed at 11.04.02
 //				Vtx->EU=128.0+127.0*(Vtx->N.x*IM[0][0]+Vtx->N.y*IM[0][1]+Vtx->N.z*IM[0][2]);
 //				Vtx->EV=128.0+127.0*(Vtx->N.x*IM[1][0]+Vtx->N.y*IM[1][1]+Vtx->N.z*IM[1][2]);
@@ -769,7 +769,7 @@ OUT:FEnd=T->Faces+T->FIndex;
 			//dz = Vtx->TPos.z;
 			//dz *=-16384;
 			//dz +=0x7FFFFFFF;
-			//RoundToInt((long *)&O->F.SortZ.DW,dz);
+			//RoundToInt((int32_t *)&O->F.SortZ.DW,dz);
 			dz = Vtx->TPos.z;
 			*Ins++ = &O->F; // no insertion : flares are not reflected for now
 			O->F.SortZ.F = 2 * fzp - dz;
@@ -784,7 +784,7 @@ OUT:FEnd=T->Faces+T->FIndex;
 				F = &Sc->Pcl[I].F;
 				dz *=-16384;
 				dz +=0x7FFFFFFF;
-				RoundToInt((long*)&F->SortZ.DW,dz);
+				RoundToInt((int32_t*)&F->SortZ.DW,dz);
 #ifdef FRONT_TO_BACK_SORTING
 				F->SortZ.F = 2*fzp-dz;
 #else
@@ -816,7 +816,7 @@ static void SceneCorrections()
 
 	Scene *Sc = CitySc;
 	Omni *O;
-	long index;
+	int32_t index;
 	float redRangeMult = 1.8;
 	for(O=Sc->OmniHead, index=0; O; O=O->Next)
 	{
@@ -1059,8 +1059,8 @@ static void drawRainDrop(Face* F, Vertex **VA, mword numVerts, dword miplevel)
 {
 	Vertex *V = VA[0];
 
-	long x = Fist(V->PX);
-	long y = Fist(V->PY);
+	int32_t x = Fist(V->PX);
+	int32_t y = Fist(V->PY);
 	
 	if (x>=0&&x<XRes&&y>=0&&y<YRes)
 	{
@@ -1085,7 +1085,7 @@ static void rainmapper(float x1, float y1, float x2, float y2)
 	float rdy = 1.0 / (y2-y1);
 	float dxdy = (x2-x1) * rdy;
 
-	long iy1,iy2, ix;
+	int32_t iy1,iy2, ix;
 	iy1 = Fist(y1);
 	iy2 = Fist(y2);
 	float x = x1 + (iy1-y1) * dxdy;
@@ -1097,7 +1097,7 @@ static void rainmapper(float x1, float y1, float x2, float y2)
 	float lt = (iy1-y1) * rdy;
 	dword R, G, B, a, A, pixel;
 
-	for(long y=iy1; y<iy2; y++)
+	for(int32_t y=iy1; y<iy2; y++)
 	{
 		ix = Fist(x);
 
@@ -1211,8 +1211,8 @@ static void drawRainDropV2(Vertex **VA, mword numVerts)
 {
 	Vertex *V = VA[0];
 
-	long x = Fist(V->PX);
-	long y = Fist(V->PY);
+	int32_t x = Fist(V->PX);
+	int32_t y = Fist(V->PY);
 
 	float ahead_z = V->TPos.z;
 
@@ -1549,7 +1549,7 @@ void Initialize_City()
 {
 	CitySc = (Scene *)getAlignedBlock(sizeof(Scene), 16);
 	memset(CitySc,0,sizeof(Scene));
-	LoadFLD(CitySc,"Scenes\\CITY.FLD");
+	LoadFLD(CitySc,"SCENES/CITY.FLD");
 //	CitySc->EndFrame = 1046.0f;
 	CTPartTime = 100.0f*(CitySc->EndFrame-CitySc->StartFrame)/50.0f;
 //	printf("FLD-loaded MEM = %d\n",DPMI_Free_Memory());
@@ -1888,7 +1888,7 @@ std::vector<debug_outtext> DebugStrs;
 
 void Run_City()
 {
-	long Polys = 0,TTrd;
+	int32_t Polys = 0,TTrd;
 	TriMesh *T;
 	Omni *O;
 
@@ -1924,7 +1924,7 @@ void Run_City()
 	View = CitySc->CameraHead;
 //	View = &FC;
 
-	long i, timerStack[20], timerIndex = 0;
+	int32_t i, timerStack[20], timerIndex = 0;
 	for(i=0; i<20; i++)
 		timerStack[i] = Timer;
 
@@ -2150,13 +2150,13 @@ void Run_City()
 			sprintf(MSGStr, "%d polys/frame", (int32_t)(g_renderedPolys / numFrames));
 			scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
 			//		numDropsRendered=0;
-			//		sprintf(MSGStr, "%d raindrops" , (long)(numDropsRendered) );
+			//		sprintf(MSGStr, "%d raindrops" , (int32_t)(numDropsRendered) );
 			//		OutTextXY(VPage,0,60,MSGStr,255);
 
 			//		FModGetModuleInfo(mmi);
 			//		sprintf(MSGStr, "Order: %d, Row: %d", mmi.Order, mmi.Row);
 			//		OutTextXY(VPage,0,15,MSGStr,255);
-			//		sprintf(MSGStr, "%dK pixels/second" , (long)(FillerPixelcount/1000.0 * 100.0 / Timer));
+			//		sprintf(MSGStr, "%dK pixels/second" , (int32_t)(FillerPixelcount/1000.0 * 100.0 / Timer));
 			//		OutTextXY(VPage,0,30,MSGStr,255);
 			//		PROFILER: display stats		
 			for (i = 0; i < PROF_NUM; i++)

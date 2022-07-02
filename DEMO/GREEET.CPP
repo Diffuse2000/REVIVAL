@@ -4,13 +4,13 @@
 
 static Scene *GreetSc;
 
-static long GRPartTime = 5.0f*100;
+static int32_t GRPartTime = 5.0f*100;
 
 void Initialize_Greets()
 {
 	GreetSc = (Scene *)getAlignedBlock(sizeof(Scene), 16);
 	memset(GreetSc,0,sizeof(Scene));
-	LoadFLD(GreetSc,"Scenes\\GREETS.FLD");
+	LoadFLD(GreetSc,"SCENES/GREETS.FLD");
 //	GRPartTime = 100.0*(GreetSc->EndFrame-GreetSc->StartFrame)/30.0f;
 
 //	for(Material *M=MatLib;M;M=M->Next)
@@ -36,8 +36,8 @@ void rTransform_Objects(Scene *Sc)
 	Face *F,*FEnd;
 	float PX=FOVX,PY=FOVY,Temp;
 	float dz;
-	long *pdz = (long *)(&dz);
-	long I;
+	int32_t *pdz = (int32_t *)(&dz);
+	int32_t I;
 	Face **Ins = FList;
 	float *f = (float *)(&M);
 	float *fv;
@@ -205,7 +205,7 @@ void rTransform_Objects(Scene *Sc)
         Vtx->TPos.Z = M34[2][0]*Vtx->Pos.X+M34[2][1]*Vtx->Pos.Y+M34[2][2]*Vtx->Pos.Z+M34[2][3];
 
         Vtx->Flags&=0xFFFFFFFF-Vtx_Visible;
-  //      if (*(long *)(&Vtx->TPos.Z)>0x3F800000) // 1.0 in floating point rep.
+  //      if (*(int32_t *)(&Vtx->TPos.Z)>0x3F800000) // 1.0 in floating point rep.
 				if (Vtx->TPos.Z>1.0)
 				{
 					Vtx->RZ=1.0/Vtx->TPos.Z;
@@ -291,7 +291,7 @@ void rTransform_Objects(Scene *Sc)
         Vector_Add(&U,&V,&Vtx->TPos);
 
 				Vtx->Flags = 0;
-  //      if (*(long *)(&Vtx->TPos.Z)>0x3F800000) // 1.0 in floating point rep.
+  //      if (*(int32_t *)(&Vtx->TPos.Z)>0x3F800000) // 1.0 in floating point rep.
         Vtx->EU=128.0+127.0*(Vtx->N.X*IM[0][0]+Vtx->N.Y*IM[0][1]+Vtx->N.Z*IM[0][2]);
         Vtx->EV=128.0+127.0*(Vtx->N.X*IM[1][0]+Vtx->N.Y*IM[1][1]+Vtx->N.Z*IM[1][2]);
 
@@ -322,8 +322,8 @@ void rTransform_Objects(Scene *Sc)
       {
         *Ins++ = F;
         dz = F->A->TPos.Z;
-//        if (*(long *)(&F->B->TPos.Z)>*pdz) dz=F->B->TPos.Z;
-//        if (*(long *)(&F->C->TPos.Z)>*pdz) dz=F->C->TPos.Z;
+//        if (*(int32_t *)(&F->B->TPos.Z)>*pdz) dz=F->B->TPos.Z;
+//        if (*(int32_t *)(&F->C->TPos.Z)>*pdz) dz=F->C->TPos.Z;
 				if (F->B->TPos.Z>dz) dz=F->B->TPos.Z;
         if (F->C->TPos.Z>dz) dz=F->C->TPos.Z;
 //        dz*=-16384;
@@ -370,8 +370,8 @@ void rTransform_Objects(Scene *Sc)
 
 void Run_Greets()
 {
-	long Polys = 0;
-	long TTrd;
+	int32_t Polys = 0;
+	int32_t TTrd;
 	TriMesh *T;
 	Omni *O;
 

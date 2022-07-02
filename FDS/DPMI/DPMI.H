@@ -1,5 +1,5 @@
 #pragma pack(1)
-typedef unsigned long DWord;
+typedef uint32_t DWord;
 
 // Register structures
 struct _RMWORDREGS {
@@ -23,14 +23,14 @@ typedef struct {
 } RMSREGS;
 
 typedef struct {
-  long    edi;
-  long    esi;
-  long    ebp;
-  long    reserved;
-  long    ebx;
-  long    edx;
-  long    ecx;
-  long    eax;
+  int32_t    edi;
+  int32_t    esi;
+  int32_t    ebp;
+  int32_t    reserved;
+  int32_t    ebx;
+  int32_t    edx;
+  int32_t    ecx;
+  int32_t    eax;
   short   flags;
   short   es,ds,fs,gs,ip,cs,sp,ss;
 } _RMREGS;
@@ -50,7 +50,7 @@ struct Module_MB
 
 struct Aligned_MB
 {
-  long Pos; //Position in aligned memory space.
+  int32_t Pos; //Position in aligned memory space.
   Aligned_MB *Prev,*Next;
 };
 

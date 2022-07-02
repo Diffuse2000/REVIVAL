@@ -56,7 +56,7 @@ struct PolygonStats
 
 thread_local PolygonStats IX_PolyStats;
 
-void InitPolyStats(long cells)
+void InitPolyStats(int32_t cells)
 {
 #ifdef MEASURE_POLYSTATS
 	IX_PolyStats.numCells = cells;
@@ -418,7 +418,7 @@ static void IXFiller(IXVertexG *Verts, dword numVerts, void *Page)
 	y = Fist(Verts[0].y);
 	dword *Scanline = (dword *)((uintptr_t)Page + VESA_BPSL * y);
 	word *ZScanline = (word *)((uintptr_t)Page + PageSize + sizeof(word) * XRes * y);
-	long Width;
+	int32_t Width;
 	
 	// Iterate over sections
 	SectionHeight = (Left.ScanLines < Right.ScanLines) ? Left.ScanLines : Right.ScanLines;
@@ -433,7 +433,7 @@ static void IXFiller(IXVertexG *Verts, dword numVerts, void *Page)
 		{
 
 			// *** Draw scan line *** //
-			long lx, rx;
+			int32_t lx, rx;
 			lx = Fist(Left.x);
 			dword *SpanPtr = Scanline + lx;
 			word *ZSpanPtr = ZScanline + lx;

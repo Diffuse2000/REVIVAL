@@ -10,13 +10,13 @@
 
 //Externals
 volatile int32_t Timer;
-long Old_Int_Count,Old_Int_Rate;
+int32_t Old_Int_Count,Old_Int_Rate;
 volatile char Keyboard[128];
-long KeyTT;
-long Timer_Freq = 18; //Timer frequency in Hertz
+int32_t KeyTT;
+int32_t Timer_Freq = 18; //Timer frequency in Hertz
 
 char *Keybuf;
-long Kbsize = 255,Kbpos = 0;
+int32_t Kbsize = 255,Kbpos = 0;
 char LastKey = 0;
 
 #ifdef _C_WATCOM
@@ -55,7 +55,7 @@ void Set_Rate(unsigned int Rate)
 
 char Read_KBStack()
 {
-  long I;
+  int32_t I;
   char c;
 	if (!Kbpos) return 0;
   c = Keybuf[0];
@@ -117,14 +117,14 @@ void Restore_9()
 
 void Keyboard_HTest()
 {
-	long I;
+	int32_t I;
   for(I=0;I<128;I++)
     if (Keyboard[I]) VPage[I]=63;
 }
 
 char Keypressed()
 {
-  long I;
+  int32_t I;
   char C;
   C = 0;
 	I=128;

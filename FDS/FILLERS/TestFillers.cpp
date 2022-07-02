@@ -475,7 +475,7 @@ void RunFillerTests()
 	Image	tx;
 	int i, j;
 	
-	Load_Image_JPEG(&tx,"Textures//Logo.JPG");
+	Load_Image_JPEG(&tx,"Textures/Logo.JPG");
 	Scale_Image(&tx,256,256);
 	Texture = tx.Data;
 	
@@ -607,8 +607,8 @@ void RunFillerTests()
 		//#else // !defined NEWMAPPER
 		// Convert vertices
 		
-		P_Texture_32V(BT, (char *)Texture ,(unsigned long)MainSurf->Data);
-		P_Texture_32V(BT + 3, (char *)Texture ,(unsigned long)MainSurf->Data);
+		P_Texture_32V(BT, (char *)Texture ,(uint32_t)MainSurf->Data);
+		P_Texture_32V(BT + 3, (char *)Texture ,(uint32_t)MainSurf->Data);
 		//#endif // NEWMAPPER
 		
 		

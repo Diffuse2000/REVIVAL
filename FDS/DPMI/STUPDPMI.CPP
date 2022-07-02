@@ -13,9 +13,9 @@
 #include "Base/FDS_DECS.H"
 
 
-long Free_Memory(void)
+int32_t Free_Memory(void)
 {
-  long Buffer[12]; //48 bytes for reserved stuff.
+  int32_t Buffer[12]; //48 bytes for reserved stuff.
   union REGS  r;
   struct SREGS sr;
 
@@ -33,7 +33,7 @@ long Free_Memory(void)
 Memblock *HMB=NULL;
 Memblock *CMB=HMB;
 
-void * Mem_Alloc(long Size,char *Name)
+void * Mem_Alloc(int32_t Size,char *Name)
 {
   if (Size>Free_Memory())
   {
@@ -135,14 +135,14 @@ void DPMI_freeRealSeg(unsigned sel)
 }
 
 typedef struct {
-  long    edi;
-  long    esi;
-  long    ebp;
-  long    reserved;
-  long    ebx;
-  long    edx;
-  long    ecx;
-  long    eax;
+  int32_t    edi;
+  int32_t    esi;
+  int32_t    ebp;
+  int32_t    reserved;
+  int32_t    ebx;
+  int32_t    edx;
+  int32_t    ecx;
+  int32_t    eax;
   short   flags;
   short   es,ds,fs,gs,ip,cs,sp,ss;
   } _RMREGS;
@@ -221,7 +221,7 @@ int DPMI_allocSelector(void)
   return sel;
 }
 
-long DPMI_mapPhysicalToLinear(long physAddr,long limit)
+int32_t DPMI_mapPhysicalToLinear(int32_t physAddr,int32_t limit)
 {
   union REGS  r;
 
@@ -233,12 +233,12 @@ long DPMI_mapPhysicalToLinear(long physAddr,long limit)
   int386(0x31, &r, &r);
   if (r.x.cflag)
     DPMI_Error("DPMI_mapPhysicalToLinear() failed!");
-  return ((long)r.w.bx << 16) + r.w.cx;
+  return ((int32_t)r.w.bx << 16) + r.w.cx;
 }
 
 
 
-void DPMI_setSelectorBase(int sel,long linAddr)
+void DPMI_setSelectorBase(int sel,int32_t linAddr)
 {
   union REGS  r;
 
@@ -251,7 +251,7 @@ void DPMI_setSelectorBase(int sel,long linAddr)
     DPMI_Error("DPMI_setSelectorBase() failed!");
 }
 
-void DPMI_setSelectorLimit(int sel,long limit)
+void DPMI_setSelectorLimit(int sel,int32_t limit)
 {
   union REGS  r;
 

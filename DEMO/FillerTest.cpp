@@ -193,7 +193,7 @@ void CalcLeftSection (IXVertex *V1, IXVertex *V2)
 	Left.VZ = V1->VZ + Left.dVZ * prestep;
 	Left.RZ = V1->RZ + Left.dRZ * prestep;
 
-	//long iprestep = Fist(65536.0 * prestep);
+	//int32_t iprestep = Fist(65536.0 * prestep);
 	Left.R = V1->R * 65536.0 + prestep * Left.dR;//+ (((Left.dR>>8) * iprestep)>>8);
 	Left.G = V1->G * 65536.0 + prestep * Left.dG;//+ (((Left.dG>>8) * iprestep)>>8);
 	Left.B = V1->B * 65536.0 + prestep * Left.dB;//+ (((Left.dB>>8) * iprestep)>>8);
@@ -204,11 +204,11 @@ thread_local static void (*SubInnerPtr)(dword bWidth, dword *SpanPtr, word * ZSp
 /*
 static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr, float prestep)
 {
-	long i;
+	int32_t i;
 
 	//F4Vec _u, _v, _z;
-	long  _u0, _u1;
-	long  _v0, _v1;
+	int32_t  _u0, _u1;
+	int32_t  _v0, _v1;
 	word _Z0, _Z1;
 
 	float _z[4];
@@ -229,10 +229,10 @@ static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr
 	dword Z = Fist(Left.z * 256.0 + prestep * dZdx);
 
 	// number of full sections
-	long ns = Width >> L2SPANSIZE;
+	int32_t ns = Width >> L2SPANSIZE;
 
 	// remainder section
-	long wrem = Width & (SPANSIZE-1); // % SPANSIZE.
+	int32_t wrem = Width & (SPANSIZE-1); // % SPANSIZE.
 
 	if (ns >= 4)
 	{
@@ -257,7 +257,7 @@ static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr
 	_v0 = Fist(VZ * _z[0]);
 	_Z0 = 0xFF80 - Fist(g_zscale256 * _z[0]);
 	
-	long _du, _dv;
+	int32_t _du, _dv;
 
 	while (ns--)
 	{
@@ -273,7 +273,7 @@ static void SubInnerLoopCorrectSlow(dword Width, dword *SpanPtr, word * ZSpanPtr
 		_dv = _v1 - _v0 >> L2SPANSIZE;
 		_dZ = _Z1 - _Z0 >> L2SPANSIZE;
 		
-		long SpanWidth = SPANSIZE;
+		int32_t SpanWidth = SPANSIZE;
 		while (SpanWidth--)
 		{
 			dword r,g,b, tex;
@@ -447,7 +447,7 @@ static void SubInnerLoop(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float pr
 	
 	for(;;)
 	{
-		long _du, _dv;
+		int32_t _du, _dv;
 
 		_u1 = Fist(UZ * _z1);
 		_v1 = Fist(VZ * _z1);
@@ -602,7 +602,7 @@ static void SubInnerLoopT(dword bWidth, dword *SpanPtr, word * ZSpanPtr, float p
 	
 	for(;;)
 	{
-		long _du, _dv;
+		int32_t _du, _dv;
 
 		_u1 = Fist(UZ * _z1);
 		_v1 = Fist(VZ * _z1);
@@ -802,7 +802,7 @@ static void IXFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page,
 	y = Fist(Verts[0].y);
 	dword *Scanline = (dword *)((dword)Page + VESA_BPSL * y);
 	word *ZScanline = (word *)((dword)Page + PageSize + sizeof(word) * XRes * y);
-	long Width;
+	int32_t Width;
 	
 	// Iterate over sections
 	SectionHeight = (Left.ScanLines < Right.ScanLines) ? Left.ScanLines : Right.ScanLines;
@@ -813,7 +813,7 @@ static void IXFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page,
 		{
 
 			// *** Draw scan line *** //
-			long lx, rx;
+			int32_t lx, rx;
 			lx = Fist(Left.x);
 			dword *SpanPtr = Scanline + lx;
 			word *ZSpanPtr = ZScanline + lx;
@@ -938,11 +938,11 @@ static void PrefillerCommon(Face *F, Vertex **V, dword numVerts)
 	//float ZScaleFactor = 0xFFFF * CurScene->NZP;
 	//float ZDenom = (float)0xFFFF * CurScene->FZP / (CurScene->FZP - CurScene->NZP);
 
-	//long MipLevel = 0;
+	//int32_t MipLevel = 0;
 	// [Shirman98]	
 
-	long LogWidth = F->Txtr->Txtr->LSizeX;
-	long LogHeight = F->Txtr->Txtr->LSizeY;
+	int32_t LogWidth = F->Txtr->Txtr->LSizeX;
+	int32_t LogHeight = F->Txtr->Txtr->LSizeY;
 	
 	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[0];
 
@@ -1147,7 +1147,7 @@ static void drawPoly(float DT)
 		cv.wait(lock, [] {return counter == 1; });
 	}
 
-	/*long my=0;
+	/*int32_t my=0;
 	float minY = V[0].PY;
 	for(i=1; i<4; i++)
 	{
@@ -1186,7 +1186,7 @@ static void drawPoly(float DT)
 		break;
 	}
 	float fl = 5.3;
-	long ifl;
+	int32_t ifl;
 	__asm
 	{
 		fld dword ptr [fl]
@@ -1284,11 +1284,11 @@ void FillerTest()
 		}
 	}
 	Sachletz(l_TestTexture, 256, 256);
-	const long PartTime = 10000;
+	const int32_t PartTime = 10000;
 
 	M->Txtr->Flags = Txtr_Tiled | Txtr_Nomip;
 
-	long timerStack[20], timerIndex = 0;
+	int32_t timerStack[20], timerIndex = 0;
 	for (int i = 0; i < 20; i++)
 		timerStack[i] = Timer;
 	char MSGStr[128];

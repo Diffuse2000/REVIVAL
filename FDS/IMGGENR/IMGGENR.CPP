@@ -33,7 +33,7 @@ DWord Colors32[256]; // a 32bit 256 color palette. For use with intensity
 Vector *WPDT = NULL;
 float WRFOV;
 
-void New_Image(Image *Img,long X,long Y)
+void New_Image(Image *Img, int32_t X, int32_t Y)
 {
 	Img->x = X; Img->y = Y; Img->Data = (DWord *)_aligned_malloc(sizeof(DWord)*X*Y, 16);
 }
@@ -41,15 +41,15 @@ void New_Image(Image *Img,long X,long Y)
 // Return Pseudorandom value between -1 and 1. Requires a polynomial
 // seed given at x.
 
-float frand1d(long x)
+float frand1d(int32_t x)
 {
-	long s = 71 * x; s = s * 8192 ^ s;
+	int32_t s = 71 * x; s = s * 8192 ^ s;
 	return 1.0 - ((s*(s*s*15731+789221)+1376312589)& 0x7fffffff)/1073741824.0;
 }
 
 float Noise1D(float x)
 {
-	long i;
+	int32_t i;
 	float f,n0,n1;
 	
 	i = floor(x);
@@ -62,7 +62,7 @@ float Noise1D(float x)
 
 void Make_Noise()
 {
-	long I;
+	int32_t I;
 	float f;
 	if (!NoiseTblRdy)
 	{
@@ -81,7 +81,7 @@ void Make_Noise()
 // All additional variables are considered constant.
 void Generate_Flare_Image_Test(Image *Img,float FR,float FG,float FB,float blah,float XDec,float YDec)
 {
-	signed long X, Y;
+	int32_t X, Y;
 	char  Col;
 	float D, R, G, B, F, V ,A ,Bump;
 	float Y2;
@@ -144,7 +144,7 @@ void Generate_Flare_Image(Image *Img,float FR,float FG,float FB)
 {
     //memset(Img->Data, Img->x * Img->y * 4, 0);
     //return;
-	signed long X, Y;
+	int32_t X, Y;
 	float D, R, G, B, F, V ,A ,Bump;
 	float Y2;
 	float Linear = 2.0;
@@ -196,7 +196,7 @@ void Generate_Flare_Image(Image *Img,float FR,float FG,float FB)
 				G = Bump*FG;
 				B = Bump*FB;
 			}
-			if (R>=1.0&&G>=1.0&&B>=1.0) {*(unsigned long *)Pen = 0x00FFFFFF; Pen+=4; continue;}
+			if (R>=1.0&&G>=1.0&&B>=1.0) {*(uint32_t *)Pen = 0x00FFFFFF; Pen+=4; continue;}
 			
 			if (D<RMin || D>RMax)
 				Ring = 0;
@@ -294,19 +294,19 @@ void Fit_FlareImage(Omni *O)
 
 byte *FrcNoise;
 float FrcNoise_Grain;
-static long FN_X;
+static int32_t FN_X;
 
-long Linear_Rand(long Base,long Limit)
+int32_t Linear_Rand(int32_t Base, int32_t Limit)
 {
-	long L = Base-Limit+(rand()*Limit>>14);
+	int32_t L = Base-Limit+(rand()*Limit>>14);
 	if (L<0) L=0;
 	if (L>255) L=255;
 	return L;
 }
 
-void Fract_Noise(long X1,long Y1,long X2,long Y2)
+void Fract_Noise(int32_t X1, int32_t Y1, int32_t X2, int32_t Y2)
 {
-	long X,Y;
+	int32_t X,Y;
 	byte C11,C12,C21,C22;
 	
 	if (X2-X1<2&&Y2-Y1<2) return;
@@ -331,7 +331,7 @@ void Fract_Noise(long X1,long Y1,long X2,long Y2)
 // note : Also generates noise within alpha channel
 void Generate_Fractal_Noise(Image *Img,float Graininess)
 {
-	long I;
+	int32_t I;
 	FrcNoise = (byte *)Img->Data;
 	FrcNoise_Grain = Graininess;
 	FN_X = Img->x;
@@ -347,7 +347,7 @@ void Generate_Fractal_Noise(Image *Img,float Graininess)
 	}
 }
 
-static long xseed;
+static int32_t xseed;
 
 unsigned char cfunc (short x)
 {
@@ -382,13 +382,13 @@ void initrand (void)
 	}
 }
 
-char gb (byte *buf, long x)
+char gb (byte *buf, int32_t x)
 {
 	//  cout << hex << x << '\n';
 	return buf[x<<2];
 }
 
-void Generate_Plasma(Image *Img, short p, long seed)
+void Generate_Plasma(Image *Img, short p, int32_t seed)
 {
 	byte *buf = (byte *)Img->Data;
 
@@ -400,13 +400,13 @@ void Generate_Plasma(Image *Img, short p, long seed)
 		initrand();
 		buf[0]=the_rand()&255;
 		
-		unsigned long mx2=0x100;
-		unsigned long my2=0x10000l;
-		unsigned long x,y;
+		uint32_t mx2=0x100;
+		uint32_t my2=0x10000l;
+		uint32_t x,y;
 		
 		do {
-			unsigned long mx=mx2>>1;
-			unsigned long my=my2>>1;
+			uint32_t mx=mx2>>1;
+			uint32_t my=my2>>1;
 			for (y=0; y<0x10000l; y+=my2)
 				for (x=0; x<0x100; x+=mx2)
 				{
@@ -458,8 +458,8 @@ void Generate_Plasma(Image *Img, short p, long seed)
 #define Grid_LOGSubsamp 3
 #define Grid_Subsamp 8
 
-long Grid_X,Grid_Y,Grid_XY;
-long AGrid_X,AGrid_Y,AGrid_XY;
+int32_t Grid_X,Grid_Y,Grid_XY;
+int32_t AGrid_X,AGrid_Y,AGrid_XY;
 
 void Init_PlanarGrid(GridPoint **GP)
 {
@@ -550,27 +550,27 @@ void GridRendererT(GridPointT *GP,Image *Img,dword *page, dword xres, dword yres
 
 	dword *block = page, *scanline;
 
-	long YLimit = yres-Grid_Subsamp;
+	int32_t YLimit = yres-Grid_Subsamp;
 	for(j=0; j<=YLimit; j += Grid_Subsamp)
 	{
 		for(i=0; i<xres; i += Grid_Subsamp)
 		{
-			long u0 = p[0]->u;
-			long v0 = p[0]->v;
-			long u1 = p[1]->u;
-			long v1 = p[1]->v;
+			int32_t u0 = p[0]->u;
+			int32_t v0 = p[0]->v;
+			int32_t u1 = p[1]->u;
+			int32_t v1 = p[1]->v;
 
-			long du0dy = (p[2]->u - u0) >> Grid_LOGSubsamp;
-			long dv0dy = (p[2]->v - v0) >> Grid_LOGSubsamp;			
-			long du1dy = (p[3]->u - u1) >> Grid_LOGSubsamp;
-			long dv1dy = (p[3]->v - v1) >> Grid_LOGSubsamp;
+			int32_t du0dy = (p[2]->u - u0) >> Grid_LOGSubsamp;
+			int32_t dv0dy = (p[2]->v - v0) >> Grid_LOGSubsamp;			
+			int32_t du1dy = (p[3]->u - u1) >> Grid_LOGSubsamp;
+			int32_t dv1dy = (p[3]->v - v1) >> Grid_LOGSubsamp;
 
 			scanline = block;
 			for(y=0; y<Grid_Subsamp; y++)
 			{
-				long u = u0, v = v0;
-				long dudx = (u1-u0)>>Grid_LOGSubsamp;
-				long dvdx = (v1-v0)>>Grid_LOGSubsamp;
+				int32_t u = u0, v = v0;
+				int32_t dudx = (u1-u0)>>Grid_LOGSubsamp;
+				int32_t dvdx = (v1-v0)>>Grid_LOGSubsamp;
 				for(x=0; x<Grid_Subsamp; x++)
 				{
 					scanline[x] = tex[((u&0xFF00)>>8) + (v&0xFF00)];
@@ -630,7 +630,7 @@ void GridRendererTG(GridPointTG *GP,Image *Img,dword *page, dword XRes, dword YR
 
 	dword* block = page, * scanline;
 
-	long YLimit = YRes - Grid_Subsamp;
+	int32_t YLimit = YRes - Grid_Subsamp;
 	for (j = 0; j <= YLimit; j += Grid_Subsamp) {
 		for (i = 0; i < XRes; i += Grid_Subsamp) {
 			auto c0 = p[0]->BGRA;
@@ -1723,7 +1723,7 @@ void GridFX_Test()
 		Grid_Texture_Mapper(GP,&Img,(DWord *)VPage);*/
 }
 
-long WW_Spots,WW_CS;
+int32_t WW_Spots,WW_CS;
 float WW_Grav,WW_Pulse;
 AGridPoint *WW_Grid,*WW_GO;
 AGridPoint *WW_SP;
@@ -1762,7 +1762,7 @@ void Reset_WWGrid()
 
 void Update_WWGrid()
 {
-	long I,J;
+	int32_t I,J;
 	//  GridPoint *V,*W;
 	//  GridPoint F,U;
 	float D;
@@ -1850,7 +1850,7 @@ static void P_Texture_32V(Bi_Triangle * BTM, char * Bitmap,unsigned int u)
 
 void AW_Staticmap(AGridPoint *AGP)
 {
-	long I,J;
+	int32_t I,J;
 	AGridPoint *GP = AGP;
 	float QX=XRes*0.1;
 	float QY=YRes*0.1;
@@ -1867,7 +1867,7 @@ void AW_Staticmap(AGridPoint *AGP)
 
 void AW_Distort(AGridPoint *AGP,float Bang)
 {
-	long I,J;
+	int32_t I,J;
 	AGridPoint *GP = AGP;
 	float ratio = Bang/16384.0;
 	for(J=0;J<AGrid_Y;J++)
@@ -1883,7 +1883,7 @@ void AW_Distort(AGridPoint *AGP,float Bang)
 //Useful to make them move along more complex paths
 void AW_FromParticles(AGridPoint *AGP,Particle *P)
 {
-	long I,J;
+	int32_t I,J;
 	for(J=0;J<AGrid_Y;J++)
 		for(I=0;I<AGrid_X;I++)
 		{
@@ -1934,9 +1934,9 @@ void Generate_Julia_Fractal(Image *Img,Complex *C,Complex *R1,Complex *R2)
 {
 	Complex L,Z,Z2;
 	float dX,dY;
-	long I,J;
+	int32_t I,J;
 	DWord *Ptr = Img->Data;
-	long Orb;
+	int32_t Orb;
 	
 	L.y = R2->y;
 	dX = (R2->x-R1->x)/(float)Img->x;
@@ -1971,9 +1971,9 @@ void Generate_Mandelbrot_Fractal(Image *Img,Complex *R1,Complex *R2)
 {
 	Complex L,Z,Z2;
 	float dX,dY;
-	long I,J;
+	int32_t I,J;
 	DWord *Ptr = Img->Data;
-	long Orb;
+	int32_t Orb;
 	
 	L.y = R2->y;
 	dX = (R2->x-R1->x)/(float)Img->x;
@@ -2009,9 +2009,9 @@ void Generate_Phoenix_Fractal(Image *Img,float P1,float P2,Complex *R1,Complex *
 {
 	Complex L,X,Y,Z,Z2;
 	float dX,dY;
-	long I,J;
+	int32_t I,J;
 	DWord *Ptr = Img->Data;
-	long Orb;
+	int32_t Orb;
 	
 	L.y = R2->y;
 	dX = (R2->x-R1->x)/(float)Img->x;
@@ -2057,7 +2057,7 @@ void Affine_Wobbler(GridPoint *Target_GP,float Ang,float Zoom,float XO,float YO)
 	float Mat[2][2]; // Rotation and scale matrix
 	float *Ptr = (float *)Mat;
 	float dX,dY,X,Y;
-	long I,J;
+	int32_t I,J;
 	GridPoint *GP = Target_GP;
 	Mat[1][1] = Mat[0][0] = cos(Ang)*Zoom;
 	Mat[0][1] = sin(Ang)*Zoom;
@@ -2089,7 +2089,7 @@ void Affine_Wobbler(GridPoint *Target_GP,float Ang,float Zoom,float XO,float YO)
 // constant, and is given in Degrees.
 void Init_WRaytrace_Table(float FOV)
 {
-	long I,J;
+	int32_t I,J;
 	float X,Y;
 	Vector *V = WPDT;
 	
@@ -2271,7 +2271,7 @@ void WRaytrace_Sphere(GridPoint *Target_GP,Vector *Origin,Matrix Orient,float Ra
 // for sharper highlights.
 void Phong_Map(Image *Img,float R,float G,float B,float Power)
 {
-	long I,J;
+	int32_t I,J;
 	float X,Y,Y2,Z,dX,dY;
 	DWord *Ptr = Img->Data;
 	Y = -1.0;

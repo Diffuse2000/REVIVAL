@@ -3,15 +3,15 @@
 #include <SDL.h>
 
 
-static VESA_Surface DD_MainSurf;
+static VESA_Surface SDL_MainSurf;
+static SDL_Window *sdl_window;
 
 static void V_Flip(VESA_Surface *VS)
 {
 	SDL_UpdateTexture(static_cast<SDL_Texture*>(VS->Handle), NULL, VS->Data, VS->BPSL);
 }
 
-//#include "dxerr9.h"
-static dword V_Create(VESA_Surface *VS)
+static dword V_Create(VESA_Surface *VS, SDL_Renderer * renderer)
 {
 	VS->CPP = (VS->BPP+1)>>3;
 	VS->BPSL = VS->CPP * VS->X;
@@ -32,38 +32,29 @@ static dword V_Create(VESA_Surface *VS)
 }
 
 
-dword SDL2_InitDisplay()
+dword SDL2_InitDisplay(SDL_Window *window)
 {
-	XRes_ = g_DIP.x;
-	YRes_ = g_DIP.y;
-	BPP_ = g_DIP.bpp;
-
-	// Creates a Primery Surface in the specified parameters
-	if (g_DIP.flags & DISP_FULLSCREEN)
-	{
-		FullScreen_ = 1;
-		// TODO: actually deal with this crap
-	} else {
-		FullScreen_ = 0;
-	}
+	sdl_window = window;
+	int x, y;
+	SDL_GetWindowSize(sdl_window, &x, &y);
+	SDL_MainSurf.X = x; SDL_MainSurf.Y = y;
+	SDL_MainSurf.BPP = 32;
 
 	// Fill in the secondary surface VSurf structure
+	
+	// Create a renderer with V-Sync enabled.
+	SDL_Renderer * renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_PRESENTVSYNC);
 
-	// main system memory
- 	DD_MainSurf.X = XRes_;
-	DD_MainSurf.Y = YRes_;
-	DD_MainSurf.BPP = (BYTE)BPP_;
+	V_Create(&SDL_MainSurf, renderer);
 
-	V_Create(&DD_MainSurf);
+	SDL_MainSurf.Flip = V_Flip;
 
-	DD_MainSurf.Flip = V_Flip;
-
-	VESA_VPageExternal(&DD_MainSurf);
+	VESA_VPageExternal(&SDL_MainSurf);
 
 	V_Flip(MainSurf);
 
-	int fpcw = _control87(0, 0);
-	_control87(_PC_24 | _RC_UP, _MCW_PC | _MCW_RC);
+	FPU_LPrecision();
+	
 	return 0;
 }
 

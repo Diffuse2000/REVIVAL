@@ -1,7 +1,7 @@
 // FDS - Variables and structures
 typedef unsigned char Byte;
 typedef unsigned short Word;
-typedef unsigned long DWord;
+typedef uint32_t DWord;
 
 // [12 Bytes]
 typedef struct
@@ -31,7 +31,7 @@ struct Four_Chars
 // [4 Bytes]
 union Radix256
 {
-  unsigned long DW; //the whole DWord
+  uint32_t DW; //the whole DWord
   Four_Chars CH; // A = Highest byte,D = Lowest Byte.
 };
 
@@ -130,23 +130,23 @@ typedef struct
 // Digital Image (32bit) with variable size.
 typedef struct
 {
-  long X,Y;
+  int32_t X,Y;
   DWord *Data;
   char *FileName;
 } Image;
 
 typedef struct
 {
-	long U,V;   // 24:8 Fixed point mapping coordinates.
-	long R,G,B;   // Lighting/Spectral components.
+	int32_t U,V;   // 24:8 Fixed point mapping coordinates.
+	int32_t R,G,B;   // Lighting/Spectral components.
 } GridPoint;
 
 
 typedef struct
 {
   float X,Y;  // Position on screen
-  long RGB;   // Lighting/Spectral components
-  long PARAGRAPH_ALIGN;
+  int32_t RGB;   // Lighting/Spectral components
+  int32_t PARAGRAPH_ALIGN;
 } AGridPoint;
 
 typedef struct
@@ -408,10 +408,10 @@ typedef struct _KeyFrame_
 //Game Variables (not used)
 typedef struct _Item_
 {
-  long Class;
-  long Type;
-  long Qual;
-  long Quant;
+  int32_t Class;
+  int32_t Type;
+  int32_t Qual;
+  int32_t Quant;
   _Item_ *Prev,*Next;
 } Item;
 
@@ -426,8 +426,8 @@ typedef struct _Creature_
   TriMesh *Held; // Held weapon/item (will be copied from loaded trimeshes)
   Camera *View; // Camera is Fixed relative to the trimesh
 
-  long Type;
-  long Controller; // (0=1st person,1=CPU,2=mp clone,3=networked dude,etc)
+  int32_t Type;
+  int32_t Controller; // (0=1st person,1=CPU,2=mp clone,3=networked dude,etc)
   float Health;
   float Defense;
   Item *Inventory;
@@ -472,10 +472,10 @@ extern Material         * MatLib;         // yosi
 
 extern unsigned short int OldFPUCW,FPUCW;
 
-extern long Timer_Freq;
+extern int32_t Timer_Freq;
 
 extern char **MsgStr;
-extern long *MsgClock;
+extern int32_t *MsgClock;
 extern DWord *MsgID;
 
 
@@ -487,19 +487,19 @@ extern float FOVX,FOVY;
 extern Face *DoFace; //Currently rendered face. Used for further mapper info.
 extern float dTime;
 extern float Exec_FPS;
-extern long Polys,Frames;
-extern long CPolys,COmnies,CPcls,CAll,Polys;
-extern long Bytes1[257];
-extern long Bytes2[257];
-extern long Bytes3[257];
-extern long Bytes4[257];
+extern int32_t Polys,Frames;
+extern int32_t CPolys,COmnies,CPcls,CAll,Polys;
+extern int32_t Bytes1[257];
+extern int32_t Bytes2[257];
+extern int32_t Bytes3[257];
+extern int32_t Bytes4[257];
 extern Texture Phong_Mapping;
 extern float C_rFZP,C_FZP;
 
 extern DWord Colors32[256];
 
 #pragma pack(1)
-typedef unsigned long DWord;
+typedef uint32_t DWord;
 
 // Register structures
 struct _RMWORDREGS {
@@ -523,14 +523,14 @@ typedef struct {
 } RMSREGS;
 
 typedef struct {
-  long    edi;
-  long    esi;
-  long    ebp;
-  long    reserved;
-  long    ebx;
-  long    edx;
-  long    ecx;
-  long    eax;
+  int32_t    edi;
+  int32_t    esi;
+  int32_t    ebp;
+  int32_t    reserved;
+  int32_t    ebx;
+  int32_t    edx;
+  int32_t    ecx;
+  int32_t    eax;
   short   flags;
   short   es,ds,fs,gs,ip,cs,sp,ss;
 } _RMREGS;
@@ -550,7 +550,7 @@ struct Module_MB
 
 struct Aligned_MB
 {
-  long Pos; //Position in aligned memory space.
+  int32_t Pos; //Position in aligned memory space.
   Aligned_MB *Prev,*Next;
 };
 
@@ -567,7 +567,7 @@ typedef char VPalette[768]; // Direct Video 8-BIT Palette
 // Quantized point in 2D
 struct QPoint
 {
-  long X,Y;
+  int32_t X,Y;
 };
 
 struct Rectangle
@@ -587,15 +587,15 @@ struct VESA_Surface
 {
   char *Data,*Targ;
   float *ZBuffer;
-  long X,Y;
-  long BPP,CPP;
-  long BPSL;
-  long CX,CY,X_1,Y_1; //X/2,Y/2,X-1,Y-1 respectively.
+  int32_t X,Y;
+  int32_t BPP,CPP;
+  int32_t BPSL;
+  int32_t CX,CY,X_1,Y_1; //X/2,Y/2,X-1,Y-1 respectively.
   float FOV;          //In degrees (for convinience)
   float PX,PY;        //Perspective ratios
-  long PageSize;      //Size of allocation in Data.
+  int32_t PageSize;      //Size of allocation in Data.
   DWord Flags;        //Attributes for the surface.
-  long *YTable;       //Y Offset table
+  int32_t *YTable;       //Y Offset table
   Window *Wnd;        //Lousy piece of shit
   char *Pal;          //SHHIIIIT
   void (*Flip)(VESA_Surface *VS); //appropriate Flipping procedure to LFB.
@@ -617,28 +617,28 @@ typedef struct
 // Packed for [16 Bytes]
 struct VESA_Listinfo
 {
-  long X,Y;             // X and Y resolution
+  int32_t X,Y;             // X and Y resolution
   unsigned short Mode;  // True mode notation (Displayed in Hex)
   char BPP;             // Bits per Pixel
 };
 
 struct VideoMode
 {
-  long XRes,YRes;
-  long BPP;
-  long BPSL;
-  long Driver_ID;
-  long Mode_ID;
+  int32_t XRes,YRes;
+  int32_t BPP;
+  int32_t BPSL;
+  int32_t Driver_ID;
+  int32_t Mode_ID;
   char *VideoMem;
-  long PhysMem;
+  int32_t PhysMem;
   DWord Flags;
 };
 
 extern short CurrentGraphicsMode;
 extern void *VESAModule,*VESABuffer;
 extern short *VESA_ModesAvail;
-extern long VESA_NumModes;
-extern long *YOffs;
+extern int32_t VESA_NumModes;
+extern int32_t *YOffs;
 extern char Palette_Reserved;
 
 // General info
@@ -646,20 +646,20 @@ extern char Graphmode;  //set if client is on active g.mode state.
                  //otherwise it won't be able to determine what
                  //to do with the surfaces...
 extern char Granola;         //GRANOLA=GRANULARITY ;), that is 64Kb/Vesamode->WinGranularity
-extern "C" long VESA_BPSL;       //Crazy bytes per scan line crap. not currently supported.
-extern "C" long BPP_Shift;
+extern "C" int32_t VESA_BPSL;       //Crazy bytes per scan line crap. not currently supported.
+extern "C" int32_t BPP_Shift;
 extern char Screenmem_Model; //1=LFB,2=Banks,3=Fake 14bit (not supported)
 extern VESA_Surface *Screen; //this is where the LFB surface resides
 extern VESA_Surface *MainSurf;   //this is regular surface u flip fastest,aka Page2 aka VPage
 extern VESA_Surface *Last_Surface;
-extern long VESA_Ver;
+extern int32_t VESA_Ver;
 
 extern char Direct_FLIP;
 
 // Global Surface Scalar variables (Fastest access)
-extern "C" long XRes,YRes,XRes_1,YRes_1,CntrX,CntrY,BPP,CPP;
+extern "C" int32_t XRes,YRes,XRes_1,YRes_1,CntrX,CntrY,BPP,CPP;
 extern float CntrEX,CntrEY;
-extern long PageSize,PageSizeW,PageSizeDW;
+extern int32_t PageSize,PageSizeW,PageSizeDW;
 
 extern VideoMode VMode;
 extern char *VGAPtr,*VPage; //Direct access pointers to LFB/Banks and v.Page[2].
@@ -673,12 +673,12 @@ extern float CParticle_ISize;
 extern void (*Flip)(VESA_Surface *VS);
 extern VESA_Surface Layer2;
 
-extern long Basic_FOffs; //basic font offset
+extern int32_t Basic_FOffs; //basic font offset
 
 // ISR variables and structures
-const long Rate_Div = 1193180;
+const int32_t Rate_Div = 1193180;
 const Basic_Rate = 0xFFFF;
-extern long Timer,Old_Int_Count,Old_Int_Rate;
+extern int32_t Timer,Old_Int_Count,Old_Int_Rate;
 extern char Keyboard[128];
 
 extern Material Flare_IR,Flare_IG,Flare_IB;
@@ -690,12 +690,12 @@ extern char *Bitmap;
 extern float FOVX,FOVY;
 
 // ASM Filler externals
-//extern long ASM_XRes;
+//extern int32_t ASM_XRes;
 
 
 
 
-extern long Kbpos;
+extern int32_t Kbpos;
 
 // Particle System Variables
 // [192 Bytes]
@@ -716,7 +716,7 @@ struct Particle
 
 //stuff
 extern "C" DWord WOBPOINTSHEIGHT;
-extern long Grid_X,Grid_Y,Grid_XY;
+extern int32_t Grid_X,Grid_Y,Grid_XY;
 extern float Plane_Z2U_Conv;
 extern float Plane_X2V_Conv;
 extern TriMesh *Meatballs; // Target of Meat-Balls tesselation routine
@@ -725,7 +725,7 @@ extern Vector *WPDT;
 
 // for the rend1 scene renderer
 extern Particle *ExpPcls;
-extern long NumExpPcls;
+extern int32_t NumExpPcls;
 
 extern Vertex **ColVtx_Stack,**CVS;
 extern Edge **ColEdge_Stack,**CES;
@@ -934,7 +934,7 @@ void FPU_NormalState(void);
 "   FLdCW   [OldFPUCW]"\
 modify exact [8087];
 
-void RoundToInt(long *dest, float val);
+void RoundToInt(int32_t *dest, float val);
 #pragma aux RoundToInt=\
 	"fistp DWORD [eax]"\
 	parm nomemory [eax] [8087]\
@@ -973,7 +973,7 @@ float SQRT(float Value);
     parm caller [eax]                            \
 		modify [eax ecx edx];
 
-/*±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±*/
+/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
 // 1.0 / sqrt - fast reciprocal square root (to within 5 digits)
 
 float RSQRT(float Value);

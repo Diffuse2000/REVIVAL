@@ -27,7 +27,7 @@ void Space_Pixel(Vector *V,DWord C)
 {
 	if (!View) return;
 	Vector TP,TP2;
-	long PX,PY;
+	int32_t PX,PY;
 
 	Vector_Sub(V,&View->ISource,&TP);
 	MatrixXVector(View->Mat,&TP,&TP2);
@@ -149,7 +149,7 @@ DWord SlowInterval2SceneIntersect(Vector *A,Vector *B)
 
 void QCSat(QColor *QC1,QColor *QC2)
 {
-	long A;
+	int32_t A;
 	A = QC1->R+QC2->R;
 	if (A>255) QC1->R = 255; else QC1->R = A;
 	A = QC1->G+QC2->G;
@@ -174,7 +174,7 @@ void Scan_Convert_Lightmap()
 	float t,uMerid;
 	Vector lineP,scanP;
 	Vector LPos;
-	long iU,iV;
+	int32_t iU,iV;
 	DWord *LMapPtr;
 	QColor QC,LC;
 	float falloff;
@@ -302,14 +302,14 @@ void Radiosity(Scene *Sc)
 	Face *F,*FE;
 	Omni *Om;
 	Vector U,V,W;
-	long I;
+	int32_t I;
 	RTSc = Sc;
 	float len;
 	float t;
 	char *name1,*name2;
 
-	long Num_Om = 0;
-	long Num_T = 0;
+	int32_t Num_Om = 0;
+	int32_t Num_T = 0;
 
 	setbuf(stdout,NULL);
 	printf("<Rad>: Radiosity/Light Maps Calculation starts. Timer = %d.%d\n",Timer/100,Timer%100);
@@ -427,7 +427,7 @@ void Radiosity(Scene *Sc)
 			Vector_Sub(&F->C->Pos,&F->A->Pos,&dV);
 			Vector_SelfScale(&dV,1.0f/16.0f);
 			Vector LP,CP,NP,NO;
-			long tli,tlj;
+			int32_t tli,tlj;
 			DWord *LMP = F->Surf->LMap,*CMP;
 			Vector_Copy(&LP,&F->A->Pos);
 			Vector_Scale(&F->N,200.0f,&NO);

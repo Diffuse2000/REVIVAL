@@ -4,9 +4,9 @@
 
 #include <algorithm>
 
-void Cross_Fade(byte *U1,byte *U2,byte *Target,long Perc)
+void Cross_Fade(byte *U1,byte *U2,byte *Target,int32_t Perc)
 {
-	long I;
+	int32_t I;
 	for(I=0;I<PageSize;I++)
 		Target[I] = (U1[I]*(255-Perc) + U2[I]*Perc)>>8;
 }
@@ -38,13 +38,13 @@ static VESA_Surface Surf2;
 static VESA_Surface Surf3;
 static VESA_Surface Surf4;
 static VESA_Surface FinalSurf;
-static long numGridPoints;
+static int32_t numGridPoints;
 static byte *Page1;
 static byte *Page2;
 static byte *Page3;
 static byte *Page4;
 static byte* FinalPage;
-static long TrigOffset;
+static int32_t TrigOffset;
 static Texture *LogoTexture;
 static Image *LogoImage;
 static Texture *PlaneTexture;
@@ -56,15 +56,15 @@ static Image *GfxImage;
 static Texture *SfxTexture;
 static Image *SfxImage;
 
-static long InitScreenXRes, InitScreenYRes;
+static int32_t InitScreenXRes, InitScreenYRes;
 
 
 void Initialize_Glato()
 {
 	InitScreenXRes = XRes;
 	InitScreenYRes = YRes;
-	long xres = InitScreenXRes;
-	long yres = InitScreenYRes;
+	int32_t xres = InitScreenXRes;
+	int32_t yres = InitScreenYRes;
 	int x,y,i,j;
 	int X,Y;
 	float XResFactor = xres/320.0;
@@ -81,10 +81,10 @@ void Initialize_Glato()
 	SfxTexture = new Texture;
 	SfxImage = new Image;
 
-	Load_Image_JPEG(LogoImage,"Textures//Logo.JPG");
+	Load_Image_JPEG(LogoImage,"Textures/Logo.JPG");
 	Scale_Image(LogoImage,xres,yres);
 
-/*	LogoTexture->FileName = strdup("Textures//Logo.JPG");
+/*	LogoTexture->FileName = strdup("Textures/Logo.JPG");
 	Identify_Texture(LogoTexture);
 	if (!LogoTexture->BPP)
 	{
@@ -96,7 +96,7 @@ void Initialize_Glato()
 	Convert_Texture2Image(LogoTexture,LogoImage);*/
 	
 
-	PlaneTexture->FileName = strdup("Textures//SC13.JPG");
+	PlaneTexture->FileName = strdup("Textures/SC13.JPG");
 	Identify_Texture(PlaneTexture);
 	if (!PlaneTexture->BPP)
 	{
@@ -110,7 +110,7 @@ void Initialize_Glato()
 	//PlaneImage->Data[0] = 0x80808080;
 //	WOBPOINTSHEIGHT = 30;
 
-	CodeTexture->FileName = strdup("Textures//Code.JPG");
+	CodeTexture->FileName = strdup("Textures/Code.JPG");
 	Identify_Texture(CodeTexture);
 	if (!CodeTexture->BPP)
 	{
@@ -121,7 +121,7 @@ void Initialize_Glato()
 	Convert_Texture2Image(CodeTexture,CodeImage);
 
 
-	GfxTexture->FileName = strdup("Textures//Gfx.JPG");
+	GfxTexture->FileName = strdup("Textures/Gfx.JPG");
 	Identify_Texture(GfxTexture);
 	if (!GfxTexture->BPP)
 	{
@@ -131,7 +131,7 @@ void Initialize_Glato()
 	Load_Texture(GfxTexture);
 	Convert_Texture2Image(GfxTexture,GfxImage);
 
-	SfxTexture->FileName = strdup("Textures//Sfx.JPG");
+	SfxTexture->FileName = strdup("Textures/Sfx.JPG");
 	Identify_Texture(SfxTexture);
 	if (!SfxTexture->BPP)
 	{
@@ -218,8 +218,8 @@ void Run_Glato(void)
 {
 //	Setup_Grid_Texture_Mapper_XXX(XRes, YRes);
 //	Setup_Grid_Texture_Mapper_MMX(XRes, YRes);
-	long xres = InitScreenXRes;
-	long yres = InitScreenYRes;
+	int32_t xres = InitScreenXRes;
+	int32_t yres = InitScreenYRes;
 	Setup_Grid_Texture_Mapper_MMX(xres, yres);
 
 	XMMVector CameraPos(0,0,0);
@@ -248,7 +248,7 @@ void Run_Glato(void)
 #endif
 
 	float ST;
-	long timerStack[20], timerIndex = 0;
+	int32_t timerStack[20], timerIndex = 0;
 	for(i=0; i<20; i++)
 		timerStack[i] = Timer;
 
@@ -602,7 +602,7 @@ void Run_Glato(void)
 //		memcpy(VPage, Page1, PageSize);
 		if (Timer>3200)
 		{
-			long cfVal = (Timer-3200)*255/300;
+			int32_t cfVal = (Timer-3200)*255/300;
 			if (cfVal>255) cfVal = 255;
 			DWord SrcPer = ((DWord)cfVal) * 0x01010101;
 			DWord DstPer = ((DWord)(255-cfVal)) * 0x01010101;

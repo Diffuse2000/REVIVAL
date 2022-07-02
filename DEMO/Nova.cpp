@@ -9,7 +9,7 @@
 #define SPWN_INTERVAL 1.05
 
 static Scene *NovaSc;
-static long CHPartTime = 40.0f*100;
+static int32_t CHPartTime = 40.0f*100;
 using namespace std;
 
 struct Comet
@@ -33,7 +33,7 @@ static DWord NPMats;
 
 static void InitializeComets(Scene *Sc)
 {
-	long I,J;
+	int32_t I,J;
 	Image Img;
 
 	Sc->NumOfParticles = NUM_COMETS * TRAIL_PCLS;
@@ -290,7 +290,7 @@ void Initialize_Nova()
 {
 	NovaSc = (Scene *)getAlignedBlock(sizeof(Scene), 16);
 	memset(NovaSc,0,sizeof(Scene));
-//	LoadFLD(GreetSc,"Scenes\\Greets.FLD");
+//	LoadFLD(GreetSc,"SCENES/Greets.FLD");
 	NovaSc->StartFrame = 0.0;
 	NovaSc->EndFrame = 400*30.0;
 
@@ -329,8 +329,8 @@ static void RenderComets()
 		if (v.z < CurScene->NZP) continue;
 
 		float rz = 1.0 / v.z;
-		long x = CntrX + FOVX * v.x * rz;
-		long y = CntrY - FOVY * v.y * rz;
+		int32_t x = CntrX + FOVX * v.x * rz;
+		int32_t y = CntrY - FOVY * v.y * rz;
 
 		if (x<0||y<0||x>=XRes||y>=YRes) continue;
 		((dword *)VPage)[x + y*XRes] = 0xFFFFFF;
@@ -342,11 +342,11 @@ static void RenderComets()
 void Run_Nova()
 {
 	char MSGStr[128];
-	long Polys = 0, TTrd;
+	int32_t Polys = 0, TTrd;
 	TriMesh *T;
 	Omni *O;
 
-	long i, timerStack[20], timerIndex = 0;
+	int32_t i, timerStack[20], timerIndex = 0;
 	for(i=0; i<20; i++)
 		timerStack[i] = Timer;
 
@@ -468,12 +468,12 @@ void Run_Nova()
 			sprintf(MSGStr,"%f FPS", 2000.0/(float)(timerStack[timerIndex-1]-timerStack[timerIndex]) );
 		}
 //		OutTextXY(VPage,0,0,MSGStr,255);
-//		sprintf(MSGStr, "%dK pixels/frame" , (long)(FillerPixelcount/(1000.0*numFrames)));
+//		sprintf(MSGStr, "%dK pixels/frame" , (int32_t)(FillerPixelcount/(1000.0*numFrames)));
 //		OutTextXY(VPage,0,15,MSGStr,255);
-//		sprintf(MSGStr, "%dK pixels/second" , (long)(FillerPixelcount/1000.0 * 100.0 / RenderTimeCounter));
+//		sprintf(MSGStr, "%dK pixels/second" , (int32_t)(FillerPixelcount/1000.0 * 100.0 / RenderTimeCounter));
 //		OutTextXY(VPage,0,30,MSGStr,255);
 		// display messages.
-/*		long I, Y = -15;
+/*		int32_t I, Y = -15;
 		for(I=0;I<10;I++)
 		if (MsgStr[I])
 		{

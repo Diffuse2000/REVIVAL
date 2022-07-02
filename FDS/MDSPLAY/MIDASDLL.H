@@ -57,7 +57,7 @@
    done that before. For now, we'll just assume that if no-one has defined
    TRUE we need to define everything. There definitions are compatible with
    windows.h. If something else in your system defines these differently,
-   things should still work OK as long as FALSE is 0, TRUE is nonzero and
+   things should still work OK as int32_t as FALSE is 0, TRUE is nonzero and
    DWORD is 32-bit. Take care that you don't compare BOOLs like "bool == TRUE"
    in that case though, just use "bool".
 
@@ -69,7 +69,7 @@
 #define TRUE 1
 #define FALSE 0
 typedef int BOOL;
-typedef unsigned long DWORD;
+typedef uint32_t DWORD;
 #endif /* ifndef TRUE */
 
 

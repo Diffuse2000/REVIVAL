@@ -89,7 +89,7 @@ struct Four_Chars
 // [4 Bytes]
 union Radix256
 {
-	unsigned long DW; //the whole DWord
+	uint32_t DW; //the whole DWord
 	Four_Chars CH; // A = Highest byte,D = Lowest Byte.
 };
 
@@ -124,22 +124,22 @@ extern Matrix Mat_ID;
 // Digital Image (32bit) with variable size.
 typedef struct
 {
-	long x, y;
+	int32_t x, y;
 	DWord *Data;
 	char *FileName;
 } Image;
 
 typedef struct
 {
-	long U,V;   // 24:8 Fixed point mapping coordinates.
-//	long RGB;   // Lighting/Spectral components.	
-//	long PARAGRAPH_ALIGN;
-	long R,G,B;
+	int32_t U,V;   // 24:8 Fixed point mapping coordinates.
+//	int32_t RGB;   // Lighting/Spectral components.	
+//	int32_t PARAGRAPH_ALIGN;
+	int32_t R,G,B;
 } GridPoint;
 
 typedef struct
 {
-	long U,V;   // 24:8 Fixed point mapping coordinates.
+	int32_t U,V;   // 24:8 Fixed point mapping coordinates.
 	union
 	{
 		uint64_t RGBA;   // Lighting/Spectral components.
@@ -148,8 +148,8 @@ typedef struct
 			word R, G, B, A;
 		};
 	};
-//	long PARAGRAPH_ALIGN;
-//	long R,G,B;
+//	int32_t PARAGRAPH_ALIGN;
+//	int32_t R,G,B;
 } NewGridPoint;
 
 struct GridPointTG
@@ -160,25 +160,25 @@ struct GridPointTG
 
 struct GridPointT
 {
-	long u, v;	
+	int32_t u, v;	
 };
 
 typedef struct
 {
 	float x ,y;  // Position on screen
-	long RGB;   // Lighting/Spectral components
-	long PARAGRAPH_ALIGN;
+	int32_t RGB;   // Lighting/Spectral components
+	int32_t PARAGRAPH_ALIGN;
 } AGridPoint;
 
 typedef struct
 {
-	int x, y;
+	int32_t x, y;
 	float z, U, V;
 } Bi_Triangle;
 
 typedef struct
 {
-	int x, y;
+	int32_t x, y;
 	float z, U, V;
 	float R,G,B;
 } Bi_GTriangle;
@@ -242,7 +242,7 @@ extern dword OldMXCSR, CurMXCSR;
 extern long Timer_Freq;
 
 extern char **MsgStr;
-extern long *MsgClock;
+extern int32_t *MsgClock;
 extern DWord *MsgID;
 
 
@@ -254,12 +254,12 @@ extern float FOVX,FOVY;
 //extern Face *DoFace; //Currently rendered face. Used for further mapper info.
 extern float dTime;
 extern float Exec_FPS;
-extern long Polys,Frames;
-extern long CPolys,COmnies,CPcls,CAll,Polys;
-extern long Bytes1[257];
-extern long Bytes2[257];
-extern long Bytes3[257];
-extern long Bytes4[257];
+extern int32_t Polys,Frames;
+extern int32_t CPolys,COmnies,CPcls,CAll,Polys;
+extern int32_t Bytes1[257];
+extern int32_t Bytes2[257];
+extern int32_t Bytes3[257];
+extern int32_t Bytes4[257];
 extern float C_rFZP,C_FZP, C_rNZP, C_NZP;
 extern std::atomic<dword> g_renderedPolys;
 
@@ -473,9 +473,9 @@ extern int64_t precisePixelCount;
 #ifdef _MSVC
 typedef int (__stdcall *VPFunc)(
 								void *lpAddress,		// address of region of committed pages
-								unsigned long dwSize,			// size of the region
-								unsigned long flNewProtect,	// desired access protection
-								unsigned long *lpflOldProtect // address of variable to get old protection
+								uint32_t dwSize,			// size of the region
+								uint32_t flNewProtect,	// desired access protection
+								uint32_t *lpflOldProtect // address of variable to get old protection
 								);
 
 #endif
@@ -556,7 +556,7 @@ extern "C" dword MMXWobBlockJump;
 extern "C" dword MMXWobBPSL;
 
 extern "C" DWord WOBPOINTSHEIGHT;
-extern long Grid_X,Grid_Y,Grid_XY;
+extern int32_t Grid_X,Grid_Y,Grid_XY;
 extern float Plane_Z2U_Conv;
 extern float Plane_X2V_Conv;
 extern float WRFOV;
@@ -564,7 +564,7 @@ extern Vector *WPDT;
 
 // for the rend1 scene renderer
 extern Particle *ExpPcls;
-extern long NumExpPcls;
+extern int32_t NumExpPcls;
 
 extern Vertex **ColVtx_Stack,**CVS;
 extern Edge **ColEdge_Stack,**CES;
@@ -839,14 +839,63 @@ inline Vector operator * (const Matrix M, const Vector &V)
 }
 
 
+static uint64_t GetFPCR()
+{
+#ifdef _MSC_VER
+  return _ReadStatusReg(ARM64_FPCR);
+#else
+  uint64_t fpcr;
+  __asm__ __volatile__("mrs %0, fpcr" : "=r"(fpcr));
+  return fpcr;
+#endif
+}
+
+static void SetFPCR(uint64_t fpcr)
+{
+#ifdef _MSC_VER
+  _WriteStatusReg(ARM64_FPCR, fpcr);
+#else
+  __asm__ __volatile__("msr fpcr, %0" : : "ri"(fpcr));
+#endif
+}
+
 inline void FPU_LPrecision()
 {
 #ifdef PORTABLE_CODE
+#ifdef _MSVC
+
 //	OldFPUCW = _controlfp(_RC_UP | _PC_24, _MCW_RC | _MCW_PC);
     CurMXCSR = OldMXCSR = _mm_getcsr();
 	CurMXCSR &= 0b11111111111111110000000001000000;
 	CurMXCSR |= 0b00000000000000001101111111000000;
 	_mm_setcsr(CurMXCSR);
+#elif defined(__ARM_ARCH)
+
+	uint64_t default_fpcr = GetFPCR();
+	OldMXCSR = default_fpcr;
+	// When AH is disabled, FZ controls flush-to-zero for both inputs and outputs. When AH is enabled,
+	// FZ controls flush-to-zero for outputs, and FIZ controls flush-to-zero for inputs.
+	constexpr uint32_t FZ = 1 << 24;
+	constexpr uint32_t AH = 1 << 1;
+	constexpr uint32_t FIZ = 1 << 0;
+	constexpr uint32_t flush_to_zero_mask = FZ | AH | FIZ;
+
+	// lookup table for FPSCR.RN-to-FPCR.RMode translation
+	constexpr uint32_t rounding_mode_table[] = {
+		(0 << 22),  // nearest
+		(3 << 22),  // zero
+		(1 << 22),  // +inf
+		(2 << 22),  // -inf
+	};
+	constexpr uint32_t rounding_mode_mask = 3 << 22;
+	const uint32_t rounding_mode_bits = rounding_mode_table[2];
+	const uint32_t flush_to_zero_bits = FZ | AH;
+
+	const uint64_t base = default_fpcr & ~(flush_to_zero_mask | rounding_mode_mask);
+  	SetFPCR(base | rounding_mode_bits | flush_to_zero_bits);
+#else
+#error "Unsopported arch"
+#endif
 
 #else
 	__asm {

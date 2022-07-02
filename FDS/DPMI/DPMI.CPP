@@ -32,7 +32,7 @@ void * D_New(DWord Size)
 {
   union REGS R;
   char Msg[160];
-  long Address;
+  int32_t Address;
   memset(&R,0,sizeof(REGS));
   Size += 4;
   R.w.ax = 0x501;
@@ -46,7 +46,7 @@ void * D_New(DWord Size)
   }
   Address = (R.w.bx<<16)+R.w.cx;
 
-  *((long *)Address) = (R.w.si<<16)+R.w.di;
+  *((int32_t *)Address) = (R.w.si<<16)+R.w.di;
   return (void *)(Address+4);
 }
 
@@ -54,7 +54,7 @@ void D_Del(void *Target)
 {
   union REGS R;
   char Msg[160];
-  long Handle = *(((long *)Target)-1);
+  int32_t Handle = *(((int32_t *)Target)-1);
   memset(&R,0,sizeof(REGS));
   R.w.ax = 0x502;
   R.w.si = Handle>>16;
@@ -77,7 +77,7 @@ void * D_Resize(void *Target,DWord Size)
   R.w.ax = 0x503;
   R.w.bx = Size>>16;
   R.w.cx = Size&0xFFFF; // &0xFFFF can be removed
-  Address = *(((long *)Target)-1); // Get previous handle
+  Address = *(((int32_t *)Target)-1); // Get previous handle
   R.w.si = Address>>16;
   R.w.di = Address&0xFFFF;
   int386(0x31,&R,&R);
@@ -88,7 +88,7 @@ void * D_Resize(void *Target,DWord Size)
     return NULL;
   }
   Address = (R.w.bx<<16)+R.w.cx;
-  *((long *)Address) = (R.w.si<<16)+R.w.di;
+  *((int32_t *)Address) = (R.w.si<<16)+R.w.di;
   return (char *)(Address+4);
 }
 
@@ -622,7 +622,7 @@ void DPMI_Delete(void *Target)
 /*  MB2 = DPMI_Tree_SEEK(DPMI_Core,Father);
   MB = MB2->Child;
   while (MB&&MB->Address!=Target) MB=MB->Brother;*/
-  MB = DPMI_Tree_SEEK(DPMI_Core,(long)Target);
+  MB = DPMI_Tree_SEEK(DPMI_Core,(int32_t)Target);
 /*  while (MB&&(DWord)MB->Address!=Target)
     if (MB->Address>=Target) MB=MB->Left; else MB=MB->Right;
 
@@ -643,7 +643,7 @@ void DPMI_Assisted_Delete(Module_MB *Core,void *Target)
 
   while (MB2&&(DWord)MB2->Address!=Father)
     if (MB2->Address>=Father) MB2=MB2->Left; else MB2=MB2->Right;*/
-  MB = DPMI_Tree_SEEK(Core,(long)Target);
+  MB = DPMI_Tree_SEEK(Core,(int32_t)Target);
 
   if (MB) {if (MB->Child) DPMI_RecDestroy(MB->Child); DPMI_Destroy(MB); return;}
   DPMI_Warning("No valid pointer specified for deletion, aborting.");
@@ -703,7 +703,7 @@ DWord DPMI_Get_Handle(void *Target)
 /*void Init_Heap()
 {
   union REGS R;
-  long Free = DPMI_Memory_Free();
+  int32_t Free = DPMI_Memory_Free();
   if (Free<0x100000) {
     DPMI_Warning("Unable to Initialize Heap: Insufficient memory.");
     return;
@@ -725,20 +725,20 @@ DWord DPMI_Get_Handle(void *Target)
 // == Aligned Buffer routines ==
 
 // Wastes (Amount+1)x64Kb of memory.
-void Init_Aligned(long Amount)
+void Init_Aligned(int32_t Amount)
 {
-  long I;
+  int32_t I;
   char Msg[160];
   Aligned_MB *MB,*MBEnd;
   DPMI_HeapSlack = (char *)D_New(Amount+1<<16);
   if (!DPMI_HeapSlack) {DPMI_Warning("Failed to Initialize Aligned Buffer! [H.Slack allocation error]"); return;}
-  DPMI_Aligned = (char *)((long)DPMI_HeapSlack+0x10000-((long)DPMI_HeapSlack&0xFFFF));
+  DPMI_Aligned = (char *)((int32_t)DPMI_HeapSlack+0x10000-((int32_t)DPMI_HeapSlack&0xFFFF));
 //  printf("HS = %d,Al = %d\n",DPMI_HeapSlack,DPMI_Aligned);
   DPMI_AMB = (Aligned_MB *)D_New(Amount+1);
   if (!DPMI_AMB) {DPMI_Warning("Failed to Initialize Aligned Buffer! [AMB table allocation error]"); return;}
   DPMI_AFree = DPMI_AMB+1;
   MBEnd = DPMI_AMB+Amount+1;
-  I=(long)DPMI_Aligned;
+  I=(int32_t)DPMI_Aligned;
   for(MB=DPMI_AFree;MB<MBEnd;MB++)
   {
     MB->Pos = I;
@@ -755,9 +755,9 @@ void Init_Aligned(long Amount)
 
 char * Get_Aligned_Block()
 {
-  long Address = DPMI_AFree->Pos;
+  int32_t Address = DPMI_AFree->Pos;
 //  char Str[160];
-//  sprintf(Str,"Allocated Aligned Block %d [ADR %xh.]",Address-(long)DPMI_Aligned>>16,Address);
+//  sprintf(Str,"Allocated Aligned Block %d [ADR %xh.]",Address-(int32_t)DPMI_Aligned>>16,Address);
 /// DPMI_Message(Str);
   DPMI_AFree = DPMI_AFree->Next;
   return (char *)Address;
@@ -766,8 +766,8 @@ char * Get_Aligned_Block()
 void Remove_Aligned_Block(void *Target)
 {
   Aligned_MB *MB = DPMI_AMB->Next;
-  while(MB&&MB->Pos!=(long)Target) MB=MB->Next;
-  if (MB->Pos==(long)Target)
+  while(MB&&MB->Pos!=(int32_t)Target) MB=MB->Next;
+  if (MB->Pos==(int32_t)Target)
   {
     if (MB->Prev) MB->Prev->Next = MB->Next;
     MB->Next->Prev = MB->Prev;
@@ -778,7 +778,7 @@ void Remove_Aligned_Block(void *Target)
     DPMI_AFree->Prev = MB;
     MB->Next = DPMI_AFree;
   } else DPMI_Warning("Couldn't find target for deletion in Aligned buffer.");
-//  printf("Target at %d\n",(long)Target);
+//  printf("Target at %d\n",(int32_t)Target);
 }
 
 void Deinit_Aligned()
@@ -795,9 +795,9 @@ dword DPMI_Free_Memory(void)
 
 char *AlignedBuffer;
 char *AlignedPtr;
-long AlignedBlocks;
+int32_t AlignedBlocks;
 
-void Init_Aligned(long Amount)
+void Init_Aligned(int32_t Amount)
 {
 	AlignedBuffer = (char *)malloc(65536*(Amount+1));
 	AlignedBlocks = Amount;

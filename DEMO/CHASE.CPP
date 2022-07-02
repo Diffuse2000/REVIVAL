@@ -8,7 +8,7 @@
 #define FRONT_TO_BACK_SORTING
 static Scene *ChaseSc;
 
-static long CHPartTime = 25.0f*100;
+static int32_t CHPartTime = 25.0f*100;
 
 static Object *RflObj;
 static Vector RflSurfNorm(0, 1, 0);
@@ -30,7 +30,7 @@ static void Reflective_Mapper_Setup()
 	Vector U, V;
 
 	Object *O;
-	long IID = 0;
+	int32_t IID = 0;
 	for (O = ChaseSc->ObjectHead; O; O = O->Next)
 	{
 		if (O->Type != Obj_TriMesh) continue;
@@ -72,8 +72,8 @@ static void Reflected_Transform(Scene *Sc)
 	Face *F, *FEnd;
 	float PX = FOVX, PY = FOVY, Temp;
 	float dz;
-	long *pdz = (long *)(&dz);
-	long I;
+	int32_t *pdz = (int32_t *)(&dz);
+	int32_t I;
 	Face **Ins = FList;
 	float *f = (float *)(&M);
 	float *fv;
@@ -282,7 +282,7 @@ static void Reflected_Transform(Scene *Sc)
 				Vtx->TPos.z = M34[2][0] * Vtx->Pos.x + M34[2][1] * Vtx->Pos.y + M34[2][2] * Vtx->Pos.z + M34[2][3];
 
 				Vtx->Flags &= 0xFFFFFFFF - Vtx_Visible;
-				//      if (*(long *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
+				//      if (*(int32_t *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
 				if (Vtx->TPos.z > Sc->NZP)
 				{
 					Vtx->RZ = 1.0 / Vtx->TPos.z;
@@ -374,7 +374,7 @@ static void Reflected_Transform(Scene *Sc)
 				Vector_Add(&U, &V, &Vtx->TPos);
 
 				Vtx->Flags = 0;
-				//      if (*(long *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
+				//      if (*(int32_t *)(&Vtx->TPos.z)>0x3F800000) // 1.0 in floating point rep.
 				// Environment mapping support removed at 11.04.02
 //				Vtx->EU=128.0+127.0*(Vtx->N.x*IM[0][0]+Vtx->N.y*IM[0][1]+Vtx->N.z*IM[0][2]);
 //				Vtx->EV=128.0+127.0*(Vtx->N.x*IM[1][0]+Vtx->N.y*IM[1][1]+Vtx->N.z*IM[1][2]);
@@ -489,7 +489,7 @@ static void SceneCorrections()
 
 	Scene *Sc = ChaseSc;
 	Omni *O;
-	long index;
+	int32_t index;
 	float redRangeMult = 100000.0;
 	for (O = Sc->OmniHead, index = 0; O; O = O->Next)
 	{
@@ -529,7 +529,7 @@ static void Reflective_Surface_Setup()
 	Vector U, V;
 
 	Object *O;
-	long IID = 0;
+	int32_t IID = 0;
 	for (O = ChaseSc->ObjectHead; O; O = O->Next)
 	{
 		if (O->Type != Obj_TriMesh) continue;
@@ -701,7 +701,7 @@ void Initialize_Chase()
 {
 	ChaseSc = (Scene *)getAlignedBlock(sizeof(Scene), 16); 
 	memset(ChaseSc,0,sizeof(Scene));
-	LoadFLD(ChaseSc,"Scenes\\CHASE.FLD");
+	LoadFLD(ChaseSc,"SCENES/CHASE.FLD");
 	CHPartTime = 25.0*(ChaseSc->EndFrame-ChaseSc->StartFrame)/25.0f;
 //	printf("FLD-loaded MEM = %d\n",DPMI_Free_Memory());
 	ChaseSc->FZP = 50000.0f;
@@ -732,7 +732,7 @@ void Initialize_Chase()
 
 void Run_Chase()
 {
-	long Polys = 0;
+	int32_t Polys = 0;
 	TriMesh *T;
 
 	SetCurrentScene(ChaseSc);

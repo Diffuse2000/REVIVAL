@@ -27,11 +27,11 @@ std::atomic<double> FillerPixelcount;
 void Draw_Line_8Bit(Vertex *V1,Vertex *V2)
 {
   char C=64;
-  long D;
-  long Dx,Dy;
-  long Ai,Bi,Xi,Yi;
-  long Offs;
-  long X1,Y1,X2,Y2;
+  int32_t D;
+  int32_t Dx,Dy;
+  int32_t Ai,Bi,Xi,Yi;
+  int32_t Offs;
+  int32_t X1,Y1,X2,Y2;
   byte *Ptr = VPage;
   byte *End;
 
@@ -88,11 +88,11 @@ void Draw_Line_8Bit(Vertex *V1,Vertex *V2)
 void Draw_Line_32Bit(Vertex *V1,Vertex *V2)
 {
   DWord C=(16<<16)+(16<<8)+16;
-  long D;
-  long Dx,Dy;
-  long Ai,Bi,Xi,Yi;
-	long Offs;
-  long X1,Y1,X2,Y2;
+  int32_t D;
+  int32_t Dx,Dy;
+  int32_t Ai,Bi,Xi,Yi;
+	int32_t Offs;
+  int32_t X1,Y1,X2,Y2;
   DWord *Ptr = (DWord *)VPage;
   DWord *End;
 
@@ -150,11 +150,11 @@ void Draw_Line_32Bit(Vertex *V1,Vertex *V2)
 void Draw_Line_32Bit_ForKids(Vertex *V1,Vertex *V2)
 {
   DWord C=0xFFFFFF;
-  long D;
-  long Dx,Dy;
-  long Ai,Bi,Xi,Yi;
-  long Offs;
-  long X1,Y1,X2,Y2;
+  int32_t D;
+  int32_t Dx,Dy;
+  int32_t Ai,Bi,Xi,Yi;
+  int32_t Offs;
+  int32_t X1,Y1,X2,Y2;
   DWord *Ptr = (DWord *)VPage;
   DWord *End;
 
@@ -219,18 +219,18 @@ void Draw_Line_32Bit_ForKids(Vertex *V1,Vertex *V2)
 // not very slow,actually quite ok.
 //void Flat_Poly_8Bit(Vertex **V, dword numVerts)
 //{
-//	long X1,Y1,X2,Y2,X3,Y3; //Pixelled projected vertex position
-//	long dX12,dX13,dX23;    //Fixed point Slopes. (16:16)
-//	long dx12,dx13,dx23;    //X-deltas.
-//	long dy12,dy13,dy23;    //Y-deltas.
-//	long X,Y;               //Loop and generic variables.
-//	long x1,x2;
-//  long EX1,EX2;           //Edge interpolation rate.
-//  long dX1,dX2;           //Edge interpolation differencial.
+//	int32_t X1,Y1,X2,Y2,X3,Y3; //Pixelled projected vertex position
+//	int32_t dX12,dX13,dX23;    //Fixed point Slopes. (16:16)
+//	int32_t dx12,dx13,dx23;    //X-deltas.
+//	int32_t dy12,dy13,dy23;    //Y-deltas.
+//	int32_t X,Y;               //Loop and generic variables.
+//	int32_t x1,x2;
+//  int32_t EX1,EX2;           //Edge interpolation rate.
+//  int32_t dX1,dX2;           //Edge interpolation differencial.
 //  byte *Pen;              //Viewport Scanning Pointer
 //  char Col=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32; //Average Color.
 //  char EndAtMiddle=0;     //Flag: End drawing in the middle(ignore Y2->y3).
-//  long Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
+//  int32_t Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
 //
 //  X1 = _A->PX+0.5; Y1 = _A->PY+0.5;
 //  X2 = _B->PX+0.5; Y2 = _B->PY+0.5;
@@ -348,21 +348,21 @@ void Draw_Line_32Bit_ForKids(Vertex *V1,Vertex *V2)
 //	FillerPixelcount += 0.5*fabs((_A->PX - _C->PX)*(_B->PY - _C->PY) - (_A->PY - _C->PY)*(_B->PX - _C->PX));
 //#endif
 //
-//	long X1,Y1,X2,Y2,X3,Y3; //Pixelled projected vertex position
-//	long dX12,dX13,dX23;    //Fixed point Slopes. (16:16)
-//	long dx12,dx13,dx23;    //X-deltas.
-//	long dy12,dy13,dy23;    //Y-deltas.
-//	long X,Y;               //Loop and generic variables.
-//	long x1,x2;
-//	long EX1,EX2;           //Edge interpolation rate.
-//	long dX1,dX2;           //Edge interpolation differencial.
+//	int32_t X1,Y1,X2,Y2,X3,Y3; //Pixelled projected vertex position
+//	int32_t dX12,dX13,dX23;    //Fixed point Slopes. (16:16)
+//	int32_t dx12,dx13,dx23;    //X-deltas.
+//	int32_t dy12,dy13,dy23;    //Y-deltas.
+//	int32_t X,Y;               //Loop and generic variables.
+//	int32_t x1,x2;
+//	int32_t EX1,EX2;           //Edge interpolation rate.
+//	int32_t dX1,dX2;           //Edge interpolation differencial.
 //	byte *Pen;              //Viewport Scanning Pointer
 //	dword 
 //		r=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32, //Average Color.
 //		g=(DoFace->A->LG+DoFace->B->LG+DoFace->C->LG)*0.32, //Average Color.
 //		b=(DoFace->A->LB+DoFace->B->LB+DoFace->C->LB)*0.32; //Average Color.  
 //	char EndAtMiddle=0;     //Flag: End drawing in the middle(ignore Y2->y3).
-//	long Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
+//	int32_t Horiz_Span = XRes<<16; //Horizon Span. Used to Calculate Jmp.
 //	char CPP = (BPP+1)>>3;
 //	dword Col, C16;
 //	
@@ -500,11 +500,11 @@ void Draw_Line_32Bit_ForKids(Vertex *V1,Vertex *V2)
 void FlatV2_Poly_8Bit(Vertex **V, dword numVerts)
 {
   char Col=(DoFace->A->LR+DoFace->B->LR+DoFace->C->LR)*0.32;
-	long Ex1,Ex2,x1,x2;
-  long X1,X2,X3,Y1,Y2,Y3;
-  long T;
-  long dX12,dX13,dX23;
-  long X,Y;
+	int32_t Ex1,Ex2,x1,x2;
+  int32_t X1,X2,X3,Y1,Y2,Y3;
+  int32_t T;
+  int32_t dX12,dX13,dX23;
+  int32_t X,Y;
 
   byte *Ptr,*Line,*PtrEnd;
 
@@ -848,7 +848,7 @@ void The_Specular_Gouraud(Vertex **V, dword numVerts)
 		BT[2].z=C->LR;
 		BT[2].U=C->LG;
 		BT[2].V=C->LB;
-		CRGBGouraud(BT,(unsigned long)VPage);
+		CRGBGouraud(BT,(uint32_t)VPage);
 	}
 }
 
@@ -885,7 +885,7 @@ void The_MMX_Gouraud(Vertex **V, dword numVerts)
 		BT[2].U=C->LG;
 		BT[2].V=C->LB;
 		
-		CRGBGouraud(BT,(unsigned long)VPage);
+		CRGBGouraud(BT,(uint32_t)VPage);
 	}
 }
 
@@ -911,7 +911,7 @@ void The_Specular_TGouraud(Vertex **V, dword numVerts)
   BT[2].U=_C->LG;
   BT[2].V=_C->LR;
 
-  CRGBTGouraudMMX(BT,(unsigned long)VPage);
+  CRGBTGouraudMMX(BT,(uint32_t)VPage);
 
 }
 
@@ -937,8 +937,8 @@ void The_Bilinear(Vertex **V, dword numVerts)
 	BT[2].U=_C->UZ;
 	BT[2].V=_C->VZ;
 
-	CP_Texture_8(BT,DoFace->Txtr->Txtr->Data,(unsigned long)VPage);
-//  Adv_PTexture_8(BT,DoFace->Txtr->Txtr->Data,(unsigned long)VPage);
+	CP_Texture_8(BT,DoFace->Txtr->Txtr->Data,(uint32_t)VPage);
+//  Adv_PTexture_8(BT,DoFace->Txtr->Txtr->Data,(uint32_t)VPage);
 }
 
 void The_BiHi(Vertex **V, dword numVerts)
@@ -962,7 +962,7 @@ void The_BiHi(Vertex **V, dword numVerts)
   BT[2].U=_C->UZ;
   BT[2].V=_C->VZ;
 
-  CP_Texture_16(BT,DoFace->Txtr->Txtr->Data,(unsigned long)VPage);
+  CP_Texture_16(BT,DoFace->Txtr->Txtr->Data,(uint32_t)VPage);
 }
 
 void The_BiTrue(Vertex **V, dword numVerts)
@@ -989,7 +989,7 @@ void The_BiTrue(Vertex **V, dword numVerts)
   BT[2].U=_C->UZ;
   BT[2].V=_C->VZ;
 
-  CP_Texture_32(BT,DoFace->Txtr->Txtr->Data,(unsigned long)VPage);
+  CP_Texture_32(BT,DoFace->Txtr->Txtr->Data,(uint32_t)VPage);
 //	Draw_Line_32Bit_ForKids(_A,_B);
 //	Draw_Line_32Bit_ForKids(_B,_C);
 //	Draw_Line_32Bit_ForKids(_C,_A);
@@ -1019,7 +1019,7 @@ void The_BiTTrue(Vertex **V, dword numVerts)
 	BT[2].U=_C->UZ;
 	BT[2].V=_C->VZ;
 	
-	CPT_Texture_32(BT,DoFace->Txtr->Txtr->Data,(unsigned long)VPage);
+	CPT_Texture_32(BT,DoFace->Txtr->Txtr->Data,(uint32_t)VPage);
 }
 
 void The_BiPNTrue(Vertex **V, dword numVerts)
@@ -1043,7 +1043,7 @@ void The_BiPNTrue(Vertex **V, dword numVerts)
 //	BT[2].U=_C->REU;
 //	BT[2].V=_C->REV;
 
-//	CP_Texture_32(BT,Phong_Mapping.Data,(unsigned long)VPage); //this will be addative
+//	CP_Texture_32(BT,Phong_Mapping.Data,(uint32_t)VPage); //this will be addative
 }
 
 void The_BiPTrue(Vertex **V, dword numVerts)
@@ -1067,7 +1067,7 @@ void The_BiPTrue(Vertex **V, dword numVerts)
 	BT[2].U=_C->UZ;
 	BT[2].V=_C->VZ;
 	
-	CP_Texture_32(BT,DoFace->Txtr->Txtr->Data,(unsigned long)VPage);
+	CP_Texture_32(BT,DoFace->Txtr->Txtr->Data,(uint32_t)VPage);
 	
 //	BT[0].U=_A->REU;
 //	BT[0].V=_A->REV;
@@ -1078,7 +1078,7 @@ void The_BiPTrue(Vertex **V, dword numVerts)
 //	BT[2].U=_C->REU;
 //	BT[2].V=_C->REV;
 
-//	CPT_Texture_32(BT,Phong_Mapping.Data,(unsigned long)VPage); //this will be addative
+//	CPT_Texture_32(BT,Phong_Mapping.Data,(uint32_t)VPage); //this will be addative
 }
 
 void The_BiPTTrue(Vertex **V, dword numVerts)
@@ -1102,7 +1102,7 @@ void The_BiPTTrue(Vertex **V, dword numVerts)
 	BT[2].U=_C->UZ;
 	BT[2].V=_C->VZ;
 	
-	CPT_Texture_32(BT,DoFace->Txtr->Txtr->Data,(unsigned long)VPage);
+	CPT_Texture_32(BT,DoFace->Txtr->Txtr->Data,(uint32_t)VPage);
 	
 //	BT[0].U=_A->REU;
 //	BT[0].V=_A->REV;
@@ -1113,7 +1113,7 @@ void The_BiPTTrue(Vertex **V, dword numVerts)
 //	BT[2].U=_C->REU;
 //	BT[2].V=_C->REV;
 	
-//	CPT_Texture_32(BT,Phong_Mapping.Data,(unsigned long)VPage); //this will be addative
+//	CPT_Texture_32(BT,Phong_Mapping.Data,(uint32_t)VPage); //this will be addative
 }
 
 void The_BiGTrue(Vertex **V, dword numVerts)
@@ -1155,7 +1155,7 @@ void The_BiGTrue(Vertex **V, dword numVerts)
 	BT[2].G=_C->LG*pow;
 	BT[2].B=_C->LR*pow;
 
-	CPG_Texture_32(BT,DoFace->Txtr->Txtr->Data,(unsigned long)VPage);
+	CPG_Texture_32(BT,DoFace->Txtr->Txtr->Data,(uint32_t)VPage);
 
 //  Bi_Triangle BT[3];
 //  BT[0].x=_A->PX;
@@ -1176,7 +1176,7 @@ void The_BiGTrue(Vertex **V, dword numVerts)
 //  BT[2].U=_C->UZ;
 //  BT[2].V=_C->VZ;
 
-//	P_Texture_32(BT,DoFace->Txtr->Txtr->Data,(unsigned long)VPage);
+//	P_Texture_32(BT,DoFace->Txtr->Txtr->Data,(uint32_t)VPage);
 
   //BT[0].z=_A->LB;
   //BT[0].U=_A->LG;
@@ -1190,7 +1190,7 @@ void The_BiGTrue(Vertex **V, dword numVerts)
   //BT[2].U=_C->LG;
   //BT[2].V=_C->LR;
 
-  //RGBGouraud(BT,(unsigned long)(Layer2.Data));
+  //RGBGouraud(BT,(uint32_t)(Layer2.Data));
 }
 
 void The_BiGMMXTrue(Vertex **V, dword numVerts)
@@ -1357,8 +1357,8 @@ void The_BiMMXTTrue_Fogged(Vertex **V, dword numVerts)
 // compatability requirements.
 /*void Dark_Sprite(Vertex **V, dword numVerts)
 {
-  long Cx,Cy;
-  long X1,Y1,X2,Y2;
+  int32_t Cx,Cy;
+  int32_t X1,Y1,X2,Y2;
   Cx = _A->PX+0.5; Cy = _A->PY+0.5;
   if (Cx>=0&&Cy>=0&&Cx<=XRes_1&&Cy<=YRes_1) VPage[Cx+YOffs[Cy]]=64;
 }*/
@@ -1368,11 +1368,11 @@ void Dark_Sprite(Vertex **V, dword numVerts)
   byte *OmniTxtr = DoFace->Txtr->Txtr->Data;
   int CntX = _A->PX;
   int CntY = _A->PY;
-  long Scale = 5.0*_A->RZ;
+  int32_t Scale = 5.0*_A->RZ;
 
-  long int BX1,BY1,BX2,BY2;
-  long int EDX1,EDY1,ECX1,ECY1,CY1,OX;
-  long int X,Y,PO,CX,PG,Jmp;
+  int32_t int BX1,BY1,BX2,BY2;
+  int32_t int EDX1,EDY1,ECX1,ECY1,CY1,OX;
+  int32_t int X,Y,PO,CX,PG,Jmp;
   byte *OT2;
   short Col;
 
@@ -1536,7 +1536,7 @@ void ZScale_thatfucksBTBV(int X,int Y,int SizeX,int SizeY, byte *Txtr, byte *Pag
 #if 0
 void The_Seven_UP(Vertex **V, dword numVerts)
 {
-	long Size = ImageSize*_A->RZ;
+	int32_t Size = ImageSize*_A->RZ;
 	// look for flares to match doface
 	Omni *O;
 	for(O = CurScene->OmniHead;O;O=O->Next)
@@ -1552,7 +1552,7 @@ void The_Seven_UP(Vertex **V, dword numVerts)
 
 void The_Seven_UP_HALFSIZE(Vertex **V, dword numVerts)
 {
-	long Size = 2;
+	int32_t Size = 2;
 	CSeven_UP(_A->PX,_A->PY,Size<<1,Size<<1,DoFace->Txtr->Txtr->Data,VPage);
 }
 #endif
@@ -1578,7 +1578,7 @@ void Seven_UP_64V(int X, int Y, int SizeX, int SizeY, byte* Txtr, byte* Page)
 #endif
 }
 
-void The_Seven_UP_64(long X, long Y, long SX, long SY, DWord* Bitmap, byte* Page)
+void The_Seven_UP_64(int32_t X, int32_t Y, int32_t SX, int32_t SY, DWord* Bitmap, byte* Page)
 {
 	CSeven_UP_64(X, Y, SX, SY, (byte*)Bitmap, VPage);
 }
@@ -1712,7 +1712,7 @@ void Spriter(float x, float y, float width, float height, void* txtr, void* vpag
 
 void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel)
 {
-//	long Size = ImageSize*_A->RZ;
+//	int32_t Size = ImageSize*_A->RZ;
 	float Size = ImageSize*_A->RZ*View->PerspX;
 
 	// flare image size is written as a floating pt.
@@ -1735,7 +1735,7 @@ void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel)
 		if (CurScene->Flags & Scn_Fogged)
 		{
 			float FogRate = 1.0 - _A->TPos.z * C_rFZP;
-			long iFog = Fist(255.0 * FogRate);
+			int32_t iFog = Fist(255.0 * FogRate);
 			Col = iFog + (iFog<<8) +(iFog<<16);
 		}
 		// support no far clipping on omnilights
@@ -1748,10 +1748,10 @@ void The_MMX_Scalar(Face* F, Vertex **V, dword numVerts, dword miplevel)
 		// Z compare on center only.
 		if (F->Flags & Face_PointZTest)
 		{
-			long x = _A->PX;
+			int32_t x = _A->PX;
 			if (x<0) x=0;
 			if (x>XRes-1) x=XRes-1;
-			long y = _A->PY;
+			int32_t y = _A->PY;
 			if (y<0) y=0;
 			if (y>YRes-1) y=YRes-1;
 			if (Z <= ((word *)VPage) [(PageSize>>1)+XRes*y+x]) return;
@@ -1773,9 +1773,9 @@ void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage,
 	float x1, y1, x2, y2;
 	float du, dv;
 	float u0 = 0 , v0 = 0;
-	long  iu, iv, idu, idv;
-	long  LineWidth;
-	long  Height;
+	int32_t  iu, iv, idu, idv;
+	int32_t  LineWidth;
+	int32_t  Height;
 
 	x1 = (x - width);
 	x2 = (x + width);
@@ -1802,13 +1802,13 @@ void Spriter32(float x, float y,float width,float height,void *txtr,void *VPage,
 	if (x2 > XRes) x2 = XRes;
 	if (y2 > spriteClipY2) y2 = spriteClipY2;
 
-	long ix1, ix2;
+	int32_t ix1, ix2;
 	ix1 = Fist(x1);
 	ix2 = Fist(x2);
 	LineWidth = ix2 - ix1;
 	u0 += du * (ix1 - x1);
 
-	long iy1, iy2;
+	int32_t iy1, iy2;
 	iy1 = Fist(y1);
 	iy2 = Fist(y2);
 	Height = iy2 - iy1;
@@ -2031,10 +2031,10 @@ void The_MMX_Scalar_32(Vertex **V, dword numVerts)
 		dword Color = (R<<16)+(G<<8)+B;
 		dword Z = 0xFF80 - Fist(g_zscale * _A->TPos.z);
 		// Z compare on center only.
-		long x = _A->PX;
+		int32_t x = _A->PX;
 		if (x<0) x=0;
 		if (x>XRes-1) x=XRes-1;
-		long y = _A->PY;
+		int32_t y = _A->PY;
 		if (y<0) y=0;
 		if (y>YRes-1) y=YRes-1;
 		if (Z > ((word *)VPage) [(PageSize>>1)+XRes*y+x])
@@ -2047,7 +2047,7 @@ void The_MMX_Scalar_32(Vertex **V, dword numVerts)
 
 void The_ZScale_Shit(Vertex **V, dword numVerts)
 {
-  long Size = ImageSize*_A->RZ;
+  int32_t Size = ImageSize*_A->RZ;
   CZScale_thatfucksBTB(_A->PX,_A->PY,Size<<1,Size<<1,DoFace->Txtr->Txtr->Data,VPage);
 }
 #endif
@@ -2055,10 +2055,10 @@ void The_ZScale_Shit(Vertex **V, dword numVerts)
 
 void Particle_Sprite(Vertex **V, dword numVerts)
 {
-	long Cx,Cy;
-	long X1,Y1,X2,Y2;
+	int32_t Cx,Cy;
+	int32_t X1,Y1,X2,Y2;
 	Cx = _A->PX; Cy = _A->PY;
-	long K;
+	int32_t K;
 	//  if (BPP!=8) return;
 	if (Cx>=0&&Cx<=XRes-2&&Cy>=0&&Cy<=YRes-2)
 		VPage[(Cx+YOffs[Cy])*((BPP+1)>>3)]=0xFF;
@@ -2098,7 +2098,7 @@ void InsertSpanToTBR(Face *F, dword tile)
 void InsertSpriteToTBR(Face *F, float y, float Height)
 {
 	int y1, y2;
-	static long numTiles = CurScene->NumTiles;
+	static int32_t numTiles = CurScene->NumTiles;
 
 	y1 = Fist(((y - Height) * rTILESIZE) - 0.999999);
 	y2 = Fist((y + Height) * rTILESIZE);
@@ -2137,10 +2137,10 @@ void TBR_Sprite(Face* F, Vertex **V, dword numVerts, dword miplevel)
 		// get color from vertex _A
 		dword Z = 0xFF80 - Fist(g_zscale * _A->TPos.z);
 		// Z compare on center only.
-		long x = _A->PX;
+		int32_t x = _A->PX;
 		if (x<0) x=0;
 		if (x>XRes-1) x=XRes-1;
-		long y = _A->PY;
+		int32_t y = _A->PY;
 		if (y<0) y=0;
 		if (y>YRes-1) y=YRes-1;
 		if (
@@ -2258,7 +2258,7 @@ extern "C"
 
 void InitFillers (VPFunc VirtualProtectFunc, dword Protection)
 {
-	unsigned long	OldProtection;
+	uint32_t	OldProtection;
 
 //	VirtualProtectFunc(InitFillers, 1000, Protection, &OldProtection);
 //	((char *)InitFillers)[0] = 0;

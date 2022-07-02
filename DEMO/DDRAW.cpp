@@ -420,7 +420,7 @@ dword DDRAW_InitDisplay()
 		FullScreen_ = 0;
 		//GDI code prepares window
 		RECT rectum;
-		long MXR,MYR;
+		int32_t MXR,MYR;
 
 		MXR=GetSystemMetrics(SM_CXSCREEN);
 		MYR=GetSystemMetrics(SM_CYSCREEN);

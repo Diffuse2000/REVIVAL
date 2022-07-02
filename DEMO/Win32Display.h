@@ -8,9 +8,9 @@
 #include "Base/BaseDefs.h"
 
 // display related definitions file.
-extern long g_demoXRes;
-extern long g_demoYRes;
-extern long g_fullScreenMode;
+extern int32_t g_demoXRes;
+extern int32_t g_demoYRes;
+extern int32_t g_fullScreenMode;
 
 enum eDisplayInitFlags
 {
@@ -19,6 +19,7 @@ enum eDisplayInitFlags
 
 struct DisplayInitParams
 {
+
 	HWND hWnd;
 	HINSTANCE hInst;
 	dword x, y;

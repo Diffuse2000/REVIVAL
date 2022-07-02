@@ -34,7 +34,7 @@ static float ZoomFactor2FOV(float zf)
 
 void AddTriMesh(Scene *Sc,TriMesh *T,char *ObjName,Vector Pivot)
 {
-	long I;
+	int32_t I;
 	Face *F;
 	Object *Obj = new Object,*O;
 	TriMesh *Tri;

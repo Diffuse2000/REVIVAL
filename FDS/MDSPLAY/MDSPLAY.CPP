@@ -149,7 +149,7 @@ void Install_MIDAS()
 void Initialize_Module(char *XMFile)
 {
   char T0,T1;
-  unsigned long Size = *(unsigned long *)XMFile;
+  uint32_t Size = *(uint32_t *)XMFile;
 /*  T0=XMFile[0];
   T1=XMFile[1];
   XMFile[0]=XMFile[3];

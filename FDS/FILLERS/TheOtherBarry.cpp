@@ -108,8 +108,8 @@ namespace barry {
 		int32_t yres;
 		struct TextureInfo {
 			const dword* TextureAddr;
-			long LogWidth;
-			long LogHeight;
+			int32_t LogWidth;
+			int32_t LogHeight;
 			float UScaleFactor;
 			float VScaleFactor;
 			float duzdx, duzdy;
