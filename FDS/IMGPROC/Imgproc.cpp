@@ -12,7 +12,7 @@
 
 struct Four_C
 {
-	char R,G,B,A;
+	uint8_t R,G,B,A;
 };
 union FCDW
 {

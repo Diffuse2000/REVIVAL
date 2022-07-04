@@ -426,7 +426,7 @@ void Generate_Plasma(Image *Img, short p, int32_t seed)
 							gb(buf, (x+y))+
 							gb(buf, (x+mx+y+my))+
 							gb(buf, (x+((y+my2)&0xffffl)));
-						((the_rand()*p)>>16);
+						// ((the_rand()*p)>>16);
 						buf[(x+y+my)<<2]=cfunc (c>>2);
 					}
 					for (y=0; y<0x10000l; y+=my2)
@@ -437,7 +437,7 @@ void Generate_Plasma(Image *Img, short p, int32_t seed)
 								gb(buf,x+mx+((y-my)&0xffffl))+
 								gb(buf,((x+mx2)&255)+y)+
 								gb(buf,x+mx+y+my);
-							((the_rand()*p)>>16);
+							// ((the_rand()*p)>>16);
 							buf[(x+mx+y)<<2]=cfunc(c>>2);
 						}
 						mx2=mx;

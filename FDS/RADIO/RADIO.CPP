@@ -421,32 +421,32 @@ void Radiosity(Scene *Sc)
 //			TCLightMapModulate(F->Surf);
 
 			// Run a test: Parallel Projected Rays.
-/*			Vector dU,dV;
-			Vector_Sub(&F->B->Pos,&F->A->Pos,&dU);
-			Vector_SelfScale(&dU,1.0f/16.0f);
-			Vector_Sub(&F->C->Pos,&F->A->Pos,&dV);
-			Vector_SelfScale(&dV,1.0f/16.0f);
-			Vector LP,CP,NP,NO;
-			int32_t tli,tlj;
-			DWord *LMP = F->Surf->LMap,*CMP;
-			Vector_Copy(&LP,&F->A->Pos);
-			Vector_Scale(&F->N,200.0f,&NO);
-			for (tlj = 0 ; tlj <= 16 ; tlj++)
-			{
-				Vector_Copy(&CP,&LP);
-				CMP = LMP;
-				for (tli = 0 ; tli <= 16-tlj ; tli++)
-				{
-					Vector_Add(&CP,&NO,&NP);
-					//if (SlowInterval2SceneIntersect(&LP, &NP)) *LMP++ = 0xFFFFFFFF; else *LMP++ = 0x00000000;
-					*CMP++ = SlowInterval2SceneIntersect(&CP, &NP)*0x00010101;
-					Space_Pixel(&CP,*(CMP-1)); //hack it!
-					Space_Pixel(&NP,*(CMP-1)); //hack it!
-					Vector_SelfAdd(&CP,&dU);
-				}
-				LMP += 17;
-				Vector_SelfAdd(&LP,&dV);
-			}*/
+			// Vector dU,dV;
+			// Vector_Sub(&F->B->Pos,&F->A->Pos,&dU);
+			// Vector_SelfScale(&dU,1.0f/16.0f);
+			// Vector_Sub(&F->C->Pos,&F->A->Pos,&dV);
+			// Vector_SelfScale(&dV,1.0f/16.0f);
+			// Vector LP,CP,NP,NO;
+			// int32_t tli,tlj;
+			// DWord *LMP = F->Surf->LMap,*CMP;
+			// Vector_Copy(&LP,&F->A->Pos);
+			// Vector_Scale(&F->N,200.0f,&NO);
+			// for (tlj = 0 ; tlj <= 16 ; tlj++)
+			// {
+			// 	Vector_Copy(&CP,&LP);
+			// 	CMP = LMP;
+			// 	for (tli = 0 ; tli <= 16-tlj ; tli++)
+			// 	{
+			// 		Vector_Add(&CP,&NO,&NP);
+			// 		//if (SlowInterval2SceneIntersect(&LP, &NP)) *LMP++ = 0xFFFFFFFF; else *LMP++ = 0x00000000;
+			// 		*CMP++ = SlowInterval2SceneIntersect(&CP, &NP)*0x00010101;
+			// 		Space_Pixel(&CP,*(CMP-1)); //hack it!
+			// 		Space_Pixel(&NP,*(CMP-1)); //hack it!
+			// 		Vector_SelfAdd(&CP,&dU);
+			// 	}
+			// 	LMP += 17;
+			// 	Vector_SelfAdd(&LP,&dV);
+			// }*/
 		}
 	}
 //	printf("<Rad>: Radiosity/Light Maps Calculation ends. Timer = %d.%d\n",Timer/100,Timer%100);

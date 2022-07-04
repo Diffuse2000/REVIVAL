@@ -3,7 +3,7 @@
 	[10.09.02] Version 0.01: basic version operative
 */
 
-#include "REV.H"
+#include "Rev.h"
 
 static void rayFaceIsect(rtIntersection &isect, rtLocalRay &ray, Face *F)
 {

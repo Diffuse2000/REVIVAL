@@ -66,7 +66,7 @@ Font * LoadAFT(const char *FileName)
 	return FFI;
 }
 
-long OutTextXY(byte *Where, long X, long Y, const char *S, char C, int xres/* = XRes*/, int yres/* = YRes*/)
+int32_t OutTextXY(byte *Where,int32_t X,int32_t Y, const char *S, uint8_t C, int xres /* = XRes*/, int yres /*= YRes*/)
 {
 	int DX;
 	int II, IJ, IK;
@@ -129,7 +129,7 @@ long OutTextXY(byte *Where, long X, long Y, const char *S, char C, int xres/* = 
 	return Y;
 }
 
-void OutTextXYExtents(long X, long Y, const char* S, int xres, int yres,long &out_width, long &out_height)
+void OutTextXYExtents(int32_t X, int32_t Y, const char* S, int xres, int yres, int32_t& out_height, int32_t& out_width)
 {
 	int DX;
 	int II, IJ, IK;

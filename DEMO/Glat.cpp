@@ -1,6 +1,6 @@
-#include "REV.H"
+#include "Rev.h"
 #include "IMGGENR/IMGGENR.H"
-#include "VESA/VESA.H"
+#include "VESA/Vesa.h"
 
 #include <algorithm>
 

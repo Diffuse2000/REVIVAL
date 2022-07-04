@@ -19,7 +19,7 @@
 #include "Base/FDS_DEFS.H"
 #include "Base/FDS_VARS.H"
 #include "Base/FDS_DECS.H"
-#include "VESA/VESA.H"
+#include "VESA/Vesa.h"
 #include "FRUSTRUM.H"
 
 //#define TRACE_OBJECTS

@@ -469,15 +469,15 @@ material global ID or ptr
 
 ******************************************************************************/
 #define POINTER_64
-#include "REV.H"
+#include "Rev.h"
 #include "FillerTest.h"
 #include "ImageCompression.h"
 #include "PhotonTracer.h"
 #include <float.h>
 #include <Base/TriMesh.h>
 #include "Config.h"
-#include "Fillers/IX.h"
-#include "threads.h"
+#include "FILLERS/IX.h"
+#include "Threads.h"
 #include "../Modplayer/Modplayer.h"
 #include <SDL.h>
 

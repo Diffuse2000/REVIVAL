@@ -200,7 +200,7 @@ void Compute_Bounding_Sphere(TriMesh *T)
   // look for someone else to do the lousy job. it-would-have-been-possible
   // it was just for a single,non-hierarchial spline.
   
-	/*  F1 = 0.0;
+	//  F1 = 0.0;
 	for(I=0;I<T->Scale.NumKeys;I++)
 	{
     if ((Rad = T->Scale.Keys[0].Pos.x)>F1) F1 = Rad;
@@ -645,7 +645,7 @@ void Init_Flare_Textures(Scene *Sc)
 	{
 		if (Obj->Type!=Obj_Omni) continue;
 		Scan = Obj->Name;
-		while (*Scan&&*Scan!=46&&*Scan<128) Scan++;
+		while (*Scan&&*Scan!=46&&*Scan<=127) Scan++;
 		if (*Scan>127||!(*Scan)) Already=1;
 	}
 	
@@ -834,7 +834,7 @@ void Default_Texture(Scene *Sc)
 // other buffers maybe require aligned shit.
 /*void Materials_Remap_Aligned()
 {
-/*  Material *M;
+Material *M;
 TriMesh *T;
 Face *F,*FEnd;
 char *AlignOffs;
@@ -917,7 +917,7 @@ void Materials_Remap_Aligned()
 			for(M=MatLib;M;M=M->Next)
 			{
 				if (!M->Txtr) continue;
-				printf("<PR:Aln>: Material %s ===> Address %lxH.\n",M->Name,M->Txtr->Data);
+				printf("<PR:Aln>: Material %s ===> Address %pH.\n",M->Name,M->Txtr->Data);
 			}
 			//  getchar();
 }

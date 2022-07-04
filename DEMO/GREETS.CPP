@@ -1,11 +1,11 @@
-#include "REV.H"
+#include "Rev.h"
 
 #include "GREETS.H"
 #include "FillerTest.h"
 #include "MISC/PREPROC.H"
 #include "Base/FDS_DECS.H"
 #include <vector>
-#include <VESA/VESA.H>
+#include <VESA/Vesa.h>
 
 static float frand() {
 	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);

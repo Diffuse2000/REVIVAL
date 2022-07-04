@@ -1,7 +1,7 @@
 #include "Rev.h"
 
 #include "FOUNTAIN.H"
-#include "VESA/VESA.H"
+#include "VESA/Vesa.h"
 #include "Gradient.h"
 #include "FRUSTRUM.H"
 #include "Clipper.h"
@@ -640,7 +640,7 @@ void Particle_Kinematics(Scene *Sc)
 
 struct Four_C
 {
-	char R,G,B,A;
+	uint8_t R,G,B,A;
 };
 union FCDW
 {
@@ -913,7 +913,7 @@ void Lightning_Line(Vertex *V1,Vertex *V2)
 	int32_t Offs,sat;
 	int32_t X1,Y1,X2,Y2;
 	int32_t depth = V1->LR,hd = depth>>1;
-	char *cPtr;
+	uint8_t *cPtr;
 	DWord *Ptr = (DWord *)VPage;
 	DWord *End;
 
@@ -969,7 +969,7 @@ void Lightning_Line(Vertex *V1,Vertex *V2)
 			Ptr += Yi;
 
 			//left anti-alias
-			cPtr = ((char *)Ptr)-8;
+			cPtr = ((uint8_t *)Ptr)-8;
 			Offs = 128*(D-Ai)/(Bi-Ai);
 			sat = *cPtr+(Offs>>5);
 			if (sat>255) *cPtr++ = 255; else *cPtr++ = sat;
@@ -1020,7 +1020,7 @@ void Spark_Line(Vertex *V1,Vertex *V2)
 	int32_t Offs,sat;
 	int32_t X1,Y1,X2,Y2;
 	int32_t depth = V1->LR,hd = depth>>1;
-	char *cPtr;
+	uint8_t *cPtr;
 	DWord *Ptr = (DWord *)VPage;
 	DWord *End;
 
@@ -1063,7 +1063,7 @@ void Spark_Line(Vertex *V1,Vertex *V2)
 //			*Ptr = 0xFFFFFF;
 //			memset(Ptr,255,depth<<2);
 
-			cPtr = ((char *)Ptr)-VESA_BPSL;
+			cPtr = ((uint8_t *)Ptr)-VESA_BPSL;
 			Offs = 128*(D-Ai)/(Bi-Ai);
 			sat = *cPtr+(Offs>>5);
 			if (sat>255) *cPtr++ = 255; else *cPtr++ = sat;
@@ -1106,7 +1106,7 @@ void Spark_Line(Vertex *V1,Vertex *V2)
 			Ptr += Yi;
 
 			//left anti-alias
-			cPtr = ((char *)Ptr)-4;
+			cPtr = ((uint8_t *)Ptr)-4;
 			Offs = 128*(D-Ai)/(Bi-Ai);
 			sat = *cPtr+(Offs>>5);
 			if (sat>255) *cPtr++ = 255; else *cPtr++ = sat;
@@ -1516,8 +1516,8 @@ void Iterate_Photonbeam_Texture()
 	{
 		for(I=1;I<=62;I++)
 		{
-			//*Pen = (*Pen + Pen[63] + Pen[64] + Pen[65] + ((rand()>>10)-14) )>>2;
-			//*Pen = (*Pen + Pen[63] + Pen[64] + Pen[65] + (Noise[NoiseSampler++]>>10)-14 )>>2;
+			// *Pen = (*Pen + Pen[63] + Pen[64] + Pen[65] + ((rand()>>10)-14) )>>2;
+			// *Pen = (*Pen + Pen[63] + Pen[64] + Pen[65] + (Noise[NoiseSampler++]>>10)-14 )>>2;
 			*Pen = (Pen[64] + Pen[127] + Pen[128] + Pen[129] + (Noise[NoiseSampler++]>>10)-13 )>>2;
 			Pen++;
 		}

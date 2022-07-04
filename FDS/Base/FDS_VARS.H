@@ -239,7 +239,7 @@ extern unsigned short int OldFPUCW, FPUCW;
 #endif
 
 extern dword OldMXCSR, CurMXCSR;
-extern long Timer_Freq;
+extern int32_t Timer_Freq;
 
 extern char **MsgStr;
 extern int32_t *MsgClock;
@@ -293,14 +293,14 @@ typedef struct {
 } RMSREGS;
 
 typedef struct {
-	long    edi;
-	long    esi;
-	long    ebp;
-	long    reserved;
-	long    ebx;
-	long    edx;
-	long    ecx;
-	long    eax;
+	int32_t    edi;
+	int32_t    esi;
+	int32_t    ebp;
+	int32_t    reserved;
+	int32_t    ebx;
+	int32_t    edx;
+	int32_t    ecx;
+	int32_t    eax;
 	short   flags;
 	short   es,ds,fs,gs,ip,cs,sp,ss;
 } _RMREGS;
@@ -320,7 +320,7 @@ struct Module_MB
 
 struct Aligned_MB
 {
-	long Pos; //Position in aligned memory space.
+	intptr_t Pos; //Position in aligned memory space.
 	Aligned_MB *Prev,*Next;
 };
 
@@ -337,7 +337,7 @@ typedef char VPalette[768]; // Direct Video 8-BIT Palette
 // Quantized point in 2D
 /*struct QPoint
 {
-	long X,Y;
+	int32_t X,Y;
 };
 
 struct Rectangle
@@ -357,15 +357,15 @@ struct VESA_Surface
 {
 	byte *Data,*Targ;
 	float *ZBuffer;
-	long X,Y;
-	long BPP,CPP;
-	long BPSL;
-	long CX,CY,X_1,Y_1; //X/2,Y/2,X-1,Y-1 respectively.
+	int32_t X,Y;
+	int32_t BPP,CPP;
+	int32_t BPSL;
+	int32_t CX,CY,X_1,Y_1; //X/2,Y/2,X-1,Y-1 respectively.
 	float FOV;          //In degrees (for convinience)
 	float PX,PY;        //Perspective ratios
-	long PageSize;      //Size of allocation in Data.
+	int32_t PageSize;      //Size of allocation in Data.
 	DWord Flags;        //Attributes for the surface.
-	long *YTable;       //Y Offset table
+	int32_t *YTable;       //Y Offset table
 //	Window *Wnd;        //Lousy piece of shit
 	char *Pal;          //SHHIIIIT
 	void (*Flip)(VESA_Surface *VS); //appropriate Flipping procedure to LFB.
@@ -388,28 +388,28 @@ typedef struct
 // Packed for [16 Bytes]
 struct VESA_Listinfo
 {
-	long X,Y;             // X and Y resolution
+	int32_t X,Y;             // X and Y resolution
 	unsigned short Mode;  // True mode notation (Displayed in Hex)
 	char BPP;             // Bits per Pixel
 };
 
 struct VideoMode
 {
-	long XRes,YRes;
-	long BPP;
-	long BPSL;
-	long Driver_ID;
-	long Mode_ID;
+	int32_t XRes,YRes;
+	int32_t BPP;
+	int32_t BPSL;
+	int32_t Driver_ID;
+	int32_t Mode_ID;
 	char *VideoMem;
-	long PhysMem;
+	int32_t PhysMem;
 	DWord Flags;
 };
 
 extern short CurrentGraphicsMode;
 extern void *VESAModule,*VESABuffer;
 extern short *VESA_ModesAvail;
-extern long VESA_NumModes;
-extern long *YOffs;
+extern int32_t VESA_NumModes;
+extern int32_t *YOffs;
 extern char Palette_Reserved;
 
 // General info
@@ -417,21 +417,21 @@ extern char Graphmode;  //set if client is on active g.mode state.
 //otherwise it won't be able to determine what
 //to do with the surfaces...
 extern char Granola;         //GRANOLA=GRANULARITY ;), that is 64Kb/Vesamode->WinGranularity
-extern "C" long VESA_BPSL;       //Crazy bytes per scan line crap. not currently supported.
-extern "C" long BPP_Shift;
-extern "C" long PageSize;
+extern "C" int32_t VESA_BPSL;       //Crazy bytes per scan line crap. not currently supported.
+extern "C" int32_t BPP_Shift;
+extern "C" int32_t PageSize;
 extern char Screenmem_Model; //1=LFB,2=Banks,3=Fake 14bit (not supported)
 extern VESA_Surface *Screen; //this is where the LFB surface resides
 extern VESA_Surface *MainSurf;   //this is regular surface u flip fastest,aka Page2 aka VPage
 extern VESA_Surface *Last_Surface;
-extern long VESA_Ver;
+extern int32_t VESA_Ver;
 
 extern char Direct_FLIP;
 
 // Global Surface Scalar variables (Fastest access)
-extern "C" long XRes,YRes,XRes_1,YRes_1,CntrX,CntrY,BPP,CPP;
+extern "C" int32_t XRes,YRes,XRes_1,YRes_1,CntrX,CntrY,BPP,CPP;
 extern float CntrEX,CntrEY;
-extern long PageSize,PageSizeW,PageSizeDW;
+extern int32_t PageSize,PageSizeW,PageSizeDW;
 
 extern VideoMode VMode;
 extern byte *VGAPtr,*VPage; //Direct access pointers to LFB/Banks and v.Page[2].
@@ -446,13 +446,13 @@ extern float CParticle_ISize;
 extern void (*Flip)(VESA_Surface *VS);
 extern VESA_Surface Layer2;
 
-extern long Basic_FOffs; //basic font offset
+extern int32_t Basic_FOffs; //basic font offset
 
 // ISR variables and structures
-const long Rate_Div = 1193180;
+const int32_t Rate_Div = 1193180;
 const unsigned int Basic_Rate = 0xFFFF;
 extern volatile int32_t Timer;
-extern long Old_Int_Count,Old_Int_Rate;
+extern int32_t Old_Int_Count,Old_Int_Rate;
 extern volatile char Keyboard[128];
 
 //extern Material Flare_IR,Flare_IG,Flare_IB;
@@ -480,11 +480,11 @@ typedef int (__stdcall *VPFunc)(
 
 #endif
 
-//extern long ASM_XRes;
+//extern int32_t ASM_XRes;
 extern float *InvTbl;
 
 
-extern long Kbpos;
+extern int32_t Kbpos;
 
 // Particle System Variables
 struct Particle
@@ -683,7 +683,7 @@ void FPU_NormalState(void);
 	"   FLdCW   [OldFPUCW]"\
 modify exact [8087];
 
-void RoundToInt(long *dest, float val);
+void RoundToInt(int32_t *dest, float val);
 #pragma aux RoundToInt=\
 	"fistp DWORD [eax]"\
 	parm nomemory [eax] [8087]\
@@ -931,9 +931,9 @@ inline void FPU_NormalState()
 #endif
 }
 
-inline void RoundToInt(long *dest, float val)
+inline void RoundToInt(int32_t *dest, float val)
 {
-	*dest = static_cast<long>(val);
+	*dest = static_cast<int32_t>(val);
 	//__asm {
 	//	fld dword ptr [val]
 	//		mov eax, [dest]

@@ -377,27 +377,27 @@ endif()
 ################################################################################
 # Post build events
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-    add_custom_command_if(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMANDS
-        COMMAND   $<CONFIG:Debug> cp DEMO/DEMO ../Runtime
-        COMMAND   $<CONFIG:Debug> cp DEMO/DEMO ../Runtime
-        COMMAND    $<CONFIG:llvm> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>${TARGET_NAME}$ENV{TargetExt} ..\\Runtime
-        COMMAND $<CONFIG:Release> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>${TARGET_NAME}$ENV{TargetExt} ..\\Runtime
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    add_custom_command_if(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMANDS
-        COMMAND   $<CONFIG:Debug> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>/DEMO ../Runtime
-        COMMAND   $<CONFIG:Debug> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>/DEMO ../Runtime
-        COMMAND    $<CONFIG:llvm> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>${TARGET_NAME}$ENV{TargetExt} ..\\Runtime
-        COMMAND $<CONFIG:Release> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>${TARGET_NAME}$ENV{TargetExt} ..\\Runtime
-    )
-endif()
+# if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
+#     add_custom_command_if(
+#         TARGET ${PROJECT_NAME}
+#         POST_BUILD
+#         COMMANDS
+#         COMMAND   $<CONFIG:Debug> cp DEMO/DEMO ../Runtime
+#         COMMAND   $<CONFIG:Debug> cp DEMO/DEMO ../Runtime
+#         COMMAND    $<CONFIG:llvm> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>${TARGET_NAME}$ENV{TargetExt} ..\\Runtime
+#         COMMAND $<CONFIG:Release> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>${TARGET_NAME}$ENV{TargetExt} ..\\Runtime
+#     )
+# elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
+#     add_custom_command_if(
+#         TARGET ${PROJECT_NAME}
+#         POST_BUILD
+#         COMMANDS
+#         COMMAND   $<CONFIG:Debug> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>/DEMO ../Runtime
+#         COMMAND   $<CONFIG:Debug> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>/DEMO ../Runtime
+#         COMMAND    $<CONFIG:llvm> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>${TARGET_NAME}$ENV{TargetExt} ..\\Runtime
+#         COMMAND $<CONFIG:Release> cp $<SHELL_PATH:${OUTPUT_DIRECTORY}>${TARGET_NAME}$ENV{TargetExt} ..\\Runtime
+#     )
+# endif()
 
 ################################################################################
 # Dependencies

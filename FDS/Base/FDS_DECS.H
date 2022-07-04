@@ -223,7 +223,7 @@ void End_Graphics();
 //void Build_YOffs_Table(VESA_Surface *VS);
 
 Font * LoadAFT(const char *FileName);
-int32_t OutTextXY(byte *Where,int32_t X,int32_t Y, const char *S,char C, int xres = XRes, int yres = YRes);
+int32_t OutTextXY(byte *Where,int32_t X,int32_t Y, const char *S, uint8_t C, int xres = XRes, int yres = YRes);
 void OutTextXYExtents(int32_t X, int32_t Y, const char* S, int xres, int yres, int32_t& out_height, int32_t& out_width);
 int32_t Write_String_T32(int32_t X,int32_t Y,char *S,dword C);
 void Set_RGB(char Reg,char R,char G,char B);
