@@ -392,7 +392,7 @@ void Electricity_Voltage()
 //  EP = new Vector[EPAmount];
 /// int32_t I;
 //  for(I=0;I<EPAmount;I++)
-//    Vector_Make(EP+I,(rand()*XRes)>>15,(rand()*YRes)>>15,0);
+//    Vector_Make(EP+I,(RAND_15()*XRes)>>15,(RAND_15()*YRes)>>15,0);
 
 //  EvenPotential((DWord *)VPage,Target.Data,0.0f);
 }

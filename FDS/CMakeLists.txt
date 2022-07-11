@@ -229,249 +229,28 @@ set(ALL_FILES
 ################################################################################
 # Target
 ################################################################################
-add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
+add_library("FDS" STATIC ${ALL_FILES})
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-################################################################################
-# Target name
-################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        TARGET_NAME_DEBUG   "FDS"
-        TARGET_NAME_LLVM    "${TARGET_NAME}$ENV{TargetExt}"
-        TARGET_NAME_RELEASE "${TARGET_NAME}$ENV{TargetExt}"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        TARGET_NAME_DEBUG   "FDS"
-        TARGET_NAME_LLVM    "${TARGET_NAME}$ENV{TargetExt}"
-        TARGET_NAME_RELEASE "${TARGET_NAME}$ENV{TargetExt}"
-    )
-endif()
-################################################################################
-# Output directory
-################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        OUTPUT_DIRECTORY_DEBUG   "${CMAKE_CURRENT_SOURCE_DIR}/./Debug"
-        OUTPUT_DIRECTORY_LLVM    "${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>"
-        OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        OUTPUT_DIRECTORY_DEBUG   "${CMAKE_CURRENT_SOURCE_DIR}/./Debug"
-        OUTPUT_DIRECTORY_LLVM    "${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>"
-        OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>"
-    )
-endif()
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        INTERPROCEDURAL_OPTIMIZATION_LLVM    "FALSE"
-        INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        INTERPROCEDURAL_OPTIMIZATION_LLVM    "FALSE"
-        INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
-    )
-endif()
-################################################################################
-# MSVC runtime library
-################################################################################
-get_property(MSVC_RUNTIME_LIBRARY_DEFAULT TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY)
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-    string(CONCAT "MSVC_RUNTIME_LIBRARY_STR"
-        $<$<CONFIG:Debug>:
-            MultiThreadedDebug
-        >
-        $<$<CONFIG:llvm>:
-            MultiThreaded
-        >
-        $<$<CONFIG:Release>:
-            MultiThreaded
-        >
-        $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:llvm>,$<CONFIG:Release>>>:${MSVC_RUNTIME_LIBRARY_DEFAULT}>
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    string(CONCAT "MSVC_RUNTIME_LIBRARY_STR"
-        $<$<CONFIG:Debug>:
-            MultiThreadedDebug
-        >
-        $<$<CONFIG:llvm>:
-            MultiThreaded
-        >
-        $<$<CONFIG:Release>:
-            MultiThreaded
-        >
-        $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:llvm>,$<CONFIG:Release>>>:${MSVC_RUNTIME_LIBRARY_DEFAULT}>
-    )
-endif()
-set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY ${MSVC_RUNTIME_LIBRARY_STR})
 
-################################################################################
-# Compile definitions
-################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "$<$<CONFIG:Debug>:"
-            "PORTABLE_CODE=1;"
-            "_DEBUG"
-        ">"
-        "$<$<CONFIG:llvm>:"
-            "PORTABLE_CODE=1;"
-            "NDEBUG"
-        ">"
-        "$<$<CONFIG:Release>:"
-            "PORTABLE_CODE=1;"
-            "NDEBUG"
-        ">"
-        "_CRT_SECURE_NO_WARNINGS;"
-        #"WIN32;"
-        "_LIB;"
-        "_MBCS"
-        "SIMDE_ENABLE_NATIVE_ALIASES"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "$<$<CONFIG:Debug>:"
-            "_DEBUG"
-        ">"
-        "$<$<CONFIG:llvm>:"
-            "NDEBUG"
-        ">"
-        "$<$<CONFIG:Release>:"
-            "NDEBUG"
-        ">"
-        "PORTABLE_CODE=1;"
-        "_CRT_SECURE_NO_WARNINGS;"
-        #"WIN32;"
-        "_LIB;"
-        "_MBCS"
-        "SIMDE_ENABLE_NATIVE_ALIASES"
-    )
-endif()
 
-################################################################################
-# Compile and link options
-################################################################################
-if(MSVC)
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-        target_compile_options(${PROJECT_NAME} PRIVATE
-            $<$<CONFIG:Debug>:
-                /Od;
-                /RTC1;
-                /Oy-;
-                /fp:except;
-                /ZI;
-                /fp:strict;
-                /EHa
-            >
-            $<$<CONFIG:llvm>:
-                /GL;
-                /Ob2;
-                /Oi;
-                /GF;
-                /Oy;
-                /Gy;
-                /W3;
-                /fp:except-;
-                ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
-                /Ot;
-                /fp:fast;
-                /J;
-                ${DEFAULT_CXX_EXCEPTION_HANDLING};
-                /GS-
-            >
-            $<$<CONFIG:Release>:
-                /GL;
-                /Ob2;
-                /Oi;
-                /sdl-;
-                /GF;
-                /Gy-;
-                /W3;
-                /fp:except-;
-                ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
-                /Ot;
-                /fp:fast;
-                /GR-;
-                /J;
-                /GS-
-            >
-            /MP;
-            /std:c++latest;
-            /arch:AVX;
-            /Y-
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        target_compile_options(${PROJECT_NAME} PRIVATE
-            $<$<CONFIG:Debug>:
-                /Od;
-                /RTC1;
-                /Oy-;
-                /fp:except;
-                /ZI;
-                /fp:strict;
-                /EHa
-            >
-            $<$<CONFIG:llvm>:
-                /GL;
-                /Ob2;
-                /Oi;
-                /GF;
-                /Oy;
-                /Gy;
-                /W3;
-                /fp:except-;
-                ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
-                /Ot;
-                /fp:fast;
-                /J;
-                ${DEFAULT_CXX_EXCEPTION_HANDLING};
-                /GS-
-            >
-            $<$<CONFIG:Release>:
-                /GL;
-                /Ob2;
-                /Oi;
-                /sdl-;
-                /GF;
-                /Gy-;
-                /W3;
-                /fp:except-;
-                ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
-                /Ot;
-                /fp:fast;
-                /GR-;
-                /J;
-                /GS-
-            >
-            /MP;
-            /std:c++latest;
-            /arch:AVX;
-            /Y-
-        )
-    endif()
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-        target_link_options(${PROJECT_NAME} PRIVATE
-            /NOLOGO
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        target_link_options(${PROJECT_NAME} PRIVATE
-            /NOLOGO
-        )
-    endif()
-endif()
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "PORTABLE_CODE=1;"
+    "_CRT_SECURE_NO_WARNINGS;"
+    "_LIB;"
+    "_MBCS"
+    "SIMDE_ENABLE_NATIVE_ALIASES")
+
 
 ################################################################################
 # Post build events
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-    add_custom_command_if(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMANDS
-        COMMAND $<CONFIG:Release> copy IXTGZ*.obj ..\\Runtime\\Fillers
-    )
-endif()
+# if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
+#     add_custom_command_if(
+#         TARGET ${PROJECT_NAME}
+#         POST_BUILD
+#         COMMANDS
+#         COMMAND $<CONFIG:Release> copy IXTGZ*.obj ..\\Runtime\\Fillers
+#     )
+# endif()
 

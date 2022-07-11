@@ -9,6 +9,7 @@
 #include <string.h>
 #include <time.h>
 
+#define RAND_15() (rand() / (((unsigned)RAND_MAX+1) / 32768))
 // Enivronmental IDs (Not used for now,only works for dos32/watcom)
 #define _O_DOS32 //DOS PROTECTED MODE RUNTIME
 //#define _O_WIN32 //WINDOWS 32-BIT APPLICATION

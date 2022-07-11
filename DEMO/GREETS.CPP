@@ -8,7 +8,7 @@
 #include <VESA/Vesa.h>
 
 static float frand() {
-	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+	return static_cast <float> (RAND_15()) / static_cast <float> (RAND_MAX);
 }
 
 

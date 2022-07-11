@@ -1035,8 +1035,8 @@ static void getRadial(Vector &c, Vector &v)
 	float a, b;
 	do
 	{
-		a = (rand() - 16384)/16384.0;
-		b = (rand() - 16384)/16384.0;
+		a = (RAND_15() - 16384)/16384.0;
+		b = (RAND_15() - 16384)/16384.0;
 	} while (a*a+b*b > 1.0);
 
 	// project c onto plane y = v.y + rainMaxHeight.
@@ -1049,7 +1049,7 @@ static void getRadial(Vector &c, Vector &v)
 
 static void getRadialRandomHeight(Vector& c, Vector& v)
 {
-	v.y = rand() * rainMaxHeight / 32768.0;
+	v.y = RAND_15() * rainMaxHeight / 32768.0;
 	getRadial(c, v);
 }
 
@@ -1903,9 +1903,9 @@ void Run_City()
 	/*for(O=CitySc->OmniHead;O;O=O->Next)
 	{
 		Quaternion_Form(&O->Pos.Keys[0].Pos, 
-			((rand()-16384)*5000.0)/16384.0,
-			(rand()*2000.0)/32768.0,
-			((rand()-16384)*5000.0)/16384.0,
+			((RAND_15()-16384)*5000.0)/16384.0,
+			(RAND_15()*2000.0)/32768.0,
+			((RAND_15()-16384)*5000.0)/16384.0,
 			0);
 	}*/
 
@@ -1972,10 +1972,10 @@ void Run_City()
 
 	//float waves[10][2];
 	//for (int w = 0; w != 10; ++w) {
-	//	waves[w][0] = (1.0 / 50.0) * (2 * (rand() / 32768.0f) - 1);
-	//	waves[w][1] = (1.0 / 50.0) * (2 * (rand() / 32768.0f) - 1);
-	//	waves[w][2] = (1.0 / 50.0) * (2 * (rand() / 32768.0f) - 1);
-	//	waves[w][3] = (1.0 / 50.0) * (2 * (rand() / 32768.0f) - 1);
+	//	waves[w][0] = (1.0 / 50.0) * (2 * (RAND_15() / 32768.0f) - 1);
+	//	waves[w][1] = (1.0 / 50.0) * (2 * (RAND_15() / 32768.0f) - 1);
+	//	waves[w][2] = (1.0 / 50.0) * (2 * (RAND_15() / 32768.0f) - 1);
+	//	waves[w][3] = (1.0 / 50.0) * (2 * (RAND_15() / 32768.0f) - 1);
 	//}
 	int idx = 0;
 	for (int y = 0; y < YRes; ++y) {

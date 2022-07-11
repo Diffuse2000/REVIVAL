@@ -298,7 +298,7 @@ static int32_t FN_X;
 
 int32_t Linear_Rand(int32_t Base, int32_t Limit)
 {
-	int32_t L = Base-Limit+(rand()*Limit>>14);
+	int32_t L = Base-Limit+(RAND_15()*Limit>>14);
 	if (L<0) L=0;
 	if (L>255) L=255;
 	return L;
@@ -1873,8 +1873,8 @@ void AW_Distort(AGridPoint *AGP,float Bang)
 	for(J=0;J<AGrid_Y;J++)
 		for(I=0;I<AGrid_X;I++)
 		{
-			GP->x += (rand()-16384)*ratio;
-			GP->y += (rand()-16384)*ratio;
+			GP->x += (RAND_15()-16384)*ratio;
+			GP->y += (RAND_15()-16384)*ratio;
 			GP++;
 		}
 }

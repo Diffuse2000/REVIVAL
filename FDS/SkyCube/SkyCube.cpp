@@ -31,7 +31,7 @@ static void GenerateSkyTexture(Texture *Tx, int32_t numStars)
 
 	while (numStars--)
 	{
-		float x = rand() * (size-1) / 32768.0;
+		float x = RAND_15() * (size-1) / 32768.0;
 
 		int ix = x;
 		float fx = x-ix;
@@ -40,7 +40,7 @@ static void GenerateSkyTexture(Texture *Tx, int32_t numStars)
 		Vector V;
 		V.x = 1.0;
 		V.y = tan(beta);
-		V.z = (rand()-16384) / 16384.0;
+		V.z = (RAND_15()-16384) / 16384.0;
 
 		// texture is placed at X=1 plane
 		if (fabs(V.y) >= V.x || fabs(V.z) >= V.x)

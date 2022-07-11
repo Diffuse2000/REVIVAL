@@ -2,7 +2,7 @@
 
 static ptRealType uRandom(ptRealType a, ptRealType b)
 {
-	ptRealType x = ptRealType(rand()/ptRealType(RAND_MAX));
+	ptRealType x = ptRealType(RAND_15()/ptRealType(RAND_MAX));
 	return a + (b-a)*x;
 }
 
@@ -392,7 +392,7 @@ static void PhotonTracerPrismTest()
 	O.computeNormals();
 
 	// beamAngle/beamTarget either selected at random or predetermined so rays go a int32_t way inside the prism.
-	ptRealType beamAngle = rand() * TWOPI / 32768.0;
+	ptRealType beamAngle = RAND_15() * TWOPI / 32768.0;
 	ptVector2 beamDirection;
 	beamDirection.fromPolar(beamAngle, 1.0);
 	ptVector2 beamTarget(uRandom(-0.2, 0.2), uRandom(-0.2, 0.2));

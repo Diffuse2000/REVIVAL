@@ -737,7 +737,7 @@ static void IXFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page,
 	IX_L2Y = logHeight;
 
 	// ZBuffer data starts at the end of framebuffer
-	IX_ZBuffer = (word *) ((dword)Page + PageSize);
+	IX_ZBuffer = (word *) ((uintptr_t)Page + PageSize);
 
 	Left.Index = 1;
 	Right.Index = numVerts - 1;
@@ -800,8 +800,8 @@ static void IXFiller(IXVertex *Verts, dword numVerts, void *Texture, void *Page,
 
 	dword y, SectionHeight;
 	y = Fist(Verts[0].y);
-	dword *Scanline = (dword *)((dword)Page + VESA_BPSL * y);
-	word *ZScanline = (word *)((dword)Page + PageSize + sizeof(word) * XRes * y);
+	dword *Scanline = (dword *)((uintptr_t)Page + VESA_BPSL * y);
+	word *ZScanline = (word *)((uintptr_t)Page + PageSize + sizeof(word) * XRes * y);
 	int32_t Width;
 	
 	// Iterate over sections
@@ -906,7 +906,7 @@ AfterScanConv:
 const dword maximalNgon = 16;
 thread_local static dword *l_TestTexture = NULL;
 thread_local static char l_IXMemBlock[sizeof(IXVertex) * (maximalNgon+1)];
-thread_local static IXVertex *l_IXArray = (IXVertex *)( ((dword)l_IXMemBlock + 0xF) & (~0xF) );
+thread_local static IXVertex *l_IXArray = (IXVertex *)( ((uintptr_t)l_IXMemBlock + 0xF) & (~0xF) );
 thread_local static Material DummyMat;
 thread_local static Texture DummyTex;
 
@@ -944,7 +944,7 @@ static void PrefillerCommon(Face *F, Vertex **V, dword numVerts)
 	int32_t LogWidth = F->Txtr->Txtr->LSizeX;
 	int32_t LogHeight = F->Txtr->Txtr->LSizeY;
 	
-	dword TextureAddr = (dword)F->Txtr->Txtr->Mipmap[0];
+	uintptr_t TextureAddr = (uintptr_t)F->Txtr->Txtr->Mipmap[0];
 
 //	dword TextureAddr =
 		//(dword)l_TestTexture; 

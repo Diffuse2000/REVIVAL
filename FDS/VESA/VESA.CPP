@@ -11,11 +11,11 @@
 
 
 #ifdef _C_WATCOM
-void No_operand();
+void No_opeRAND_15();
 #pragma aux No_operand=\
   "NOP";
 #else
-void No_operand() {}
+void No_opeRAND_15() {}
 #endif
 
 void *VESAModule,*VESABuffer;

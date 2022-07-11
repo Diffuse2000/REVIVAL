@@ -371,6 +371,7 @@ struct VESA_Surface
 	void (*Flip)(VESA_Surface *VS); //appropriate Flipping procedure to LFB.
 	VESA_Surface *Next,*Prev;
 	void *Handle;
+	void *Renderer;
 };
 
 

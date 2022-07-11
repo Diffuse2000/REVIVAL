@@ -8,7 +8,9 @@ static SDL_Window *sdl_window;
 
 static void V_Flip(VESA_Surface *VS)
 {
-	SDL_UpdateTexture(static_cast<SDL_Texture*>(VS->Handle), NULL, VS->Data, VS->BPSL);
+	auto x = SDL_UpdateTexture(static_cast<SDL_Texture*>(VS->Handle), NULL, VS->Data, VS->BPSL);
+	auto y = SDL_RenderCopy(static_cast<SDL_Renderer*>(VS->Renderer), static_cast<SDL_Texture*>(VS->Handle), NULL, NULL);
+	SDL_RenderPresent(static_cast<SDL_Renderer*>(VS->Renderer));
 }
 
 static dword V_Create(VESA_Surface *VS, SDL_Renderer * renderer)
@@ -23,7 +25,7 @@ static dword V_Create(VESA_Surface *VS, SDL_Renderer * renderer)
 
 
 	SDL_Texture * screen_texture = SDL_CreateTexture(renderer,
-		SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
+		SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
 		VS->X, VS->Y);
 
 	VS->Handle = static_cast<void *>(screen_texture);
@@ -44,6 +46,7 @@ dword SDL2_InitDisplay(SDL_Window *window)
 	
 	// Create a renderer with V-Sync enabled.
 	SDL_Renderer * renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_PRESENTVSYNC);
+	SDL_MainSurf.Renderer = renderer;
 
 	V_Create(&SDL_MainSurf, renderer);
 

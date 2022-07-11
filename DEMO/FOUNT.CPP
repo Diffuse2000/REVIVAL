@@ -152,8 +152,8 @@ void Initialize_Particles(Scene *Sc)
 		Sc->Pcl[I].F.Txtr = PclT+I%NPMats;
 
 		// Particle Velocity
-//		F1=(float)rand()/32768.0;
-//		F2=(float)rand()/4096.0;
+//		F1=(float)RAND_15()/32768.0;
+//		F2=(float)RAND_15()/4096.0;
 //		Sc->Pcl[I].Vel.X=(2.0+F2)*cos(F1);
 //	Sc->Pcl[I].Vel.Y=(0.5+F2*0.5)*sin(F1);
 //		Sc->Pcl[I].Vel.Z=1.0*cos(F1);
@@ -185,8 +185,8 @@ void Initialize_Particles(Scene *Sc)
 		}
 
 		// Particle Velocity
-//		F1=(float)rand()/32768.0;
-//		F2=(float)rand()/4096.0;
+//		F1=(float)RAND_15()/32768.0;
+//		F2=(float)RAND_15()/4096.0;
 //		Sc->Pcl[I].Vel.X=(2.0+F2)*cos(F1);
 //	Sc->Pcl[I].Vel.Y=(0.5+F2*0.5)*sin(F1);
 //		Sc->Pcl[I].Vel.Z=1.0*cos(F1);
@@ -217,8 +217,8 @@ void Initialize_Particles(Scene *Sc)
 		}
 
 		// Particle Velocity
-//		F1=(float)rand()/32768.0;
-//		F2=(float)rand()/4096.0;
+//		F1=(float)RAND_15()/32768.0;
+//		F2=(float)RAND_15()/4096.0;
 //		Sc->Pcl[I].Vel.X=(2.0+F2)*cos(F1);
 //	Sc->Pcl[I].Vel.Y=(0.5+F2*0.5)*sin(F1);
 //		Sc->Pcl[I].Vel.Z=1.0*cos(F1);
@@ -260,18 +260,18 @@ void Particle_Kinematics(Scene *Sc)
 //	Spwn = 0;
 	while(Spwn--)
 	{
-		fpow = pow + (float)rand()/32768.0f * FntSpawnOutPowRand;
+		fpow = pow + (float)RAND_15()/32768.0f * FntSpawnOutPowRand;
 		// search for a place to insert
 		for(P=Sc->Pcl;P<PE;P++)
 			if (!P->Flags) break;
 		if (P==PE) break;
 		//insert
 		Vector_Copy(&P->V.Pos,&FntSrc);
-		P->V.Pos.X += ((float)(rand()-16384)/16384.0f)*FntSpawnOutDisp;
-		P->V.Pos.Z += ((float)(rand()-16384)/16384.0f)*FntSpawnOutDisp;
+		P->V.Pos.X += ((float)(RAND_15()-16384)/16384.0f)*FntSpawnOutDisp;
+		P->V.Pos.Z += ((float)(RAND_15()-16384)/16384.0f)*FntSpawnOutDisp;
 
-		u = ((float)rand()/32768.0f)*PI_M2;
-		v = ((float)rand()/32768.0f)*PI*0.15f+PI*0.30f;
+		u = ((float)RAND_15()/32768.0f)*PI_M2;
+		v = ((float)RAND_15()/32768.0f)*PI*0.15f+PI*0.30f;
 		cv = cos(v);
 		P->Vel.X = cv * cos(u) * fpow;
 		P->Vel.Y = sin(v) * fpow;
@@ -381,8 +381,8 @@ void Particle_Kinematics(Scene *Sc)
 			//insert
 			Vector_Copy(&P->V.Pos,&Omit);
 
-			u = ((float)rand()/32768.0f)*PI_M2;
-			v = ((float)rand()/32768.0f)*PI-PI_D2;
+			u = ((float)RAND_15()/32768.0f)*PI_M2;
+			v = ((float)RAND_15()/32768.0f)*PI-PI_D2;
 			cv = cos(v);
 			P->Vel.X = cv * cos(u) * 4.5;
 			P->Vel.Y = sin(v) * 4.5;
@@ -484,17 +484,17 @@ void Particle_Kinematics(Scene *Sc)
 			}
 			if (P==PE) break;
 			// load pcl with stuff
-			P->Color.R = 63 + (rand()>>9);
-			P->Color.G = 127 + (rand()>>8);
+			P->Color.R = 63 + (RAND_15()>>9);
+			P->Color.G = 127 + (RAND_15()>>8);
 			P->Color.B = 255;
 
 			Vector_Copy(&P->V.Pos,&Vortex_Center);
 			P->V.Pos.Y = FntHead.Y;
 
-			r = rand()>>5;
+			r = RAND_15()>>5;
 			if (r&0xFF>=0x80) r -= 0x80;
 			x = r * PI_M2 / 1024.0f;
-			u = (1.0f+2.0f*rand()/32768.0f);
+			u = (1.0f+2.0f*RAND_15()/32768.0f);
 			P->V.Pos.X += cos(x)*u;
 			P->V.Pos.Z += sin(x)*u;
 
@@ -1059,14 +1059,14 @@ void Generate_Lightning_Particles(Vector *Src,float Num)
 	{
 		for(P = LBoltPcls,PE = P + FntLightningPcls;P->Charge>0.0f&&P<PE;P++);
 		if (P==PE) return;
-		P->Charge = rand()*0.5f/32768.0f+0.5f;
+		P->Charge = RAND_15()*0.5f/32768.0f+0.5f;
 		Vector_Copy(&P->V.Pos,Src);
-		P->Vel.X = ((rand()-16384)/16384.0f)*32.5f;
-		P->Vel.Y = ((rand()-16384)/16384.0f)*5.5f;
-		P->Vel.Z = ((rand()-16384)/16384.0f)*32.5f;
+		P->Vel.X = ((RAND_15()-16384)/16384.0f)*32.5f;
+		P->Vel.Y = ((RAND_15()-16384)/16384.0f)*5.5f;
+		P->Vel.Z = ((RAND_15()-16384)/16384.0f)*32.5f;
 		P->Color.R = 128;
-		P->Color.G = 96+(rand()>>10);
-		P->Color.B = 32+(rand()>>9);
+		P->Color.G = 96+(RAND_15()>>10);
+		P->Color.B = 32+(RAND_15()>>9);
 	}
 }
 
@@ -1118,18 +1118,18 @@ void Lightning_Bolt(Vector *Src,Vector *Targ,int32_t BasePow)
 		// randomize direction
 		Vector_Sub(Targ,&Pos,&V);
 		Vector_Norm(&V);
-		V.X += ((float)(rand()-16384))*0.5f/16384.0f;
-		V.Y += ((float)(rand()-16384))*0.5f/16384.0f;
-		V.Z += ((float)(rand()-16384))*0.5f/16384.0f;
+		V.X += ((float)(RAND_15()-16384))*0.5f/16384.0f;
+		V.Y += ((float)(RAND_15()-16384))*0.5f/16384.0f;
+		V.Z += ((float)(RAND_15()-16384))*0.5f/16384.0f;
 		Vector_Norm(&V);
-		Seg=30.0f+rand()*30.0f/32768.0f;
+		Seg=30.0f+RAND_15()*30.0f/32768.0f;
 		Vector_SelfScale(&V,Seg);
 		Vector_Add(&Pos,&V,&NPos);
 		Lightning_Bolt_Frag(&Pos,&NPos,BasePow>>4);
 		Vector_Copy(&Pos,&NPos);
 		Vector_Sub(Targ,&Pos,&V);
 		Distance = Vector_Length(&V);
-		if (Distance>60.0f&&Distance<400.0f&&(rand()<320*BasePow-Distance*15))
+		if (Distance>60.0f&&Distance<400.0f&&(RAND_15()<320*BasePow-Distance*15))
 		{
 			Yosi.Y = 0;
 			Yosi.X = Pos.X;
@@ -1153,11 +1153,11 @@ void Spark(Vector *Src,Vector *Targ)
 		// randomize direction
 		Vector_Sub(Targ,&Pos,&V);
 		Vector_Norm(&V);
-		V.X += ((float)(rand()-16384))*0.3f/16384.0f;
-		V.Y += ((float)(rand()-16384))*0.3f/16384.0f;
-		V.Z += ((float)(rand()-16384))*0.3f/16384.0f;
+		V.X += ((float)(RAND_15()-16384))*0.3f/16384.0f;
+		V.Y += ((float)(RAND_15()-16384))*0.3f/16384.0f;
+		V.Z += ((float)(RAND_15()-16384))*0.3f/16384.0f;
 		Vector_Norm(&V);
-		Seg=15.0f+rand()*15.0f/32768.0f;
+		Seg=15.0f+RAND_15()*15.0f/32768.0f;
 		Vector_SelfScale(&V,Seg);
 		Vector_Add(&Pos,&V,&NPos);
 		Lightning_Bolt_Frag(&Pos,&NPos,1);
@@ -1196,9 +1196,9 @@ void Handle_Lightning()
 			if (Timer>FntLightningTime1)
 			{
 				LightningFlag = 1;
-				Upwards.X = Pylon->X+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.X = Pylon->X+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Upwards.Y = Pylon->Y+1000.0f;
-				Upwards.Z = Pylon->Z+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.Z = Pylon->Z+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Downwards.X = Pylon->X;
 				Downwards.Y = 0.0f;
 				Downwards.Z = Pylon->Z;
@@ -1210,9 +1210,9 @@ void Handle_Lightning()
 			if (Timer>FntLightningTime2)
 			{
 				LightningFlag = 2;
-				Upwards.X = Pylon[1].X+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.X = Pylon[1].X+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Upwards.Y = Pylon[1].Y+1000.0f;
-				Upwards.Z = Pylon[1].Z+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.Z = Pylon[1].Z+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Downwards.X = Pylon[1].X;
 				Downwards.Y = 0.0f;
 				Downwards.Z = Pylon[1].Z;
@@ -1224,9 +1224,9 @@ void Handle_Lightning()
 			if (Timer>FntLightningTime3)
 			{
 				LightningFlag = 3;
-				Upwards.X = Pylon[2].X+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.X = Pylon[2].X+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Upwards.Y = Pylon[2].Y+1000.0f;
-				Upwards.Z = Pylon[2].Z+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.Z = Pylon[2].Z+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Downwards.X = Pylon[2].X;
 				Downwards.Y = 0.0f;
 				Downwards.Z = Pylon[2].Z;
@@ -1238,9 +1238,9 @@ void Handle_Lightning()
 			if (Timer>FntLightningTime4)
 			{
 				LightningFlag = 4;
-				Upwards.X = Pylon[3].X+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.X = Pylon[3].X+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Upwards.Y = Pylon[3].Y+1000.0f;
-				Upwards.Z = Pylon[3].Z+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.Z = Pylon[3].Z+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Downwards.X = Pylon[3].X;
 				Downwards.Y = 0.0f;
 				Downwards.Z = Pylon[3].Z;
@@ -1252,9 +1252,9 @@ void Handle_Lightning()
 			if (Timer>FntLightningTime5)
 			{
 				LightningFlag = 5;
-				Upwards.X = Pylon[4].X+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.X = Pylon[4].X+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Upwards.Y = Pylon[4].Y+1000.0f;
-				Upwards.Z = Pylon[4].Z+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.Z = Pylon[4].Z+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Downwards.X = Pylon[4].X;
 				Downwards.Y = 0.0f;
 				Downwards.Z = Pylon[4].Z;
@@ -1266,9 +1266,9 @@ void Handle_Lightning()
 			if (Timer>FntLightningTime6)
 			{
 				LightningFlag = 6;
-				Upwards.X = Pylon[5].X+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.X = Pylon[5].X+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Upwards.Y = Pylon[5].Y+1000.0f;
-				Upwards.Z = Pylon[5].Z+(rand()-16384.0f)/16384.0f*75.0f;
+				Upwards.Z = Pylon[5].Z+(RAND_15()-16384.0f)/16384.0f*75.0f;
 				Downwards.X = Pylon[5].X;
 				Downwards.Y = 0.0f;
 				Downwards.Z = Pylon[5].Z;
@@ -1299,7 +1299,7 @@ void Noise_Sample()
 {
 	Word *N = Noise;
 	int32_t I = 1800;
-	while (I--) *N++ = rand();
+	while (I--) *N++ = RAND_15();
 }
 
 void Iterate_Photonbeam_Texture()
@@ -1308,22 +1308,22 @@ void Iterate_Photonbeam_Texture()
 	// first line
 	DWord *Pen = Photonbeam + 64*127;
 	for(I=0;I<=32;I++)
-		*Pen++ = (155*I>>5)+(rand()>>9)+32;
+		*Pen++ = (155*I>>5)+(RAND_15()>>9)+32;
 	for(I=32;I;I--)
-		*Pen++ = (155*I>>5)+(rand()>>9)+32;
+		*Pen++ = (155*I>>5)+(RAND_15()>>9)+32;
 	for(I=0;I<=32;I++)
-		*Pen++ = (155*I>>5)+(rand()>>9)+32;
+		*Pen++ = (155*I>>5)+(RAND_15()>>9)+32;
 	for(I=32;I;I--)
-		*Pen++ = (155*I>>5)+(rand()>>9)+32;
+		*Pen++ = (155*I>>5)+(RAND_15()>>9)+32;
 
 //	for(I=0;I<=32;I++)
-//		*Pen++ = 96+(rand()>>8);
+//		*Pen++ = 96+(RAND_15()>>8);
 //	for(I=32;I;I--)
-//		*Pen++ = 96+(rand()>>8);
+//		*Pen++ = 96+(RAND_15()>>8);
 //	for(I=0;I<=32;I++)
-//		*Pen++ = 96+(rand()>>8);
+//		*Pen++ = 96+(RAND_15()>>8);
 //	for(I=32;I;I--)
-//		*Pen++ = 96+(rand()>>8);
+//		*Pen++ = 96+(RAND_15()>>8);
 
 
 	Pen = Photonbeam;
@@ -1331,7 +1331,7 @@ void Iterate_Photonbeam_Texture()
 	{
 		for(I=1;I<=62;I++)
 		{
-			//*Pen = (*Pen + Pen[63] + Pen[64] + Pen[65] + ((rand()>>10)-14) )>>2;
+			//*Pen = (*Pen + Pen[63] + Pen[64] + Pen[65] + ((RAND_15()>>10)-14) )>>2;
 			//*Pen = (*Pen + Pen[63] + Pen[64] + Pen[65] + (Noise[NoiseSampler++]>>10)-14 )>>2;
 			*Pen = (Pen[64] + Pen[127] + Pen[128] + Pen[129] + (Noise[NoiseSampler++]>>10)-13 )>>2;
 			Pen++;

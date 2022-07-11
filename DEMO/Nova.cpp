@@ -167,9 +167,9 @@ static void randomDir(Vector &v)
 	float x, y, z;
 	do
 	{
-		x = ((rand() - 16384.0)/16384.0);
-		y = ((rand() - 16384.0)/16384.0);
-		z = ((rand() - 16384.0)/16384.0);
+		x = ((RAND_15() - 16384.0)/16384.0);
+		y = ((RAND_15() - 16384.0)/16384.0);
+		z = ((RAND_15() - 16384.0)/16384.0);
 	} while (x*x + y*y + z*z >= 1.0);
 
 	v.x = x;
@@ -196,12 +196,12 @@ static void GenerateComets()
 
 			if (fabs(Dot_Product(&u, &v)) > 0.3) continue;
 
-			Vector_Scale(&u, 10.0 + rand() * 0.0 / 32768.0, &Comets[i].vel);
-			Vector_Scale(&v, 30.0 + rand() * 0.0 / 32768.0, &Comets[i].pos);
+			Vector_Scale(&u, 10.0 + RAND_15() * 0.0 / 32768.0, &Comets[i].vel);
+			Vector_Scale(&v, 30.0 + RAND_15() * 0.0 / 32768.0, &Comets[i].pos);
 			
 			break;
 		} while (1);
-		Comets[i].spawnTick = rand() * SPWN_INTERVAL / 32768.0;
+		Comets[i].spawnTick = RAND_15() * SPWN_INTERVAL / 32768.0;
 	}
 }
 

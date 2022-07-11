@@ -119,7 +119,7 @@ void FrustumClipper::Init()
 	
 	//for(i=0;i<10; i++)
 	//{
-	//	x = rand() / 391.241;
+	//	x = RAND_15() / 391.241;
 
 	//	float l_acc = log(x) * rl2;
 	//	float l_tbl = fastLog2(x);

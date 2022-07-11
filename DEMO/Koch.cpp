@@ -73,9 +73,9 @@ void KochExpand(vector<Triangle> &src, vector<Triangle> &dst)
 		Vector_LComb(&newVerts[2], &n, 1, -h*0.0, &newVerts[2]);
 		Vector_LComb(&u, &n, 1, h*1.0, &newVerts[3]);
 
-		newColors[3].x = ((t.Colors[0].x + t.Colors[1].x + t.Colors[2].x)/3.0);// + ((rand() * 40) >> 15) - 20;
-		newColors[3].y = ((t.Colors[0].y + t.Colors[1].y + t.Colors[2].y)/3.0);// + ((rand() * 40) >> 15) - 20;
-		newColors[3].z = ((t.Colors[0].z + t.Colors[1].z + t.Colors[2].z)/3.0);// + ((rand() * 40) >> 15) - 20;
+		newColors[3].x = ((t.Colors[0].x + t.Colors[1].x + t.Colors[2].x)/3.0);// + ((RAND_15() * 40) >> 15) - 20;
+		newColors[3].y = ((t.Colors[0].y + t.Colors[1].y + t.Colors[2].y)/3.0);// + ((RAND_15() * 40) >> 15) - 20;
+		newColors[3].z = ((t.Colors[0].z + t.Colors[1].z + t.Colors[2].z)/3.0);// + ((RAND_15() * 40) >> 15) - 20;
 		Vector_LERP(&newColors[0], &newColors[3], 0.4, &newColors[0]);
 		Vector_LERP(&newColors[1], &newColors[3], 0.4, &newColors[1]);
 		Vector_LERP(&newColors[2], &newColors[3], 0.4, &newColors[2]);
@@ -359,9 +359,9 @@ static void randomDir(Vector &v)
 	float x, y, z;
 	do
 	{
-		x = ((rand() - 16384.0)/16384.0);
-		y = ((rand() - 16384.0)/16384.0);
-		z = ((rand() - 16384.0)/16384.0);
+		x = ((RAND_15() - 16384.0)/16384.0);
+		y = ((RAND_15() - 16384.0)/16384.0);
+		z = ((RAND_15() - 16384.0)/16384.0);
 	} while (x*x + y*y + z*z >= 1.0);
 
 	v.x = x;
@@ -388,12 +388,12 @@ static void GenerateComets()
 
 			if (fabs(Dot_Product(&u, &v)) > 0.3) continue;
 
-			Vector_Scale(&u, 10.0 + rand() * 0.0 / 32768.0, &Comets[i].vel);
-			Vector_Scale(&v, 30.0 + rand() * 0.0 / 32768.0, &Comets[i].pos);
+			Vector_Scale(&u, 10.0 + RAND_15() * 0.0 / 32768.0, &Comets[i].vel);
+			Vector_Scale(&v, 30.0 + RAND_15() * 0.0 / 32768.0, &Comets[i].pos);
 			
 			break;
 		} while (1);
-		Comets[i].spawnTick = rand() * SPWN_INTERVAL / 32768.0;
+		Comets[i].spawnTick = RAND_15() * SPWN_INTERVAL / 32768.0;
 	}
 }
 

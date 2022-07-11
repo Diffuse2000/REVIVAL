@@ -1467,6 +1467,9 @@ int main(int argc, const char *argv[])
 
 	SDL2_InitDisplay(window);
 
+	memset(VPage, 0xcd, MainSurf->BPSL * YRes);
+	Flip(MainSurf);
+
 	// Ow shit
 	// STUB must initialize all video,raster and render devices.
 	//
@@ -1478,6 +1481,16 @@ int main(int argc, const char *argv[])
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_QUIT) exit(0);
+			if (event.type == SDL_KEYDOWN) {
+				
+				//fprintf(Stub_Log,"<%d> Keyboard Key [%d] down\n",*TimerPtr,wParam);
+				Keyboard[event.key.keysym.scancode] = 1;
+			}
+			if (event.type == SDL_KEYUP) {
+				
+				//fprintf(Stub_Log,"<%d> Keyboard Key [%d] down\n",*TimerPtr,wParam);
+				Keyboard[event.key.keysym.scancode] = 0;
+			}
         }
 
         //
