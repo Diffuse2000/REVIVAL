@@ -10,6 +10,8 @@
 #include <time.h>
 
 #define RAND_15() (rand() / (((unsigned)RAND_MAX+1) / 32768))
+#define RAND_15_MAX 0x7fff
+
 // Enivronmental IDs (Not used for now,only works for dos32/watcom)
 #define _O_DOS32 //DOS PROTECTED MODE RUNTIME
 //#define _O_WIN32 //WINDOWS 32-BIT APPLICATION
@@ -20,7 +22,7 @@
 
 #define MAX_GSTRING 128
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(EMSCRIPTEN_MACOS)
 #define _strdup strdup
 //#define _aligned_malloc aligned_alloc
 #define _aligned_malloc(a,b) malloc(a)
@@ -204,7 +206,7 @@ enum SortPriority
 #define Particle_Active  0x0001
 
 // Key Scancodes.
-#define ScESC 1
+#define ScESC 41 // an oracle told me it's 41
 #define ScF1  59
 #define ScF2  60
 #define ScF3  61

@@ -8,7 +8,7 @@
 #include <VESA/Vesa.h>
 
 static float frand() {
-	return static_cast <float> (RAND_15()) / static_cast <float> (RAND_MAX);
+	return static_cast <float> (RAND_15()) / static_cast <float> (RAND_15_MAX);
 }
 
 
@@ -108,23 +108,23 @@ struct GreetsGenerator
 	float scaley = 1.0;
 
 	static constexpr const char* greetingsRound1[] = {
-		" MRI",
-		" imr",
-		" Cycat",
-		" coolphat",
-		" borzom",
-		" civax",
-		" yoe",
+		"MRI",
+		"imr",
+		"Cycat",
+		"coolphat",
+		"borzom",
+		"civax",
+		"yoe",
 	};
 
 	static constexpr const char* greetingsRound2[] = {
-		" Doomsday",
-		" esteem",
-		" adept",
-		" kombat",
-		" rage",
-		" magic intros",
-		" calius"
+		"Doomsday",
+		"esteem",
+		"adept",
+		"kombat",
+		"rage",
+		"magic intros",
+		"calius"
 	};
 
 	static constexpr const char* greetingsRound3[] = {
@@ -135,14 +135,14 @@ struct GreetsGenerator
 	struct GreetsEntry {
 		GreetsEntry(const char* text): text(text) {
 			OutTextXYExtents(12, 0, text, 256, 256, x, y);
-			y -= 2;
+			// y -= 2;
 		}
 
 		const char* text;
 		int32_t x, y;
 	};
 
-	GreetsEntry ge0 { " Flood\nGreets" };
+	GreetsEntry ge0 { "Flood\nGreets" };
 	std::vector<GreetsEntry> ge1{ std::begin(greetingsRound1) , std::end(greetingsRound1) };
 	std::vector<GreetsEntry> ge2{ std::begin(greetingsRound2) , std::end(greetingsRound2) };
 	std::vector<GreetsEntry> ge3{ std::begin(greetingsRound3) , std::end(greetingsRound3) };

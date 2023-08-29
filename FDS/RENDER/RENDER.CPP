@@ -28,7 +28,7 @@ thread_local FrustumClipper clipper;
 
 
 float frand() {
-	return static_cast <float> (RAND_15()) / static_cast <float> (RAND_MAX);
+	return static_cast <float> (RAND_15()) / static_cast <float> (RAND_15_MAX);
 }
 
 // Front-to-back sorting used together with ZBuffer.

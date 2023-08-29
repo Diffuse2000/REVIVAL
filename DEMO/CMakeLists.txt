@@ -100,10 +100,13 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 # Link with other targets.
 target_link_libraries(${PROJECT_NAME} PRIVATE
     FDS
-#    Modplayer
+    Modplayer
 )
 
 
 target_link_libraries(${PROJECT_NAME} PRIVATE "${ADDITIONAL_LIBRARY_DEPENDENCIES}" "${SDL2_LIBRARIES}")
 include_directories(${PROJECT_NAME} "${SDL2_INCLUDE_DIRS}")
+
+install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION "../Runtime")
 

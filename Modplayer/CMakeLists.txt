@@ -200,32 +200,38 @@ endif()
 ################################################################################
 # Dependencies
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-    set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        "Modplayer-32"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        "$<$<CONFIG:Debug>:"
-            "Modplayer-32"
-        ">"
-        "$<$<CONFIG:llvm>:"
-            "Modplayer-64"
-        ">"
-        "$<$<CONFIG:Release>:"
-            "Modplayer-32"
-        ">"
-    )
-endif()
-target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
+if (APPLE)
+    set(ADDITIONAL_LIBRARY_DEPENDENCIES "modplayer")
+    target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
+    target_link_directories(${PROJECT_NAME} PUBLIC "/Users/gil-ad.benor/modplayer/target/release/")
 
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
-    target_link_directories(${PROJECT_NAME} PUBLIC
-        "C:/Projects/REVIVAL/Modplayer"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_link_directories(${PROJECT_NAME} PUBLIC
-        "C:/Projects/REVIVAL/Modplayer"
-    )
-endif()
+else()
+    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
+        set(ADDITIONAL_LIBRARY_DEPENDENCIES
+            "Modplayer-32"
+        )
+    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
+        set(ADDITIONAL_LIBRARY_DEPENDENCIES
+            "$<$<CONFIG:Debug>:"
+                "Modplayer-32"
+            ">"
+            "$<$<CONFIG:llvm>:"
+                "Modplayer-64"
+            ">"
+            "$<$<CONFIG:Release>:"
+                "Modplayer-32"
+            ">"
+        )
+    endif()
+    target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
 
+    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
+        target_link_directories(${PROJECT_NAME} PUBLIC
+            "C:/Projects/REVIVAL/Modplayer"
+        )
+    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
+        target_link_directories(${PROJECT_NAME} PUBLIC
+            "C:/Projects/REVIVAL/Modplayer"
+        )
+    endif()
+endif()

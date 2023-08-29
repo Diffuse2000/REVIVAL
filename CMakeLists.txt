@@ -2,11 +2,22 @@ cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 
 set(CMAKE_SYSTEM_VERSION 10.0 CACHE STRING "" FORCE)
 
-set(CMAKE_CXX_FLAGS "-std=c++20 -mcpu=apple-a14")
+add_compile_options(-std=c++20)
+
+if (EMSCRIPTEN)
+    add_compile_options(-msimd128 -sUSE_SDL=2)
+
+    if (APPLE)
+        add_definitions(-DEMSCRIPTEN_MACOS=1)
+    endif()
+
+elseif (APPLE)
+add_compile_options(-mcpu=apple-a14)
+endif()
 
 project(REVIVAL CXX)
 
-add_compile_options ( -I/Users/gil-ad.benor/Work/REVIVAL/FDS )
+add_compile_options ( "-I${PROJECT_SOURCE_DIR}/FDS" )
 
 ################################################################################
 # Set target arch type if empty. Visual studio solution generator provides it.
@@ -15,6 +26,11 @@ if(NOT CMAKE_VS_PLATFORM_NAME)
     set(CMAKE_VS_PLATFORM_NAME "x64")
 endif()
 message("${CMAKE_VS_PLATFORM_NAME} architecture in use")
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    message("Running under MacOS")
+    set(MACOSX TRUE)
+endif()
 
 if(NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32"
      OR "${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64"))
@@ -94,4 +110,4 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ################################################################################
 add_subdirectory(DEMO)
 add_subdirectory(FDS)
-#add_subdirectory(Modplayer)
+add_subdirectory(Modplayer)

@@ -2,7 +2,7 @@
 
 static ptRealType uRandom(ptRealType a, ptRealType b)
 {
-	ptRealType x = ptRealType(RAND_15()/ptRealType(RAND_MAX));
+	ptRealType x = ptRealType(RAND_15()/ptRealType(RAND_15_MAX));
 	return a + (b-a)*x;
 }
 

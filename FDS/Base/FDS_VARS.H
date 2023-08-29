@@ -881,21 +881,21 @@ inline void FPU_LPrecision()
 	constexpr uint32_t FIZ = 1 << 0;
 	constexpr uint32_t flush_to_zero_mask = FZ | AH | FIZ;
 
-	// lookup table for FPSCR.RN-to-FPCR.RMode translation
-	constexpr uint32_t rounding_mode_table[] = {
-		(0 << 22),  // nearest
-		(3 << 22),  // zero
-		(1 << 22),  // +inf
-		(2 << 22),  // -inf
+	enum ROUNDING_MODE {
+		NEAREST,
+		ROUND_DOWN,
+		ROUND_UP,
+		ROUND_TO_ZERO
 	};
+
 	constexpr uint32_t rounding_mode_mask = 3 << 22;
-	const uint32_t rounding_mode_bits = rounding_mode_table[2];
+	const uint32_t rounding_mode_bits = ROUND_UP;
 	const uint32_t flush_to_zero_bits = FZ | AH;
 
 	const uint64_t base = default_fpcr & ~(flush_to_zero_mask | rounding_mode_mask);
   	SetFPCR(base | rounding_mode_bits | flush_to_zero_bits);
 #else
-#error "Unsopported arch"
+// #error "Unsopported arch"
 #endif
 
 #else

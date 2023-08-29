@@ -29,7 +29,7 @@ static float SwCarry = 0.0f, SwCarry2 = 0.0f;
 
 static Vector Vortex_Center(-0.053f,343.381f, 0.251f);
 
-static int32_t LightningFlag = 0;
+static int32_t LightningFlag = -1;
 
 static char MSGStr[160];
 
@@ -1467,6 +1467,8 @@ void Handle_Lightning()
 				Reserve_Lightning_Bolt(&Upwards,&Downwards,-1);
 				Ambient_Factor = basicSceneAmbient*2.0;
 			}
+		break;
+		default:
 		break;
 	}
 	FntSc->Ambient.R = Ambient_Factor;
