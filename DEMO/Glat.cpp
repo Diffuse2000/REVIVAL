@@ -235,7 +235,6 @@ void Run_Glato(void)
 	int X,Y;
 	float R1,R3,R4;
 
-	Matrix_Identity(CamMat.XMMMatrix);
 	Radius = 1;
 
 
@@ -292,7 +291,7 @@ void Run_Glato(void)
 			ST = ((Timer-2300)*2500)/(1000+(Timer-2300));//  sqrt(Timer*1600);
 		}
 //		ST = (Timer*2000)/(1000+Timer);//  sqrt(Timer*1600);
-		Euler_Angles(CamMat.XMMMatrix,Rx,Ry,Rz);
+		Euler_Angles(CamMat.Data,Rx,Ry,Rz);
 		i=0;
 		j=0;
 		//code
@@ -332,7 +331,7 @@ void Run_Glato(void)
 				Direction1.y=y-(yres >> 1);
 				Direction1.z=256.0*XResFactor;
 				Direction1.w = .0f;
-				MatrixXVector(CamMat.XMMMatrix,&Direction1,&U);
+				MatrixXVector(CamMat.Data,&Direction1,&U);
 				Direction1=U;
 				Direction1.Normalize();
 //				Radius = std::max(std::max(fabs(Direction1.y), fabs(Direction1.x)), fabs(Direction1.z));//1.0;//sin(Direction1.x) * cos(Direction1.z);

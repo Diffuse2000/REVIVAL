@@ -480,6 +480,8 @@ material global ID or ptr
 #include "Threads.h"
 #include "../Modplayer/Modplayer.h"
 #include <SDL.h>
+#include <utility>
+#include <iostream>
 
 // global configuration db
 static ConfigurationDB *g_cfg;
@@ -543,7 +545,6 @@ uint32_t Stub_Disable;
 
 static SDL_TimerID TimerID = 0; //MM Timer Handle
 static int32_t Timer__NA = -1;
-static volatile int32_t *TimerPtr = &Timer;
 
 static char G_TitleStr[MAX_GSTRING] = "Revival / Flood";
 static char G_WindowClassStr[MAX_GSTRING] = "Revival";
@@ -576,7 +577,7 @@ void FlipRequest(VESA_Surface *VS)
 
 Uint32 TimerProc(Uint32 interval, void *param)
 { 
-    (*TimerPtr)++;
+    Timer++;
 	return interval;
 } 
 
@@ -594,7 +595,7 @@ int TimerInit(int32_t Freq)
 		return 0;
 	}
 
-	*TimerPtr = 0;
+	Timer = 0;
 	return 1;
 }
 
@@ -623,6 +624,7 @@ uint32_t StubInit__(void)
 	// redirect console output to a file
 	freopen("logfile.txt", "w+", stdout);
 
+	FPU_LPrecision();
 	return 0;
 }
 
@@ -1051,6 +1053,14 @@ struct ThreadPoolCleanup {
 	}
 };
 
+template <typename F>
+struct scope_guard {
+	scope_guard(F &&f): f(std::forward<F>(f)) {}
+	~scope_guard() {f();}
+	F f;
+};
+
+
 void CodeEntry(void *var)
 {
 	Generate_RGBFlares(); // should be in fds_init
@@ -1109,6 +1119,11 @@ void CodeEntry(void *var)
 		FPU_LPrecision();
 	});
 	ThreadPoolCleanup _guard;
+	scope_guard guard([](){
+		SDL_QuitEvent q = {SDL_QUIT, SDL_GetTicks()};
+		int ecode = SDL_PushEvent((SDL_Event*)&q);
+		//std::cerr << "push event: " << ecode << std::endl;
+	});
 
 	// Timer = 0;
 	// FillerTest();
@@ -1197,7 +1212,6 @@ void StubRemove()
 
 }
 
-
 static void StubbedThread(void *var)
 {
 	// STID = GetCurrentThreadId();
@@ -1218,221 +1232,6 @@ static void StubbedThread(void *var)
 
 	// _endthread();
 }
-#if 0
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-
-	dword scanCode;
-	if (StubI)
-	{
-		switch (message)
-		{
-			// Keyboard Array may require conversions to my own standard.
-			// (parhaps to the std. scancodes. messing with the interrupt 9h code later on to refit wont be fun.)
-			case WM_ACTIVATE:
-				WORD fActive,fMinimized;
-				fActive = LOWORD(wParam);           // activation flag 
-				fMinimized = (BOOL) HIWORD(wParam); // minimized flag 
-				Stub_Disable = (fActive==WA_INACTIVE||fMinimized);
-			break;
-			case WM_KEYDOWN:
-				scanCode = MapVirtualKey(wParam, 0);
-				//fprintf(Stub_Log,"<%d> Keyboard Key [%d] down\n",*TimerPtr,wParam);
-				Keyboard[scanCode] = 1;
-			break;
-			case WM_KEYUP:
-				scanCode = MapVirtualKey(wParam, 0);
-				//fprintf(Stub_Log,"<%d> Keyboard Key [%d] up\n",*TimerPtr,wParam);
-				Keyboard[scanCode] = 0;
-			break;
-/*			case WM_MOUSEMOVE:
-				CMS->Buttons = 0;
-				StubProcessMouseSignal(wParam);
-
-				CMS->X = LOWORD(lParam);  // horizontal position of cursor 
-				CMS->Y = HIWORD(lParam);  // vertical position of cursor  
-			break;
-			case WM_LBUTTONDOWN:
-				CMS->Buttons = MouseLDC;
-				StubProcessMouseSignal(wParam);
-
-				CMS->SX = LOWORD(lParam);  // horizontal position of cursor 
-				CMS->SY = HIWORD(lParam);  // vertical position of cursor  
-			break;
-
-			case WM_LBUTTONDBLCLK:
-				CMS->Buttons = MouseLDC;
-				StubProcessMouseSignal(wParam);
-
-				CMS->SX = LOWORD(lParam);  // horizontal position of cursor 
-				CMS->SY = HIWORD(lParam);  // vertical position of cursor  
-			break;*/
-		}
-	}
-	switch (message)
-	{
-		case WM_DESTROY:
-			PostQuitMessage(0);
-		break;
-        case WM_SETCURSOR:
-			// kill fullscreen cursor, no matter the cost!
-			if (g_fullScreenMode)
-				while (ShowCursor(FALSE)>=0);
-        break;
-		case WM_TIMER:
-			//(*TimerPtr)++;
-		break;
-/*
-		case WM_USER:
-			fprintf(Stub_Log,"<%d> Initialization Signal\n",*TimerPtr);
-			S_InitRet = StubInit__(InStS);
-			Thread_Interlock_Mutex = 0;
-		break;*/
-
-		// case WM_USER+1:
-		// 	//fprintf(Stub_Log,"<%d> Device Initialization Signal\n",*TimerPtr);
-		// 	S_InitRet = InitDisplayDevice();
-		// 	StubI = 2;
-		// 	Thread_Interlock_Mutex = 0;
-		// break;
-		// Page flip signal
-		case WM_USER+3:
-			Flip(g_FlipRequestPage);
-			Thread_Interlock_Mutex = 0;
-		break;
-
-		case WM_USER+2:
-			//fprintf(Stub_Log,"<%d> Termination Signal\n",*TimerPtr);
-			StubRemove();
-			// Try to allow "recovery time" from low res fullscreen.
-			//SetWindowLong( G_hWnd, GWL_STYLE, WS_OVERLAPPED );
-			//Sleep(1000);
-			DestroyWindow(G_hWnd);			
-//			PostMessage(G_hWnd,WM_DESTROY,0,0);
-			//PostQuitMessage(0);
-		break;
-
-		default:
-			//fprintf(Stub_Log,"<%d> Unknown Signal\n",*TimerPtr);
-			return DefWindowProc(hWnd, message, wParam, lParam);
-   }
-   return 0;
-}
-
-
-int APIENTRY WinMain(HINSTANCE hInstance,
-                     HINSTANCE hPrevInstance,
-                     LPSTR     lpCmdLine,
-                     int       nCmdShow)
-{
-	ConfigurationDB cfg;
-	g_cfg = &cfg;
-	if (0) {
-		// Write ConfigurationDB.
-		cfg.setCategory("Primary");
-		cfg.addEntry(new CFGInteger("MusicEnable", 1));
-		cfg.addEntry(new CFGInteger("ResolutionX", 640));
-		cfg.addEntry(new CFGInteger("ResolutionY", 480));
-		cfg.addEntry(new CFGInteger("FullScreenMode", 1));
-		cfg.addEntry(new CFGInteger("ProfilerEnable", 1));
-		cfg.toFile("rev.cfg");
-	} else {
-		// Read ConfigurationDB.
-		cfg.fromFile("rev.cfg");
-	}
-
-	g_playMusic = cfg.extractInteger("MusicEnable");
-	g_profilerActive = cfg.extractInteger("ProfilerEnable");
-	g_demoXRes = cfg.extractInteger("ResolutionX");
-	g_demoYRes = cfg.extractInteger("ResolutionY");
-	g_fullScreenMode = cfg.extractInteger("FullScreenMode");
-
-
-	//MID = GetCurrentThreadId();
-	//
-	//SDL_Window* window;                    // Declare a pointer
-
-	//SDL_Init(SDL_INIT_VIDEO);              // Initialize SDL2
-
-	//uint32_t flags = SDL_WINDOW_ALWAYS_ON_TOP;
-
-	//if (g_fullScreenMode) {
-	//	flags |= SDL_WINDOW_FULLSCREEN;
-	//}
-
-	//// Create an application window with the following settings:
-	//window = SDL_CreateWindow(
-	//	G_TitleStr,		                   // window title
-	//	SDL_WINDOWPOS_CENTERED,           // initial x position
-	//	SDL_WINDOWPOS_CENTERED,           // initial y position
-	//	g_demoXRes,                               // width, in pixels
-	//	g_demoYRes,                               // height, in pixels
-	//	flags                   // flags - see below
-	//);
-
-	MSG msg;
-	G_hInst = hInstance;
-	WNDCLASSEX wcex;
-	wcex.cbSize = sizeof(WNDCLASSEX);
-
-	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= (WNDPROC)WndProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= G_hInst;
-	wcex.hIcon			= NULL;//LoadIcon(G_hInst, (LPCTSTR)IDI_W32STUB);
-	wcex.hCursor		= LoadCursor(NULL, IDC_HELP);
-	wcex.hbrBackground	= (HBRUSH)(COLOR_DESKTOP+1);
-	wcex.lpszMenuName	= NULL;
-	wcex.lpszClassName	= G_WindowClassStr;
-	wcex.hIconSm		= NULL;//LoadIcon(wcex.hInstance, (LPCTSTR)IDI_SMALL);
-
-	if (!RegisterClassEx(&wcex)) return 0;
-
-//	HACCEL hac;
-//	hac = CreateAcceleratorTable(NULL,0);
-//	G_hWnd = CreateWindowEx(WS_EX_APPWINDOW,G_WindowClassStr,G_TitleStr,WS_OVERLAPPEDWINDOW,0,0,0,0, NULL, NULL, G_hInst, NULL);
-    G_hWnd = CreateWindowEx(WS_EX_TOPMOST,
-                          G_WindowClassStr,
-                          G_TitleStr,
-                          WS_POPUP,
-                          0,
-                          0,
-                          0,//GetSystemMetrics(SM_CXSCREEN),
-                          0,//GetSystemMetrics(SM_CYSCREEN),
-                          NULL,
-                          NULL,
-                          G_hInst,
-                          NULL);
-
-    ShowWindow(G_hWnd, nCmdShow);
-    UpdateWindow(G_hWnd);
-    SetFocus(G_hWnd);
-
-	// Ow shit
-	// STUB must initialize all video,raster and render devices.
-	//
-	_beginthread(StubbedThread,64*1024,NULL);
- 
-	// do the stuff
-	while (GetMessage(&msg, NULL, 0, 0))
-	{
-		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
-	
-	return 0;
-}
-#endif 
-
-// void SysSleep(dword ticks)
-// {
-// 	Sleep(ticks);
-// }
-
 
 #include "SDL2.h"
 
@@ -1478,26 +1277,26 @@ int main(int argc, const char *argv[])
     while (1)
     {
         SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_QUIT) exit(0);
-			if (event.type == SDL_KEYDOWN) {
-				
-				//fprintf(Stub_Log,"<%d> Keyboard Key [%d] down\n",*TimerPtr,wParam);
-				Keyboard[event.key.keysym.scancode] = 1;
-			}
-			if (event.type == SDL_KEYUP) {
-				
-				//fprintf(Stub_Log,"<%d> Keyboard Key [%d] down\n",*TimerPtr,wParam);
-				Keyboard[event.key.keysym.scancode] = 0;
-			}
-        }
-
-        //
-        // Display the pixel buffer here.
-        //
+        SDL_WaitEvent(&event);
+		//std::cerr << "event type is " << event.type << std::endl;
+		if (event.type == SDL_QUIT) {
+			break;
+		}
+		if (event.type == SDL_KEYDOWN) {
+			
+			//fprintf(Stub_Log,"<%d> Keyboard Key [%d] down\n",Timer,wParam);
+			Keyboard[event.key.keysym.scancode] = 1;
+		}
+		if (event.type == SDL_KEYUP) {
+			
+			//fprintf(Stub_Log,"<%d> Keyboard Key [%d] down\n",Timer,wParam);
+			Keyboard[event.key.keysym.scancode] = 0;
+		}
     }
 
+out:
 	t.join();
+	SDL_DestroyRenderer((SDL_Renderer *)MainSurf->Renderer);
+	SDL_Quit();
 	return 0;
 }

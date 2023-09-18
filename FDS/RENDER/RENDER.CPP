@@ -2036,7 +2036,7 @@ Away:Tot = Timer-TTrd;
 			 }
 		 }
 #ifdef RUNTIME_INFO_L1
-		 sprintf(Str,"Time = %d , Frame = %5.1f",Timer,CurFrame);
+		 sprintf(Str,"Time = %d , Frame = %5.1f",Timer.load(), CurFrame);
 		 Y = OutTextXY(VPage,0,Y+15,Str,64);
 		 sprintf(Str,"Inst. FPS = %3.2f (%3.2f)",FPS,100.0*(float)Frames/(float)Timer);
 		 Y = OutTextXY(VPage,0,Y+15,Str,64);

@@ -452,7 +452,7 @@ extern int32_t Basic_FOffs; //basic font offset
 // ISR variables and structures
 const int32_t Rate_Div = 1193180;
 const unsigned int Basic_Rate = 0xFFFF;
-extern volatile int32_t Timer;
+extern std::atomic<int32_t> Timer;
 extern int32_t Old_Int_Count,Old_Int_Rate;
 extern volatile char Keyboard[128];
 

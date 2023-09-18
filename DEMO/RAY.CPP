@@ -105,8 +105,6 @@ void Run_Ray()
 	XMMMatrix CamMat;
 
 
-	Matrix_Identity(CamMat.XMMMatrix);
-
 	float ST;
 	int32_t timerStack[20], timerIndex = 0;
 	for(int i=0; i<20; i++)
@@ -152,7 +150,7 @@ void Run_Ray()
 				Direction1.z=256.0*XResFactor;
 				Direction1.w = .0f;
 				auto U = CamMat * Direction1;
-				MatrixXVector(CamMat.XMMMatrix,&Direction1,&U);
+				MatrixXVector(CamMat.Data,&Direction1,&U);
 				Direction1=U;
 				Direction1.Normalize();
 //				Radius = std::max(std::max(fabs(Direction1.y), fabs(Direction1.x)), fabs(Direction1.z));//1.0;//sin(Direction1.x) * cos(Direction1.z);

@@ -9,7 +9,7 @@
 #include "Base/FDS_DECS.H"
 
 //Externals
-volatile int32_t Timer;
+std::atomic<int32_t> Timer;
 int32_t Old_Int_Count,Old_Int_Rate;
 volatile char Keyboard[128];
 int32_t KeyTT;
