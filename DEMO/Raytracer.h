@@ -1,7 +1,7 @@
 #ifndef _DEMO_RAYTRACER_H_INCLUDED
 #define _DEMO_RAYTRACER_H_INCLUDED
 
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DECS.h"
 #include "Base/TriMesh.h"
 #include "Base/Face.h"
 #include "Base/Vector.h"

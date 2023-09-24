@@ -1,8 +1,8 @@
 #ifndef DEMO_H_INC
 #define DEMO_H_INC
 
-#include "Base/FDS_VARS.H"
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_VARS.h"
+#include "Base/FDS_DECS.h"
 #include "Raytracer.h"
 #include <Base/Scene.h>
 #include "../Modplayer/Modplayer.h"

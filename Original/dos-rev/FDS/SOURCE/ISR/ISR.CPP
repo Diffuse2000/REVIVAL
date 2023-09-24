@@ -4,9 +4,9 @@
 #include <DOS.H>
 
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "..\FDS_DEFS.h"
+#include "..\FDS_VARS.h"
+#include "..\FDS_DECS.h"
 
 //Externals
 long Timer,Old_Int_Count,Old_Int_Rate;

@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "Base/FDS_DEFS.H"     // Definitions
-#include "Base/FDS_VARS.H"     // Variables and structures
-#include "Base/FDS_DECS.H"     // Declarations
+#include "Base/FDS_DEFS.h"     // Definitions
+#include "Base/FDS_VARS.h"     // Variables and structures
+#include "Base/FDS_DECS.h"     // Declarations
 
 // Explosion related particles, not associated with scene.
 Particle *ExpPcls;

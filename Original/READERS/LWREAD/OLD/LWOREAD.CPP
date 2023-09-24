@@ -32,8 +32,8 @@
 #include <DOS.H>
 #include <StdIO.H>
 
-#include "E:\Projects\FDS\Source\FDS_Defs.H"
-#include "E:\Projects\FDS\Source\FDS_Vars.H"
+#include "E:\Projects\FDS\Source\FDS_DEFS.h"
+#include "E:\Projects\FDS\Source\FDS_VARS.h"
 
 #define DebugMode
 

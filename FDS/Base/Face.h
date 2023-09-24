@@ -5,7 +5,7 @@
 #include "BaseDefs.h"
 #include "Material.h"
 #include "Vertex.h"
-#include "FDS_DEFS.H"
+#include "FDS_DEFS.h"
 
 #pragma pack(push, 1)
 

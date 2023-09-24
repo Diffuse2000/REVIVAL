@@ -1,9 +1,9 @@
 #include <StdIO.H>
 #include <StdLIB.H>
 
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
-#include "..\FDS_Defs.H"
+#include "..\FDS_VARS.h"
+#include "..\FDS_DECS.h"
+#include "..\FDS_DEFS.h"
 
 float FOVX,FOVY;
 

@@ -4,9 +4,9 @@
 //#include <conio.h>
 #include <math.h>
 
-#include "Base/FDS_VARS.H"
-#include "Base/FDS_DECS.H"
-#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.h"
+#include "Base/FDS_DECS.h"
+#include "Base/FDS_DEFS.h"
 
 float _t_fxfl;
 

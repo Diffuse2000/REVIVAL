@@ -6,9 +6,9 @@
 #include <DOS.H>
 #include <i86.H>
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "..\FDS_DEFS.h"
+#include "..\FDS_VARS.h"
+#include "..\FDS_DECS.h"
 
 static long M_x,M_y;
 

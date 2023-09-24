@@ -16,7 +16,7 @@
 //                   For some reason, modular unit takes 32Kb without giving it back
 //                   in the end of the dealloc process.
 
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DECS.h"
 
 
 Module_MB *DPMI_Core;

@@ -8,7 +8,7 @@
 #include <mmsystem.h>
 
 #include "Win32Display.h"
-#include <Base/FDS_VARS.H>
+#include <Base/FDS_VARS.h>
 
 dword GDI_InitDisplay();
 dword V_Create(VESA_Surface *VS);

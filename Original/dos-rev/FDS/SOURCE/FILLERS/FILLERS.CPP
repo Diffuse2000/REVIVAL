@@ -5,9 +5,9 @@
 #include <Math.H>
 
 
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
-#include "..\FDS_Defs.H"
+#include "..\FDS_VARS.h"
+#include "..\FDS_DECS.h"
+#include "..\FDS_DEFS.h"
 
 void Draw_Line_8Bit(Vertex *V1,Vertex *V2)
 {

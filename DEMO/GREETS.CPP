@@ -3,7 +3,7 @@
 #include "GREETS.H"
 #include "FillerTest.h"
 #include "MISC/PREPROC.H"
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DECS.h"
 #include <vector>
 #include <VESA/Vesa.h>
 

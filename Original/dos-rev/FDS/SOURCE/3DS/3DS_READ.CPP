@@ -5,9 +5,9 @@
 #include <DOS.H>
 #include <StdIO.H>
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "..\FDS_DEFS.h"
+#include "..\FDS_VARS.h"
+#include "..\FDS_DECS.h"
 #include "I_Defs.H"
 
 #include "FUtils.CPP"

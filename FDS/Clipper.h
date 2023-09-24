@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Base/Vertex.h"
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DECS.h"
 #include "FRUSTRUM.H"
 
 class _2DClipper {

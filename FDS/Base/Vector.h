@@ -5,6 +5,7 @@
 // #define SIMDE_ENABLE_NATIVE_ALIASES
 
 #include <stdio.h>
+#include "simde/x86/sse.h"
 #include "simde/x86/sse4.1.h"
 #include <math.h>
 
@@ -207,6 +208,28 @@ struct alignas(16) XMMVector
 			float x, y, z, w;
 		};
 	};
+
+
+	inline this_type abs() const 
+	{
+		this_type result;
+		result.v = _mm_andnot_ps(_mm_set1_ps(-0.), v);
+		return result;
+	}
+
+	inline friend this_type max(const this_type &lhs, const this_type &rhs) 
+	{
+		this_type result;
+		result.v = _mm_max_ps(lhs.v, rhs.v);
+		return result;
+	}
+
+	inline friend this_type max(const this_type &lhs, float f) 
+	{
+		this_type rhs;
+		rhs.v = _mm_set1_ps(f);
+		return max(lhs, rhs);
+	}
 
 	// Returns Vector length of Vector V.
 	inline __m128 InverseNorm()

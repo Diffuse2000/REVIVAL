@@ -5,9 +5,9 @@
 #include <StdIO.H>
 
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "..\FDS_DEFS.h"
+#include "..\FDS_VARS.h"
+#include "..\FDS_DECS.h"
 
 TriMesh *V3D_Object;
 FILE *V3D_Mesh;
@@ -31,7 +31,7 @@ char Load_V3D(Scene *Sc,char *FileName)
   fread(&LPolys,4,1,V3D_Mesh);
 
   #ifdef DebugInfo
-    printf("°  (%d Vertices,%d Polygons) \n",LPts,LPolys);
+    printf("ï¿½  (%d Vertices,%d Polygons) \n",LPts,LPolys);
     getchar();
   #endif
 

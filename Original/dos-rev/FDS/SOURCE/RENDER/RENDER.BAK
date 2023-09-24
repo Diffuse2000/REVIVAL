@@ -9,9 +9,9 @@
 #include <DOS.H>
 #include <Time.H>
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "..\FDS_DEFS.h"
+#include "..\FDS_VARS.h"
+#include "..\FDS_DECS.h"
 
 Scene *CurScene;
 Face **FList;

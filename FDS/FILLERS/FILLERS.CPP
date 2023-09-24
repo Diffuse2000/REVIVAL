@@ -6,9 +6,9 @@
 #include <Base/Omni.h>
 #include <Base/Scene.h>
 
-#include "Base/FDS_VARS.H"
-#include "Base/FDS_DECS.H"
-#include "Base/FDS_DEFS.H"
+#include "Base/FDS_VARS.h"
+#include "Base/FDS_DECS.h"
+#include "Base/FDS_DEFS.h"
 #include "SimdHelpers.h"
 #include <Threads.h>
 // #define SIMDE_ENABLE_NATIVE_ALIASES
@@ -2144,7 +2144,7 @@ void TBR_Sprite(Face* F, Vertex **V, dword numVerts, dword miplevel)
 		if (y<0) y=0;
 		if (y>YRes-1) y=YRes-1;
 		if (
-			(Z > ((word *)VPage) [(PageSize>>1)+XRes*y+x]) && // depth test
+			// (Z > ((word *)VPage) [(PageSize>>1)+XRes*y+x]) && // depth test
 			((_A->PX + edgeLen > 0) && (_A->PX - edgeLen < XRes)) // x-clipping
 			)
 		{
@@ -2152,6 +2152,7 @@ void TBR_Sprite(Face* F, Vertex **V, dword numVerts, dword miplevel)
 //			spriteClipY1 = 0;
 //			spriteClipY2 = YRes;
 //			Spriter32(_A->PX,_A->PY,edgeLen,edgeLen,F->Txtr->Txtr->Data,VPage, Color);
+			// F->A->RZ = Z;
 			InsertSpriteToTBR(F, _A->PY, edgeLen);
 		}
 
@@ -2192,14 +2193,14 @@ void TBR_Render(Scene *Sc)
 				B = V->LB;
 				dword Color = (R << 16) + (G << 8) + B;
 
-				Spriter(V->PX,
+				Spriter<32, true>(V->PX,
 					V->PY,
 					edgeLen,
 					edgeLen,
 					F->Txtr->Txtr->Data,
 					VPage,
 					Color, 
-					0,
+					0xFF80 - Fist(g_zscale * V->TPos.z),
 					0,
 					spriteClipY1,
 					XRes,

@@ -1,7 +1,7 @@
 #ifndef IX_H_INCLUDED
 #define IX_H_INCLUDED
 
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DECS.h"
 #include "F4Vec.h"
 
 //#define MEASURE_ZSTATS

@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "Base/FDS_DEFS.H"
-#include "Base/FDS_VARS.H"
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DEFS.h"
+#include "Base/FDS_VARS.h"
+#include "Base/FDS_DECS.h"
 #include "Base/TriMesh.h"
 #include "Base/Omni.h"
 #include "Base/Scene.h"

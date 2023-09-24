@@ -5,9 +5,9 @@
 #include <IO.H>
 #include <String.H>
 
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
-#include "..\FDS_Defs.H"
+#include "..\FDS_VARS.h"
+#include "..\FDS_DECS.h"
+#include "..\FDS_DEFS.h"
 
 Material * MatLib = NULL; // Internal Material Library. This is global for
                    // all Scenes.

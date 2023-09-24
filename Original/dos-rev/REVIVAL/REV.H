@@ -6,9 +6,9 @@
 #include <math.h>
 #include <string.h>
 
-#include "fds_vars.h"
-#include "fds_decs.h"
-#include "fds_defs.h"
+#include "FDS_VARS.h"
+#include "FDS_DECS.h"
+#include "FDS_DEFS.h"
 
 
 extern void Destroy_Scene(Scene *Sc);

@@ -2,7 +2,7 @@
 #define _REV_SDL2_H_INCLUDED
 
 #include <SDL.h>
-#include "Base/FDS_VARS.H"
+#include "Base/FDS_VARS.h"
 
 dword SDL2_InitDisplay(SDL_Window * window);
 dword SDL2_RemoveDisplay();

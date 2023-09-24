@@ -1,3 +1,4 @@
+#include "Base/Vector.h"
 #include "Rev.h"
 #include "IMGGENR/IMGGENR.H"
 #include "VESA/Vesa.h"
@@ -58,6 +59,12 @@ static Image *SfxImage;
 
 static int32_t InitScreenXRes, InitScreenYRes;
 
+float sdBox(const XMMVector &p, const XMMVector &b)
+{
+  auto q = p.abs() - b;
+  return max(q,0.0).Length() + std::min(std::max(q.x,std::max(q.y,q.z)),0.0f);
+}
+
 class RT
 {
 	int32_t xres = XRes;
@@ -77,12 +84,20 @@ public:
 
 	}
 
+	std::pair<float, int> map(XMMVector p)
+	{
+		int mat = 0;
+		XMMVector box{}
+		sdBox(p, const XMMVector &b)
+	}
+
 	void RunFrame()
 	{
 		XMMVector Intersection, Origin, Direction, U;
 		XMMVector CameraPos(0,0,0);
 		XMMMatrix CamMat;
-	
+		const int MAX_ITERATIONS = 128;	
+		
 
 		for (int y=0;y<=yres;y++)
 		{
@@ -96,6 +111,9 @@ public:
 				Direction = CamMat * Direction;
 
 				Direction.Normalize();
+
+
+
 			}
 		}
 

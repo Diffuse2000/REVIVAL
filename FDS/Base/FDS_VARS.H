@@ -1,6 +1,6 @@
 #ifndef FDS_VARS_H_INCLUDED
 #define FDS_VARS_H_INCLUDED
-#include "FDS_DEFS.H"
+#include "FDS_DEFS.h"
 #include "BaseDefs.h"
 #include <stdexcept>
 #include <atomic>

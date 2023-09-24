@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "Base/FDS_DECS.h"
+#include "Base/Scene.h"
 #include "F4Vec.h"
 
 //#include <intrin.h>
@@ -12,7 +13,8 @@
 #include <array>
 #include "SimdHelpers.h"
 
-namespace barry {
+namespace barryG {
+
 constexpr const int32_t TILE_SIZE = 8;
 using TScreenCoord = int32_t;
 
@@ -29,7 +31,6 @@ struct alignas(16) RVector4 {
 
 struct TileTxtrInfo {
 	float uz0, vz0, rz0;
-	float r0, g0, b0, a0;
 	float uz1, vz1, rz1;
 	float uz2, vz2, rz2;
 	float uz3, vz3, rz3;
@@ -44,6 +45,7 @@ struct Tile {
 
 	float rz0;
 	TileTxtrInfo t0;
+	
 };
 
 using Triangle = RVector4[3];
@@ -107,7 +109,7 @@ inline uint32_t tile_du(uint32_t u, uint32_t vbits, uint32_t umask) {
 	return tile_u(u, vbits, umask) | 0x800 | (((1 << vbits) - 1) << 14);
 }
 
-template <barry::TBlendMode BlendMode, barry::TTextureMode TextureMode>
+template <barryG::TBlendMode BlendMode, barryG::TTextureMode TextureMode>
 struct TileRasterizer {
 	TileRasterizer(Vertex** V, byte* dstSurface, int32_t bpsl, int32_t xres, int32_t yres, Texture* Txtr, int miplevel)
 		: V(V)
@@ -142,10 +144,9 @@ struct TileRasterizer {
 		float dv1zdx, dv1zdy;
 	};
 	float drzdx, drzdy;
-	float dadx, dady;
-	float drdx, drdy;
-	float dgdx, dgdy;
-	float dbdx, dbdy;
+	float dnxzdx, dnxzdy;
+	float dnyzdx, dnyzdy;
+	float dnzzdx, dnzzdy;
 
 	uint32_t umask;// = (1 << t0.LogWidth) - 1);
 	uint32_t vmask;// = (1 << t0.LogHeight) - 1);
@@ -168,7 +169,7 @@ struct TileRasterizer {
 		return int16_t(f);
 	}
 
-	void apply_exact(const barry::Tile& tile) {
+	void apply_exact(const barryG::Tile& tile) {
 		auto scanline = dstSurface + tile.y * TILE_SIZE * bpsl;
 		auto zscanline = dstSurface + PageSize + tile.y * TILE_SIZE * XRes * 2;
 		auto span = ((uint32_t*)scanline) + tile.x * TILE_SIZE;
@@ -197,7 +198,7 @@ struct TileRasterizer {
 
 		Vec8f p_u1z;
 		Vec8f p_v1z;
-		if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) { 
+		if constexpr (TextureMode == barryG::TTextureMode::TEXTURETEXTURE) { 
 			p_u1z = v8_from_arith_seq(tile.t0.uz1, t0.du1zdx); 
 			p_v1z = v8_from_arith_seq(tile.t0.vz1, t0.dv1zdx);
 		}
@@ -244,7 +245,7 @@ struct TileRasterizer {
 					auto blend_color = Vec32us(color);
 
 					auto texture0_samples = gather(Vec8ui(p_offset), t0.TextureAddr, p_mask);
-					if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
+					if constexpr (TextureMode == barryG::TTextureMode::TEXTURETEXTURE) {
 						Vec8i u1 = roundi(p_u1z * p_z * 1024.0f);
 						Vec8i v1 = roundi(p_v1z * p_z * 1024.0f);
 
@@ -278,7 +279,7 @@ struct TileRasterizer {
 			p_rz += Vec8f(drzdy);
 			p_uz += Vec8f(t0.du0zdy);
 			p_vz += Vec8f(t0.dv0zdy);
-			if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
+			if constexpr (TextureMode == barryG::TTextureMode::TEXTURETEXTURE) {
 				p_u1z += Vec8f(t0.du1zdy);
 				p_v1z += Vec8f(t0.dv1zdy);
 			}
@@ -374,7 +375,7 @@ struct TileRasterizer {
 						}
 					};
 
-					if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
+					if constexpr (TextureMode == barryG::TTextureMode::TEXTURETEXTURE) {
 						tile.t0.uz1 = (v1.EUZ + (x * TILE_SIZE - v1.PX) * t0.du1zdx + (y * TILE_SIZE - v1.PY) * t0.du1zdy);
 						tile.t0.vz1 = (v1.EVZ + (x * TILE_SIZE - v1.PX) * t0.dv1zdx + (y * TILE_SIZE - v1.PY) * t0.dv1zdy);
 					}
@@ -389,16 +390,16 @@ struct TileRasterizer {
 
 } // namespace barry
 
-template <barry::TBlendMode BlendMode, barry::TTextureMode TextureMode = barry::TTextureMode::NORMAL>
+template <barryG::TBlendMode BlendMode, barryG::TTextureMode TextureMode = barryG::TTextureMode::NORMAL>
 void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 	//for (dword i = 0; i < numVerts; ++i) {
 	//	float z = 1.0f / V[i]->RZ;
 	//	V[i]->U = V[i]->UZ * z;
 	//	V[i]->V = V[i]->VZ * z;
 	//}
-	barry::TileRasterizer<BlendMode, TextureMode> r(V, VPage, VESA_BPSL, XRes, YRes, F->Txtr->Txtr, miplevel);
+	barryG::TileRasterizer<BlendMode, TextureMode> r(V, VPage, VESA_BPSL, XRes, YRes, F->Txtr->Txtr, miplevel);
 
-	if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
+	if constexpr (TextureMode == barryG::TTextureMode::TEXTURETEXTURE) {
 		r.t0.TextureAddr1 = (dword*)F->ReflectionTexture->Data;
 	}
 
@@ -454,21 +455,19 @@ void TheOtherBarry(Face* F, Vertex** V, dword numVerts, dword miplevel) {
 		r.t0.dv0zdx = im[0] * (v2.VZ - v1.VZ) + im[1] * (v3.VZ - v1.VZ);
 		r.t0.dv0zdy = im[2] * (v2.VZ - v1.VZ) + im[3] * (v3.VZ - v1.VZ);
 
-		if constexpr (TextureMode == barry::TTextureMode::TEXTURETEXTURE) {
+		if constexpr (TextureMode == barryG::TTextureMode::TEXTURETEXTURE) {
 			r.t0.du1zdx = im[0] * (v2.EUZ - v1.EUZ) + im[1] * (v3.EUZ - v1.EUZ);
 			r.t0.du1zdy = im[2] * (v2.EUZ - v1.EUZ) + im[3] * (v3.EUZ - v1.EUZ);
 			r.t0.dv1zdx = im[0] * (v2.EVZ - v1.EVZ) + im[1] * (v3.EVZ - v1.EVZ);
 			r.t0.dv1zdy = im[2] * (v2.EVZ - v1.EVZ) + im[3] * (v3.EVZ - v1.EVZ);
 		}
 
-		r.dadx = (im[0] * (float(v2.LA) - float(v1.LA)) + im[1] * (float(v3.LA) - float(v1.LA)));
-		r.dady = (im[2] * (float(v2.LA) - float(v1.LA)) + im[3] * (float(v3.LA) - float(v1.LA)));
-		r.drdx = (im[0] * (float(v2.LR) - float(v1.LR)) + im[1] * (float(v3.LR) - float(v1.LR)));
-		r.drdy = (im[2] * (float(v2.LR) - float(v1.LR)) + im[3] * (float(v3.LR) - float(v1.LR)));
-		r.dgdx = (im[0] * (float(v2.LG) - float(v1.LG)) + im[1] * (float(v3.LG) - float(v1.LG)));
-		r.dgdy = (im[2] * (float(v2.LG) - float(v1.LG)) + im[3] * (float(v3.LG) - float(v1.LG)));
-		r.dbdx = (im[0] * (float(v2.LB) - float(v1.LB)) + im[1] * (float(v3.LB) - float(v1.LB)));
-		r.dbdy = (im[2] * (float(v2.LB) - float(v1.LB)) + im[3] * (float(v3.LB) - float(v1.LB)));
+		r.dnxzdx = (im[0] * (float(v2.LA) - float(v1.LA)) + im[1] * (float(v3.LA) - float(v1.LA)));
+		r.dnxzdy = (im[2] * (float(v2.LA) - float(v1.LA)) + im[3] * (float(v3.LA) - float(v1.LA)));
+		r.dnyzdx = (im[0] * (float(v2.LR) - float(v1.LR)) + im[1] * (float(v3.LR) - float(v1.LR)));
+		r.dnyzdy = (im[2] * (float(v2.LR) - float(v1.LR)) + im[3] * (float(v3.LR) - float(v1.LR)));
+		r.dnzzdx = (im[0] * (float(v2.LG) - float(v1.LG)) + im[1] * (float(v3.LG) - float(v1.LG)));
+		r.dnzzdy = (im[2] * (float(v2.LG) - float(v1.LG)) + im[3] * (float(v3.LG) - float(v1.LG)));
 		r.umask = (1 << r.t0.LogWidth) - 1;
 		r.vmask = (1 << r.t0.LogHeight) - 1;
 

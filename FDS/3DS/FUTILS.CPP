@@ -1,6 +1,6 @@
-#include <Base/FDS_VARS.H>
+#include <Base/FDS_VARS.h>
 #include "I_defs.h"
-#include <Base/FDS_DECS.H>
+#include <Base/FDS_DECS.h>
 #include <Base/Scene.h>
 
 int32_t Temp;

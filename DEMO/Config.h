@@ -8,7 +8,7 @@
 #ifndef _FLD_DEMO_CONFIG_H_INCLUDED
 #define _FLD_DEMO_CONFIG_H_INCLUDED
 
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DECS.h"
 #include <vector>
 
 char *fld_strdup(const char *s);

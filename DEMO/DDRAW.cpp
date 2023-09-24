@@ -1,8 +1,8 @@
 #include "DDRAW.h"
 #include <float.h>
 #include <stdio.h>
-#include <Base/FDS_VARS.H>
-#include <Base/FDS_DECS.H>
+#include <Base/FDS_VARS.h>
+#include <Base/FDS_DECS.h>
 
 //#define fprintf //
 

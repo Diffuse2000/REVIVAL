@@ -6,9 +6,9 @@
 // Real next ;) : Add Euler angle spline interpolation. (WAITING: LWS Reader)
 // done. this code was left alone for 6+ months. arrgh.
 
-#include "Base/FDS_DEFS.H"
-#include "Base/FDS_VARS.H"
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DEFS.h"
+#include "Base/FDS_VARS.h"
+#include "Base/FDS_DECS.h"
 #include "simde/x86/sse4.1.h"
 
 //Externals

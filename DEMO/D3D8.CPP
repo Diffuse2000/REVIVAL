@@ -1,5 +1,5 @@
-#include <Base/FDS_VARS.H>
-#include <Base/FDS_DECS.H>
+#include <Base/FDS_VARS.h>
+#include <Base/FDS_DECS.h>
 #include "D3D8.h"
 #include "D3D8i.h"
 

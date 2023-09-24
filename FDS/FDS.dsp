@@ -957,15 +957,15 @@ SOURCE=.\SkyCube\SkyCube.h
 # End Group
 # Begin Source File
 
-SOURCE=.\FDS_DECS.H
+SOURCE=.\FDS_DECS.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\FDS_DEFS.H
+SOURCE=.\FDS_DEFS.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\FDS_VARS.H
+SOURCE=.\FDS_VARS.h
 # End Source File
 # End Target
 # End Project

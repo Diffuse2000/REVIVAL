@@ -1,6 +1,6 @@
 #define POINTER_64
 #include "GDI.H"
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DECS.h"
 
 /*
 	GDI VIDEO DRIVER 

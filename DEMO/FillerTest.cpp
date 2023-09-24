@@ -1058,6 +1058,7 @@ static void drawPoly(float DT)
 	V[i].LR = 2;
 	V[i].LG = 2;
 	V[i].LB = 253;
+	V[i].N = {0.f, 0.f, 1.f};
 
 	i = 1;
 	V[i].PX = 900.1 + W * c - H * s;
@@ -1071,6 +1072,7 @@ static void drawPoly(float DT)
 	V[i].LR = 2;
 	V[i].LG = 2;
 	V[i].LB = 127;
+	V[i].N = {0.f, 0.f, 1.f};
 
 	i = 2;
 	V[i].PX = 900.1 + W * c + H * s;
@@ -1084,6 +1086,7 @@ static void drawPoly(float DT)
 	V[i].LR = 253;
 	V[i].LG = 2;
 	V[i].LB = 2;
+	V[i].N = {0.f, 0.f, 1.f};
 
 	i = 3;
 	V[i].PX = 900.1 - W * c + H * s;
@@ -1095,6 +1098,7 @@ static void drawPoly(float DT)
 	V[i].LR = 255;
 	V[i].LG = 2;
 	V[i].LB = 127;
+	V[i].N = {0.f, 0.f, 1.f};
 
 	for (i = 0; i != 4; ++i) {
 		V[i].LR = V[i].LG = V[i].LB = V[i].LA = 255;
@@ -1329,14 +1333,14 @@ void FillerTest()
 		if (timerIndex == 20)
 		{
 			timerIndex = 0;
-			sprintf(MSGStr, "%f FPS", 2000.0 / (float)(timerStack[19] - timerStack[timerIndex]));
+			snprintf(MSGStr, sizeof(MSGStr), "%f FPS", 2000.0 / (float)(timerStack[19] - timerStack[timerIndex]));
 		}
 		else {
-			sprintf(MSGStr, "%f FPS", 2000.0 / (float)(timerStack[timerIndex - 1] - timerStack[timerIndex]));
+			snprintf(MSGStr, sizeof(MSGStr), "%f FPS", 2000.0 / (float)(timerStack[timerIndex - 1] - timerStack[timerIndex]));
 		}
 		dword scroll = OutTextXY(VPage, 0, 0, MSGStr, 255);
 
-		sprintf(MSGStr, "%f frame", CurFrame);
+		snprintf(MSGStr, sizeof(MSGStr), "%f frame", CurFrame);
 		scroll = OutTextXY(VPage, 0, scroll + 15, MSGStr, 255);
 
 

@@ -491,9 +491,9 @@
     <ClInclude Include="Base\Color.h" />
     <ClInclude Include="Base\Edge.h" />
     <ClInclude Include="Base\Face.h" />
-    <ClInclude Include="Base\FDS_DECS.H" />
-    <ClInclude Include="Base\FDS_DEFS.H" />
-    <ClInclude Include="Base\FDS_VARS.H" />
+    <ClInclude Include="Base\FDS_DECS.h" />
+    <ClInclude Include="Base\FDS_DEFS.h" />
+    <ClInclude Include="Base\FDS_VARS.h" />
     <ClInclude Include="Base\KeyFrame.h" />
     <ClInclude Include="Base\Material.h" />
     <ClInclude Include="Base\Matrix.h" />

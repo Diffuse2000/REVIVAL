@@ -2,9 +2,9 @@
 #include <i86.H>
 #endif
 
-#include "Base/FDS_DEFS.H"
-#include "Base/FDS_VARS.H"
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DEFS.h"
+#include "Base/FDS_VARS.h"
+#include "Base/FDS_DECS.h"
 
 #ifdef _C_WATCOM
 void Fist(int32_t *dst, float f);

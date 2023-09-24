@@ -2,9 +2,9 @@
 #include <Base/Object.h>
 #include <Base/Scene.h>
 #include <Base/Omni.h>
-#include "Base/FDS_DEFS.H"
-#include "Base/FDS_VARS.H"
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DEFS.h"
+#include "Base/FDS_VARS.h"
+#include "Base/FDS_DECS.h"
 
 
 TriMesh *V3D_Object;

@@ -783,13 +783,13 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\FDS_DECS.H">
+			RelativePath=".\FDS_DECS.h">
 		</File>
 		<File
-			RelativePath=".\FDS_DEFS.H">
+			RelativePath=".\FDS_DEFS.h">
 		</File>
 		<File
-			RelativePath=".\FDS_VARS.H">
+			RelativePath=".\FDS_VARS.h">
 		</File>
 	</Files>
 	<Globals>

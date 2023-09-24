@@ -10,9 +10,9 @@ Flood Demo System - Flood scene file reader
 #include <string.h>
 #include <math.h>
 
-#include "Base/FDS_DEFS.H"
-#include "Base/FDS_VARS.H"
-#include "Base/FDS_DECS.H"
+#include "Base/FDS_DEFS.h"
+#include "Base/FDS_VARS.h"
+#include "Base/FDS_DECS.h"
 
 #include "LWREAD.H"
 #include "FLD_READ.H"

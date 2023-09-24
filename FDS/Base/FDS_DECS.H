@@ -1,6 +1,6 @@
 #ifndef FDS_DECS_H_INCLUDED
 #define FDS_DECS_H_INCLUDED
-#include "FDS_VARS.H"
+#include "FDS_VARS.h"
 #include "Vector.h"
 // Math declarations
 

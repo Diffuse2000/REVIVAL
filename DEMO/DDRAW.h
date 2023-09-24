@@ -4,7 +4,7 @@
 #define POINTER_64
 #include <ddraw.h>
 #include "Win32Display.h"
-#include "Base/FDS_VARS.H"
+#include "Base/FDS_VARS.h"
 
 #define SAFE_RELEASE(x) if (x) x->Release()
 

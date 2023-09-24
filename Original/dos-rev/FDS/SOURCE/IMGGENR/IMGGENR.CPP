@@ -8,9 +8,9 @@
 
 
 
-#include "..\FDS_Defs.H"
-#include "..\FDS_Vars.H"
-#include "..\FDS_Decs.H"
+#include "..\FDS_DEFS.h"
+#include "..\FDS_VARS.h"
+#include "..\FDS_DECS.h"
 
 DWord WOBPOINTSHEIGHT;
 Material Flare_IR,Flare_IG,Flare_IB;

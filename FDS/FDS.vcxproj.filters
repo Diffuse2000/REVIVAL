@@ -255,13 +255,13 @@
     <ClInclude Include="Base\Face.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="Base\FDS_DECS.H">
+    <ClInclude Include="Base\FDS_DECS.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="Base\FDS_DEFS.H">
+    <ClInclude Include="Base\FDS_DEFS.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="Base\FDS_VARS.H">
+    <ClInclude Include="Base\FDS_VARS.h">
       <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="Base\KeyFrame.h">
