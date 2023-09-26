@@ -203,7 +203,7 @@ endif()
 if (APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES "modplayer")
     target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
-    target_link_directories(${PROJECT_NAME} PUBLIC "/Users/gil-ad.benor/modplayer/target/release/")
+    target_link_directories(${PROJECT_NAME} PUBLIC "../../modplayer/target/release/")
 
 else()
     if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")

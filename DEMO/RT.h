@@ -1,16 +1,12 @@
+#include "Base/BaseDefs.h"
+#include "Base/FDS_DECS.H"
+#include "Base/FDS_VARS.H"
+#include "Base/Vector.h"
 #include "Rev.h"
 #include "IMGGENR/IMGGENR.H"
 #include "VESA/Vesa.h"
 
 #include <algorithm>
-
-void Cross_Fade(byte *U1,byte *U2,byte *Target,int32_t Perc)
-{
-	int32_t I;
-	for(I=0;I<PageSize;I++)
-		Target[I] = (U1[I]*(255-Perc) + U2[I]*Perc)>>8;
-}
-
 
 	// tables, generated and used as an optimization.
 #define TRIG_ACC 4096 //trigonometric table accuracy. must be a power of 2.
@@ -24,39 +20,16 @@ void Cross_Fade(byte *U1,byte *U2,byte *Target,int32_t Perc)
 #endif
 
 
-static float *LenTable;
-static float *SinTable;
-static float *CosTable;
-//static NewGridPoint *Plane_GP;
-//static GridPoint *Plane_GP;
-static GridPointTG *Plane_GP;
-static GridPointT *Code_GP;
-static GridPointT *Gfx_GP;
-static GridPointT *Sfx_GP;
-static VESA_Surface Surf1;
-static VESA_Surface Surf2;
-static VESA_Surface Surf3;
-static VESA_Surface Surf4;
-static VESA_Surface FinalSurf;
-static int32_t numGridPoints;
-static byte *Page1;
-static byte *Page2;
-static byte *Page3;
-static byte *Page4;
-static byte* FinalPage;
-static int32_t TrigOffset;
-static Texture *LogoTexture;
-static Image *LogoImage;
-static Texture *PlaneTexture;
-static Image *PlaneImage;
-static Texture *CodeTexture;
-static Image *CodeImage;
-static Texture *GfxTexture;
-static Image *GfxImage;
-static Texture *SfxTexture;
-static Image *SfxImage;
-
 static int32_t InitScreenXRes, InitScreenYRes;
+
+inline float sdBox(const XMMVector &p, const XMMVector &b)
+{
+  auto q = p.abs() - b;
+  auto maxq = max(q, 0.0);
+  auto maxqlen = maxq.Length();
+  auto boxtest = std::min(std::max(q.x,std::max(q.y,q.z)),0.0f);
+  return maxqlen + boxtest;
+}
 
 class RT
 {
@@ -77,12 +50,23 @@ public:
 
 	}
 
-	void RunFrame()
+	std::pair<float, int> map(XMMVector p)
+	{
+		int mat = 0;
+		XMMVector box{1.0, 1.0, 1.0};
+		return std::make_pair(sdBox(p, box), 1);
+	}
+
+	void RunFrame(float t)
 	{
 		XMMVector Intersection, Origin, Direction, U;
-		XMMVector CameraPos(0,0,0);
+		XMMVector CameraPos(0,0,-10.0);
 		XMMMatrix CamMat;
-	
+		Matrix_Identity(CamMat.Data);
+		const int MAX_ITERATIONS = 128;
+		const float epsilon = 0.01;
+		
+		memset(VPage,0,PageSize + XRes*YRes*sizeof(word));
 
 		for (int y=0;y<=yres;y++)
 		{
@@ -96,10 +80,24 @@ public:
 				Direction = CamMat * Direction;
 
 				Direction.Normalize();
+
+				XMMVector p = CameraPos;
+
+				for (int ii = 0; ii < MAX_ITERATIONS; ++ii)
+				{
+
+					auto d = map(p);
+					if (d.first < epsilon) // hit 
+					{
+						*(dword *)(&Surf1.Data[x * Surf1.BPP + Surf1.BPSL * y]) = 0xff00ff;
+					}
+
+					p += Direction * d.first;
+				}
 			}
 		}
+		Flip(&Surf1);
 
 	}
-
 };
 

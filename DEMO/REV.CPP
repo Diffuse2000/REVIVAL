@@ -1060,6 +1060,8 @@ struct scope_guard {
 	F f;
 };
 
+#include "RT.h"
+
 
 void CodeEntry(void *var)
 {
@@ -1128,6 +1130,16 @@ void CodeEntry(void *var)
 	// Timer = 0;
 	// FillerTest();
 	// return;
+
+	Timer = 0;
+	RT rt;
+
+	while (!Keyboard[ScESC]) 
+	{
+		rt.RunFrame(((float)Timer)/100.0);
+	}
+
+	return;
 
 	Initialize_Glato(); //9.3
 	//Initialize_Nova();
